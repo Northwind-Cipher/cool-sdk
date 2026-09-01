@@ -1,0 +1,60 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: npm audit (fail on high or critical)
+        run: npm audit --omit=dev --audit-level=high
+
+  secrets:
+    name: no secrets in history
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Committed env / key files
+        run: |
+          if git log --all --diff-filter=A --name-only --pretty=format: \
+             | grep -Ev '^$' | grep -E '(^|/)\.env($|\.)|\.pem$|_rsa$|id_ed25519$' \
+             | grep -v '\.env\.example'; then
+            echo "::error::a secret-looking file was committed"; exit 1
+          fi
+          echo "clean"
+      - name: Private key blocks in tracked files
+        run: |
+          if git grep -nI 'BEGIN \(RSA \|EC \|OPENSSH \|PGP \)\?PRIVATE KEY' -- ':!*.md'; then
+            echo "::error::a private key block appears in a tracked file"; exit 1
+          fi
+          echo "clean"
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - uses: github/codeql-action/analyze@v3

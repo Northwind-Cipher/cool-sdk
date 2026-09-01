@@ -1,0 +1,19 @@
+# Run the CooL dstack example inside a container, the way it deploys in a Phala
+# dstack CVM: the guest-agent socket is mounted in from the host.
+#
+#   docker compose -f examples/dstack/docker-compose.yaml up --build
+#
+# Outside a CVM there is no /var/run/dstack.sock and the example exits with
+# COOL_DSTACK_UNAVAILABLE (exit 3) — which is the correct, fail-closed behaviour.
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: examples/dstack/Dockerfile
+    volumes:
+      - /var/run/dstack.sock:/var/run/dstack.sock
+    environment:
+      - COOL_DSTACK_ENDPOINT=/var/run/dstack.sock
+      - COOL_IMAGE_DIGEST=${COOL_IMAGE_DIGEST:-sha256:local-compose-build}
+      - NO_COLOR=1
+    restart: "no"

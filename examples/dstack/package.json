@@ -1,0 +1,9 @@
+{
+  "name": "cool-example-dstack",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node index.mjs" },
+  "dependencies": {
+    "cool-nwc": "file:../.."
+  }
+}

@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.git
+*.tgz
+*.log
+.cool
+coverage
+tests
+docs
+assets
+.github

@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CooL — evidence console</title>
+<style>
+  /* Atlassian's shape, in one file. No fonts to fetch, no CDN, no framework:
+     this has to boot inside a CVM with no outbound network as happily as it
+     does on a laptop, and it ships inside a package whose dependency list is
+     four cryptography libraries. */
+  :root {
+    /* navigation — the dark rail */
+    --nav:#101b34; --nav-deep:#0a1428; --nav-line:rgba(255,255,255,.09);
+    --nav-text:#b6c2cf; --nav-strong:#fff; --nav-hover:rgba(255,255,255,.07); --nav-active:#1868db;
+    /* surfaces */
+    --bg:#f7f8f9; --surface:#fff; --raised:#f1f2f4; --sunken:#eceef1;
+    /* lines */
+    --border:#dfe1e6; --border-strong:#c1c7d0;
+    /* ink */
+    --text:#172b4d; --subtle:#44546f; --muted:#626f86; --disabled:#8993a4;
+    /* brand */
+    --blue:#1868db; --blue-hover:#0055cc; --blue-bg:#e9f2fe; --blue-border:#8fb8f6;
+    /* status — always paired with a glyph or a word, never colour alone */
+    --green:#216e4e; --green-bold:#22a06b; --green-bg:#dcfff1;
+    --yellow:#a54800; --yellow-bold:#e56910; --yellow-bg:#fff7d6;
+    --red:#ae2e24; --red-bold:#c9372c; --red-bg:#ffedeb;
+    --purple:#5e4db2; --purple-bg:#f3f0ff;
+    --teal:#206a83; --teal-bg:#e7f9ff;
+    --grey-bg:#dcdfe4;
+    --shadow:0 1px 1px rgba(9,30,66,.25),0 0 1px rgba(9,30,66,.13);
+    --shadow-raised:0 8px 16px -4px rgba(9,30,66,.25),0 0 1px rgba(9,30,66,.31);
+    --mono:ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.43;-webkit-font-smoothing:antialiased}
+  button,input{font:inherit}
+  button{cursor:pointer}
+  code,.mono{font-family:var(--mono)}
+  a{color:var(--blue)}
+  :focus-visible{outline:2px solid var(--blue);outline-offset:1px;border-radius:2px}
+
+  /* ---- shell ---- */
+  .shell{position:fixed;inset:0;display:flex;flex-direction:column}
+  .top{height:48px;flex:none;display:flex;align-items:center;gap:12px;padding:0 12px;background:var(--nav);border-bottom:1px solid var(--nav-line)}
+  .top .brand{display:flex;align-items:center;gap:8px;color:var(--nav-strong);font-weight:600;font-size:15px}
+  .top .mark{width:22px;height:22px;border-radius:5px;background:var(--nav-active);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700}
+  .top .proj{color:var(--nav-text);font-size:13px;font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .grow{flex:1;min-width:0}
+  .top .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--nav-line);border-radius:3px;padding:3px 8px;color:var(--nav-text);font-size:12px;font-family:var(--mono);white-space:nowrap}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none}
+
+  .body{flex:1;min-height:0;display:flex}
+
+  /* ---- rail ---- */
+  .rail{width:240px;flex:none;background:var(--nav-deep);border-right:1px solid var(--nav-line);overflow-y:auto;padding:10px 0}
+  .rail .group{padding:14px 16px 6px;color:var(--nav-text);opacity:.62;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .rail button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--nav-text);padding:8px 16px;font-size:14px;text-align:left;border-left:3px solid transparent}
+  .rail button:hover{background:var(--nav-hover);color:var(--nav-strong)}
+  .rail button[aria-current=page]{background:var(--nav-hover);color:var(--nav-strong);border-left-color:var(--nav-active);font-weight:600}
+  .rail .ico{width:16px;text-align:center;flex:none;opacity:.9}
+  .rail .count{margin-left:auto;font-family:var(--mono);font-size:11px;opacity:.7}
+
+  main{flex:1;min-width:0;overflow-y:auto;padding:24px}
+  .wrap{max-width:1120px;margin:0 auto}
+  h1{font-size:24px;font-weight:600;letter-spacing:-.01em;margin:0}
+  h2{font-size:16px;font-weight:600;margin:0}
+  .sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+  .head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+
+  /* ---- primitives ---- */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:3px;box-shadow:var(--shadow)}
+  .card .hd{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)}
+  .card .bd{padding:16px}
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:1fr}
+  .g4{grid-template-columns:repeat(2,1fr)}
+  @media(min-width:900px){.g2{grid-template-columns:1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}}
+  .tile{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:14px 16px;box-shadow:var(--shadow)}
+  .tile .n{font-size:26px;font-weight:600;line-height:1.1}
+  .tile .l{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .lz{display:inline-flex;align-items:center;gap:4px;border-radius:3px;padding:2px 6px;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap}
+  .lz-n{background:var(--grey-bg);color:var(--subtle)}
+  .lz-b{background:var(--blue-bg);color:var(--blue)}
+  .lz-g{background:var(--green-bg);color:var(--green)}
+  .lz-y{background:var(--yellow-bg);color:var(--yellow)}
+  .lz-r{background:var(--red-bg);color:var(--red)}
+  .lz-p{background:var(--purple-bg);color:var(--purple)}
+  .lz-t{background:var(--teal-bg);color:var(--teal)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--border);background:var(--raised);color:var(--text);border-radius:3px;padding:6px 12px;font-size:14px;font-weight:500;box-shadow:0 1px 0 rgba(9,30,66,.08)}
+  .btn:hover{filter:brightness(.97)}
+  .btn:active{transform:translateY(.5px);box-shadow:none}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .btn.primary{background:var(--blue);border-color:transparent;color:#fff}
+  .btn.subtle{background:transparent;border-color:transparent;color:var(--subtle)}
+  .btn.danger{background:transparent;border-color:var(--border);color:var(--red)}
+  .btn.sm{padding:3px 8px;font-size:12.5px}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:12px;font-weight:600;color:var(--muted);padding:8px 16px;background:var(--raised);border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:10px 16px;border-bottom:1px solid var(--border);vertical-align:top;font-size:13.5px}
+  tr:last-child td{border-bottom:0}
+  tr.click:hover{background:var(--raised);cursor:pointer}
+  .kv{display:flex;justify-content:space-between;gap:16px;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border)}
+  .kv:last-child{border-bottom:0}
+  .kv b{font-weight:400;color:var(--muted)}
+  .kv span{font-family:var(--mono);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62%}
+  .empty{text-align:center;padding:56px 24px;color:var(--muted)}
+  .empty h2{color:var(--text);margin-bottom:6px}
+  pre.code{background:var(--nav-deep);color:#e6edf3;border-radius:3px;padding:12px 14px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.6;margin:0}
+  .diff{border:1px solid var(--border);border-radius:3px;overflow:auto;max-height:300px;font-family:var(--mono);font-size:12px}
+  .diff div{padding:2px 10px;white-space:pre-wrap;word-break:break-word}
+  .diff .del{background:var(--red-bg);color:var(--red)}
+  .diff .add{background:var(--green-bg);color:var(--green)}
+  .diff .ctx{color:var(--muted)}
+  .drop{border:2px dashed var(--border-strong);border-radius:3px;padding:40px;text-align:center;background:var(--surface);cursor:pointer}
+  .drop.over{border-color:var(--blue);background:var(--blue-bg)}
+  .banner{display:flex;gap:10px;align-items:flex-start;border-radius:3px;padding:12px 14px;font-size:13.5px}
+  .banner.warn{background:var(--yellow-bg);color:var(--yellow)}
+  .banner.ok{background:var(--green-bg);color:var(--green)}
+  .banner.info{background:var(--blue-bg);color:var(--blue)}
+  .flash{animation:flash 1.6s ease-out 1}
+  @keyframes flash{from{background:var(--blue-bg)}to{background:transparent}}
+  .hide{display:none!important}
+  .mobtabs{display:none}
+  @media(max-width:800px){
+    .rail{display:none}
+    main{padding:16px 12px 68px}
+    .mobtabs{display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--nav-deep);border-top:1px solid var(--nav-line);z-index:20}
+    .mobtabs button{flex:1;border:0;background:transparent;color:var(--nav-text);padding:10px 4px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px}
+    .mobtabs button[aria-current=page]{color:var(--nav-strong)}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><span class="mark">C</span>CooL</div>
+    <span class="proj" id="proj">—</span>
+    <span class="grow"></span>
+    <span class="chip" id="gitchip"></span>
+    <span class="chip" id="runchip"></span>
+  </header>
+
+  <div class="body">
+    <nav class="rail" id="rail" aria-label="Sections"></nav>
+    <main><div class="wrap" id="view"></div></main>
+  </div>
+
+  <nav class="mobtabs" id="mobtabs" aria-label="Sections"></nav>
+</div>
+
+<script>
+"use strict";
+/* This page renders. It does not verify.
+   Every verdict shown was computed by the real verifier in the CLI process and
+   shipped here as JSON. Reimplementing the cryptography in browser JavaScript
+   would create a second verifier that can disagree with the one that matters —
+   and the one that matters is the one an auditor runs. */
+
+const $ = (s) => document.querySelector(s);
+const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
+const esc = (s) => (s == null ? "" : String(s));
+const short = (s, n = 16) => { const r = String(s || "").split(":").pop() || ""; return r.length <= n ? r : r.slice(0, n) + "…"; };
+const clock = (iso) => { try { return new Date(iso).toISOString().replace("T", " ").slice(0, 19) + "Z"; } catch { return "—"; } };
+const lz = (text, kind) => { const s = el("span", "lz lz-" + (kind || "n")); s.textContent = text; return s; };
+
+/* Verifier status -> lozenge colour. The verifier's word is final; this only
+   picks a colour for it, and never promotes one status to another. */
+const TONE = { pass:"g", fail:"r", pending:"y", simulated:"b", mock:"n", absent:"n" };
+
+const VIEWS = [
+  { id:"overview",   label:"Overview",       ico:"▤", group:"Project" },
+  { id:"ledger",     label:"Evidence ledger",ico:"≣", group:"Project" },
+  { id:"files",      label:"Watched files",  ico:"⌸", group:"Project" },
+  { id:"governance", label:"Governance",     ico:"§", group:"Assurance" },
+  { id:"verifier",   label:"Verify offline", ico:"✓", group:"Assurance" },
+  { id:"attestation",label:"Attestation",    ico:"⛨", group:"Runtime" },
+];
+let view = "overview";
+let STATE = null;
+
+/* ── chrome ──────────────────────────────────────────────────────────── */
+
+function renderRail() {
+  const rail = $("#rail"); rail.innerHTML = "";
+  let group = null;
+  for (const v of VIEWS) {
+    if (v.group !== group) { group = v.group; rail.appendChild(el("div", "group", group)); }
+    const b = el("button");
+    if (v.id === view) b.setAttribute("aria-current", "page");
+    b.appendChild(el("span", "ico", v.ico));
+    b.appendChild(document.createTextNode(v.label));
+    if (v.id === "ledger" && STATE) b.appendChild(el("span", "count", String(STATE.rows.length)));
+    b.onclick = () => { view = v.id; renderRail(); renderMob(); render(); };
+    rail.appendChild(b);
+  }
+}
+
+function renderMob() {
+  const m = $("#mobtabs"); m.innerHTML = "";
+  for (const v of VIEWS.slice(0, 5)) {
+    const b = el("button");
+    if (v.id === view) b.setAttribute("aria-current", "page");
+    b.appendChild(el("span", null, v.ico));
+    b.appendChild(el("span", null, v.label.split(" ")[0]));
+    b.onclick = () => { view = v.id; renderRail(); renderMob(); render(); };
+    m.appendChild(b);
+  }
+}
+
+function renderChrome() {
+  const s = STATE;
+  $("#proj").textContent = s.project.name;
+
+  const g = $("#gitchip");
+  g.textContent = s.project.git.root
+    ? "⎇ " + (s.project.git.branch || "detached") + (s.project.git.commit ? " · " + s.project.git.commit : "") + (s.project.git.dirty ? " · dirty" : "")
+    : "no git";
+
+  /* The one element on this page that must never flatter the truth: hardware
+     only when a guest agent answered AND a vendor root checked the quote. */
+  const hw = s.runtime.hardware && s.runtime.verifierConfigured;
+  const r = $("#runchip"); r.innerHTML = "";
+  const d = el("span", "dot"); d.style.background = hw ? "var(--green-bold)" : "var(--yellow-bold)";
+  r.appendChild(d);
+  r.appendChild(document.createTextNode(hw ? s.runtime.vendor + " · hardware" : s.runtime.vendor + " · " + s.runtime.mode));
+}
+
+/* ── overview ────────────────────────────────────────────────────────── */
+
+function vOverview() {
+  const s = STATE, host = $("#view");
+  const head = el("div", "head");
+  const t = el("div");
+  t.appendChild(el("h1", null, s.project.name));
+  t.appendChild(el("div", "sub", s.project.root));
+  head.appendChild(t);
+  host.appendChild(head);
+
+  const hw = s.runtime.hardware && s.runtime.verifierConfigured;
+  if (!hw) {
+    const b = el("div", "banner warn");
+    b.appendChild(el("span", null, "▲"));
+    const txt = el("div");
+    txt.appendChild(el("strong", null, "Runtime is " + s.runtime.mode + ", not hardware. "));
+    txt.appendChild(document.createTextNode(
+      s.runtime.endpoint && !s.runtime.verifierConfigured
+        ? "A guest agent is answering, but no QUOTE_VERIFIER_URL is set — quotes are carried and digested into each record, never chained to Intel. The attestation domain reads absent, which is what unverified means."
+        : "Every receipt says so in its own body. See Attestation for the five steps to a verified quote."
+    ));
+    b.appendChild(txt);
+    host.appendChild(b);
+    host.appendChild(el("div", null, " ")).style.height = "12px";
+  }
+
+  const changes = s.rows.length;
+  const verified = s.rows.filter(r => r.verdict && r.verdict.ok).length;
+  const escalated = s.rows.filter(r => r.decision === "rejected").length;
+  const tiles = el("div", "grid g4");
+  for (const [n, l, colour] of [
+    [changes, "Changes sealed", "var(--text)"],
+    [verified, "Verify clean", "var(--green)"],
+    [escalated, "Needed a human", escalated ? "var(--yellow)" : "var(--muted)"],
+    [s.log.treeSize, "Log tree size", "var(--text)"],
+  ]) {
+    const c = el("div", "tile");
+    const nn = el("div", "n", String(n)); nn.style.color = colour;
+    c.appendChild(nn); c.appendChild(el("div", "l", l));
+    tiles.appendChild(c);
+  }
+  host.appendChild(tiles);
+  host.appendChild(spacer());
+
+  const grid = el("div", "grid g2");
+
+  const recent = el("div", "card");
+  const rh = el("div", "hd"); rh.appendChild(el("h2", null, "Recent changes"));
+  const more = el("button", "btn subtle sm", "View all"); more.style.marginLeft = "auto";
+  more.onclick = () => { view = "ledger"; renderRail(); renderMob(); render(); };
+  rh.appendChild(more); recent.appendChild(rh);
+  if (s.rows.length === 0) {
+    recent.appendChild(el("div", "empty", "Nothing sealed yet — save a file in this project."));
+  } else {
+    const tb = el("table"); const body = el("tbody");
+    for (const row of s.rows.slice(0, 6)) {
+      const tr = el("tr");
+      tr.appendChild(el("td", "mono", row.path || row.ref));
+      const d = el("td"); d.appendChild(lz(row.kind, "p")); tr.appendChild(d);
+      const v = el("td");
+      v.appendChild(row.verdict ? lz(row.verdict.ok ? "verified" : "invalid", row.verdict.ok ? "g" : "r") : lz("—", "n"));
+      tr.appendChild(v);
+      recentRowTime(tr, row);
+      body.appendChild(tr);
+    }
+    tb.appendChild(body); recent.appendChild(tb);
+  }
+  grid.appendChild(recent);
+
+  const info = el("div", "card");
+  const ih = el("div", "hd"); ih.appendChild(el("h2", null, "This project")); info.appendChild(ih);
+  const ib = el("div", "bd");
+  kv(ib, "Environment", s.project.environment);
+  kv(ib, "Branch", s.project.git.branch || "—");
+  kv(ib, "Commit", s.project.git.commit || "—");
+  kv(ib, "Author", s.project.git.author || "—");
+  kv(ib, "Log", s.log.logId || "—");
+  kv(ib, "Evidence", s.log.dir);
+  info.appendChild(ib);
+  grid.appendChild(info);
+
+  host.appendChild(grid);
+}
+
+function recentRowTime(tr, row) {
+  const t = el("td", "mono"); t.style.color = "var(--muted)"; t.style.whiteSpace = "nowrap";
+  t.textContent = clock(row.at).slice(11);
+  tr.appendChild(t);
+}
+
+function kv(host, k, v) {
+  const d = el("div", "kv");
+  d.appendChild(el("b", null, k));
+  const s = el("span", null, esc(v)); s.title = esc(v);
+  d.appendChild(s); host.appendChild(d);
+}
+
+function spacer(h = 16) { const d = el("div"); d.style.height = h + "px"; return d; }
+
+/* ── ledger ──────────────────────────────────────────────────────────── */
+
+function diffLines(before, after) {
+  const a = (before == null ? "" : before).split("\n");
+  const b = (after == null ? "" : after).split("\n");
+  const out = []; const max = Math.max(a.length, b.length);
+  for (let i = 0; i < max; i++) {
+    if (a[i] === b[i]) { out.push(["ctx", a[i] == null ? "" : a[i]]); continue; }
+    if (a[i] != null) out.push(["del", a[i]]);
+    if (b[i] != null) out.push(["add", b[i]]);
+  }
+  return out;
+}
+
+function vLedger() {
+  const s = STATE, host = $("#view");
+  const head = el("div", "head");
+  const t = el("div");
+  t.appendChild(el("h1", null, "Evidence ledger"));
+  t.appendChild(el("div", "sub", s.rows.length + " records, sealed in this project — newest first"));
+  head.appendChild(t);
+  head.appendChild(el("span", "grow"));
+  const pack = el("a", "btn", "Export audit pack"); pack.href = "/api/pack";
+  head.appendChild(pack);
+  host.appendChild(head);
+
+  if (s.rows.length === 0) {
+    const e = el("div", "card");
+    const b = el("div", "empty");
+    b.appendChild(el("h2", null, "Nothing sealed yet"));
+    b.appendChild(el("div", null, "Edit and save any prompt, config or policy file in this folder. No ticket, no form."));
+    e.appendChild(b); host.appendChild(e); return;
+  }
+
+  const card = el("div", "card");
+  const table = el("table");
+  const thead = el("thead"); const htr = el("tr");
+  for (const h of ["When", "File", "Kind", "Decision", "Verdict", ""]) htr.appendChild(el("th", null, h));
+  thead.appendChild(htr); table.appendChild(thead);
+  const tbody = el("tbody");
+
+  for (const row of s.rows) {
+    const tr = el("tr", "click" + (row.fresh ? " flash" : ""));
+    const when = el("td", "mono"); when.style.color = "var(--muted)"; when.style.whiteSpace = "nowrap";
+    when.textContent = clock(row.at); tr.appendChild(when);
+    const f = el("td", "mono"); f.textContent = row.path || row.ref; tr.appendChild(f);
+    const k = el("td"); k.appendChild(lz(row.kind, "p")); tr.appendChild(k);
+    const d = el("td");
+    if (row.decision && row.decision !== "—") {
+      const bad = row.decision === "rejected";
+      d.appendChild(lz(row.decision + (row.policyRule ? " · " + row.policyRule : ""), bad ? "y" : "t"));
+    } else d.appendChild(document.createTextNode("—"));
+    tr.appendChild(d);
+    const v = el("td");
+    v.appendChild(row.verdict ? lz(row.verdict.ok ? "verified" : "invalid", row.verdict.ok ? "g" : "r") : lz("—", "n"));
+    tr.appendChild(v);
+    const a = el("td"); a.style.textAlign = "right"; a.style.whiteSpace = "nowrap";
+    a.appendChild(el("span", null, "›")); tr.appendChild(a);
+
+    const detail = el("tr", "hide");
+    const dtd = el("td"); dtd.colSpan = 6; dtd.style.background = "var(--raised)";
+    detail.appendChild(dtd);
+    let built = false;
+    tr.onclick = () => {
+      detail.classList.toggle("hide");
+      if (!built) { buildDetail(dtd, row); built = true; }
+    };
+    tbody.appendChild(tr); tbody.appendChild(detail);
+  }
+  table.appendChild(tbody); card.appendChild(table); host.appendChild(card);
+}
+
+function buildDetail(host, row) {
+  const grid = el("div", "grid g2");
+
+  const left = el("div");
+  left.appendChild(el("h2", null, "Evidence"));
+  const lb = el("div"); lb.style.marginTop = "8px";
+  kv(lb, "Record id", row.id);
+  kv(lb, "Ref", row.ref);
+  kv(lb, "Actor", row.actor);
+  kv(lb, "Environment", row.environment);
+  kv(lb, "Sealed at", row.at);
+  left.appendChild(lb);
+  grid.appendChild(left);
+
+  const right = el("div");
+  const rh = el("div", "row");
+  rh.appendChild(el("h2", null, "Verification"));
+  right.appendChild(rh);
+  const domains = el("div"); domains.style.marginTop = "8px";
+  right.appendChild(domains);
+
+  const actions = el("div", "row"); actions.style.marginTop = "12px";
+  const vb = el("button", "btn primary sm", "Verify now");
+  const tb = el("button", "btn danger sm", "Try to forge");
+  const rb = el("a", "btn sm", "Receipt"); rb.href = "/api/receipt/" + encodeURIComponent(row.id); rb.style.textDecoration = "none";
+  actions.appendChild(vb); actions.appendChild(tb); actions.appendChild(rb);
+  right.appendChild(actions);
+  const note = el("div"); note.style.marginTop = "8px"; note.style.fontSize = "12.5px"; note.style.color = "var(--muted)";
+  right.appendChild(note);
+
+  function paint(verdict, forged) {
+    domains.innerHTML = "";
+    if (!verdict) return;
+    for (const c of verdict.checks) {
+      const line = el("div", "row"); line.style.gap = "8px"; line.style.alignItems = "flex-start"; line.style.marginBottom = "4px";
+      const n = el("span", "mono", c.domain); n.style.width = "82px"; n.style.flex = "none"; n.style.fontSize = "12px"; n.style.color = "var(--muted)";
+      line.appendChild(n);
+      line.appendChild(lz(c.status, TONE[c.status] || "n"));
+      const d = el("span", null, c.detail); d.style.fontSize = "12px"; d.style.color = "var(--muted)"; d.style.flex = "1"; d.style.minWidth = "0";
+      line.appendChild(d);
+      domains.appendChild(line);
+    }
+    note.textContent = forged
+      ? "One field of a copy was edited. Your receipt on disk is untouched — this is the verifier catching the edit."
+      : "";
+    note.style.color = forged ? "var(--red)" : "var(--muted)";
+  }
+  paint(row.verdict, false);
+
+  vb.onclick = async (e) => {
+    e.stopPropagation();
+    vb.disabled = true; vb.textContent = "verifying…";
+    const r = await fetch("/api/verify/" + encodeURIComponent(row.id), { method: "POST" });
+    const data = await r.json();
+    row.verdict = data.verdict;
+    vb.disabled = false; vb.textContent = "Verify now (" + data.ms + " ms)";
+    paint(data.verdict, false);
+  };
+  tb.onclick = async (e) => {
+    e.stopPropagation();
+    tb.disabled = true; tb.textContent = "forging…";
+    const r = await fetch("/api/tamper/" + encodeURIComponent(row.id), { method: "POST" });
+    const data = await r.json();
+    tb.disabled = false; tb.textContent = "Try to forge";
+    paint(data.verdict, true);
+  };
+  rb.onclick = (e) => e.stopPropagation();
+
+  grid.appendChild(right);
+  host.appendChild(grid);
+
+  if (row.before != null || row.after != null) {
+    const d = el("div"); d.style.marginTop = "14px";
+    d.appendChild(el("h2", null, "What changed"));
+    const box = el("div", "diff"); box.style.marginTop = "8px";
+    for (const [cls, text] of diffLines(row.before, row.after)) {
+      box.appendChild(el("div", cls, (cls === "del" ? "− " : cls === "add" ? "+ " : "  ") + text));
+    }
+    d.appendChild(box);
+    const n = el("div"); n.style.marginTop = "6px"; n.style.fontSize = "12px"; n.style.color = "var(--muted)";
+    n.textContent = "Shown from this session. The receipt holds salted commitments to these strings, never the strings themselves — which is how a prompt is proved later without being stored anywhere.";
+    d.appendChild(n);
+    host.appendChild(d);
+  }
+}
+
+/* ── watched files ───────────────────────────────────────────────────── */
+
+function vFiles() {
+  const s = STATE, host = $("#view");
+  const head = el("div", "head"); const t = el("div");
+  t.appendChild(el("h1", null, "Watched files"));
+  t.appendChild(el("div", "sub", "Files in this project that have produced a sealed record"));
+  head.appendChild(t); host.appendChild(head);
+
+  const byPath = new Map();
+  for (const row of s.rows) {
+    const key = row.path || row.ref;
+    if (!byPath.has(key)) byPath.set(key, []);
+    byPath.get(key).push(row);
+  }
+
+  if (byPath.size === 0) {
+    const c = el("div", "card"); const e = el("div", "empty");
+    e.appendChild(el("h2", null, "No file has changed yet"));
+    e.appendChild(el("div", null, "Prompts, configs, policies and datasets are watched. Save one and it appears here."));
+    c.appendChild(e); host.appendChild(c); return;
+  }
+
+  const card = el("div", "card");
+  const table = el("table"); const thead = el("thead"); const htr = el("tr");
+  for (const h of ["File", "Kind", "Changes", "Last change", "Last verdict"]) htr.appendChild(el("th", null, h));
+  thead.appendChild(htr); table.appendChild(thead);
+  const tb = el("tbody");
+  for (const [path, rows] of byPath) {
+    const tr = el("tr");
+    tr.appendChild(el("td", "mono", path));
+    const k = el("td"); k.appendChild(lz(rows[0].kind, "p")); tr.appendChild(k);
+    tr.appendChild(el("td", "mono", String(rows.length)));
+    const w = el("td", "mono"); w.style.color = "var(--muted)"; w.style.whiteSpace = "nowrap";
+    w.textContent = clock(rows[0].at); tr.appendChild(w);
+    const v = el("td");
+    v.appendChild(rows[0].verdict ? lz(rows[0].verdict.ok ? "verified" : "invalid", rows[0].verdict.ok ? "g" : "r") : lz("—", "n"));
+    tr.appendChild(v);
+    tb.appendChild(tr);
+  }
+  table.appendChild(tb); card.appendChild(table); host.appendChild(card);
+}
+
+/* ── governance ──────────────────────────────────────────────────────── */
+
+function vGovernance() {
+  const s = STATE, host = $("#view");
+  const head = el("div", "head"); const t = el("div");
+  t.appendChild(el("h1", null, "Governance"));
+  t.appendChild(el("div", "sub", "Counted from the receipts in this project, at render time — not typed in"));
+  head.appendChild(t);
+  head.appendChild(el("span", "grow"));
+  const pack = el("a", "btn primary", "Export audit pack"); pack.href = "/api/pack";
+  head.appendChild(pack);
+  host.appendChild(head);
+
+  const met = s.obligations.filter(o => o.covered).length;
+  const tiles = el("div", "grid g4");
+  for (const [n, l, colour] of [
+    [s.obligations.length, "Obligations in scope", "var(--text)"],
+    [met, "Evidenced", "var(--green)"],
+    [s.obligations.length - met, "Gaps", s.obligations.length - met ? "var(--yellow)" : "var(--green)"],
+    [s.rows.length, "Records", "var(--text)"],
+  ]) {
+    const c = el("div", "tile");
+    const nn = el("div", "n", String(n)); nn.style.color = colour;
+    c.appendChild(nn); c.appendChild(el("div", "l", l)); tiles.appendChild(c);
+  }
+  host.appendChild(tiles);
+  host.appendChild(spacer());
+
+  const card = el("div", "card");
+  const hd = el("div", "hd"); hd.appendChild(el("h2", null, "Compliance register")); card.appendChild(hd);
+  const table = el("table"); const thead = el("thead"); const htr = el("tr");
+  for (const h of ["Regime", "Clause", "Requirement", "Records", "Status"]) htr.appendChild(el("th", null, h));
+  thead.appendChild(htr); table.appendChild(thead);
+  const tb = el("tbody");
+  for (const o of s.obligations) {
+    const tr = el("tr");
+    tr.appendChild(el("td", null, o.regime));
+    tr.appendChild(el("td", "mono", o.clause));
+    const rq = el("td"); rq.appendChild(el("div", null, o.requirement));
+    const by = el("div", "mono", "satisfied by: " + o.satisfiedBy);
+    by.style.fontSize = "12px"; by.style.color = "var(--muted)"; by.style.marginTop = "3px";
+    rq.appendChild(by); tr.appendChild(rq);
+    tr.appendChild(el("td", "mono", String(o.records)));
+    const st = el("td"); st.appendChild(lz(o.covered ? "evidenced" : "gap", o.covered ? "g" : "y")); tr.appendChild(st);
+    tb.appendChild(tr);
+  }
+  table.appendChild(tb); card.appendChild(table); host.appendChild(card);
+}
+
+/* ── verify offline ──────────────────────────────────────────────────── */
+
+function vVerifier() {
+  const host = $("#view");
+  const head = el("div", "head"); const t = el("div");
+  t.appendChild(el("h1", null, "Verify offline"));
+  t.appendChild(el("div", "sub", "Nothing here reaches the network. The verifier runs in the CLI process, on bytes from your disk."));
+  head.appendChild(t); host.appendChild(head);
+
+  /* sweep every receipt on disk */
+  const sweep = el("div", "card");
+  const sh = el("div", "hd"); sh.appendChild(el("h2", null, "Sweep this project"));
+  sweep.appendChild(sh);
+  const sb = el("div", "bd");
+  const p = el("div", null, "Re-read every receipt in .cool/receipts from disk and verify it. Reading from disk rather than from memory is the point: only the bytes on disk can answer whether the evidence on this machine is still good.");
+  p.style.color = "var(--muted)"; p.style.fontSize = "13.5px"; p.style.marginBottom = "12px";
+  sb.appendChild(p);
+  const go = el("button", "btn primary", "Verify all receipts");
+  sb.appendChild(go);
+  const out = el("div"); out.style.marginTop = "14px"; sb.appendChild(out);
+  sweep.appendChild(sb); host.appendChild(sweep);
+
+  go.onclick = async () => {
+    go.disabled = true; go.textContent = "verifying…"; out.innerHTML = "";
+    const r = await fetch("/api/verify-all", { method: "POST" });
+    const d = await r.json();
+    go.disabled = false; go.textContent = "Verify all receipts";
+    const b = el("div", "banner " + (d.invalid === 0 && d.total > 0 ? "ok" : d.total === 0 ? "info" : "warn"));
+    b.appendChild(el("span", null, d.invalid === 0 && d.total > 0 ? "✓" : d.total === 0 ? "•" : "▲"));
+    b.appendChild(el("div", null,
+      d.total === 0 ? "No receipts on disk yet."
+      : d.valid + " of " + d.total + " receipts verified in " + d.ms + " ms, with no network access."));
+    out.appendChild(b);
+    if (d.invalid > 0) {
+      const t2 = el("table"); const tb2 = el("tbody");
+      for (const res of d.results.filter(x => !x.ok)) {
+        const tr = el("tr");
+        tr.appendChild(el("td", "mono", res.file));
+        const f = el("td"); f.appendChild(lz(res.failed.join(", ") || "invalid", "r")); tr.appendChild(f);
+        tr.appendChild(el("td", null, res.reasons[0] || ""));
+        tb2.appendChild(tr);
+      }
+      t2.appendChild(tb2); out.appendChild(t2);
+    }
+  };
+
+  host.appendChild(spacer());
+
+  /* drop any file */
+  const card = el("div", "card");
+  const hd = el("div", "hd"); hd.appendChild(el("h2", null, "Verify a file")); card.appendChild(hd);
+  const bd = el("div", "bd");
+  const drop = el("div", "drop");
+  drop.appendChild(el("div", null, "Drop a receipt or an audit pack"));
+  const sub = el("div", null, "Including one this project never produced. Edit a character first and watch the domain you touched catch it.");
+  sub.style.color = "var(--muted)"; sub.style.fontSize = "12.5px"; sub.style.marginTop = "6px";
+  drop.appendChild(sub);
+  const input = el("input"); input.type = "file"; input.accept = "application/json,.json"; input.className = "hide";
+  const res = el("div"); res.style.marginTop = "14px";
+  bd.appendChild(drop); bd.appendChild(input); bd.appendChild(res);
+  card.appendChild(bd); host.appendChild(card);
+
+  async function handle(file) {
+    res.innerHTML = "";
+    const text = await file.text();
+    const r = await fetch("/api/verify-file", { method: "POST", headers: { "content-type": "application/json" }, body: text });
+    const data = await r.json();
+    const head2 = el("div", "row");
+    head2.appendChild(el("span", "mono", file.name));
+    head2.appendChild(el("span", "grow"));
+    if (data.kind === "receipt") head2.appendChild(lz(data.verdict.ok ? "evidence valid" : "evidence invalid", data.verdict.ok ? "g" : "r"));
+    if (data.kind === "pack") head2.appendChild(lz(data.ok ? "pack valid" : "pack invalid", data.ok ? "g" : "r"));
+    if (data.kind === "error") head2.appendChild(lz("unreadable", "r"));
+    res.appendChild(head2);
+    const body = el("div"); body.style.marginTop = "10px";
+    if (data.kind === "receipt") {
+      for (const c of data.verdict.checks) {
+        const line = el("div", "row"); line.style.gap = "8px"; line.style.alignItems = "flex-start"; line.style.marginBottom = "4px";
+        const n = el("span", "mono", c.domain); n.style.width = "82px"; n.style.flex = "none"; n.style.fontSize = "12px"; n.style.color = "var(--muted)";
+        line.appendChild(n); line.appendChild(lz(c.status, TONE[c.status] || "n"));
+        const dd = el("span", null, c.detail); dd.style.fontSize = "12px"; dd.style.color = "var(--muted)"; dd.style.flex = "1"; dd.style.minWidth = "0";
+        line.appendChild(dd); body.appendChild(line);
+      }
+    } else if (data.kind === "pack") {
+      body.style.color = "var(--muted)"; body.style.fontSize = "13px";
+      body.textContent = data.total + " receipts checked, " + data.failed + " failed. The pack's own summary is ignored and recomputed.";
+    } else {
+      body.className = "mono"; body.style.color = "var(--red)"; body.style.fontSize = "12.5px";
+      body.textContent = data.message;
+    }
+    res.appendChild(body);
+  }
+  drop.onclick = () => input.click();
+  drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
+  drop.ondragleave = () => drop.classList.remove("over");
+  drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove("over"); if (e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]); };
+  input.onchange = () => { if (input.files[0]) handle(input.files[0]); };
+}
+
+/* ── attestation ─────────────────────────────────────────────────────── */
+
+function vAttestation() {
+  const s = STATE, r = s.runtime, host = $("#view");
+  const hw = r.hardware && r.verifierConfigured;
+
+  const head = el("div", "head"); const t = el("div");
+  t.appendChild(el("h1", null, "Attestation"));
+  t.appendChild(el("div", "sub", "Where this evidence was produced, and what has actually been checked"));
+  head.appendChild(t); host.appendChild(head);
+
+  const b = el("div", "banner " + (hw ? "ok" : "warn"));
+  b.appendChild(el("span", null, hw ? "✓" : "▲"));
+  const txt = el("div");
+  txt.appendChild(el("strong", null, r.vendor + " · " + (hw ? "hardware" : r.mode) + ". "));
+  txt.appendChild(document.createTextNode(
+    hw ? "A guest agent answered and a vendor root checked the quote. The attestation domain reads pass because something actually verified it."
+    : r.endpoint && !r.verifierConfigured ? "A guest agent is answering at " + r.endpoint + ", but no QUOTE_VERIFIER_URL is set, so the quote is carried and digested into the record and never chained to Intel."
+    : r.endpoint ? "Talking to " + r.endpoint + ", but there is no silicon behind that endpoint — it proves the wiring, not the hardware."
+    : "No DSTACK_ENDPOINT is set, so this is the in-process simulator and every receipt says so in its own body."
+  ));
+  b.appendChild(txt); host.appendChild(b); host.appendChild(spacer());
+
+  const grid = el("div", "grid g2");
+
+  const m = el("div", "card");
+  const mh = el("div", "hd"); mh.appendChild(el("h2", null, "Measurement")); m.appendChild(mh);
+  const mb = el("div", "bd");
+  for (const slot of ["mrtd", "rtmr0", "rtmr1", "rtmr2", "rtmr3"]) kv(mb, slot.toUpperCase(), short(r.measurement[slot], 30));
+  kv(mb, "App id", short(r.appId, 30));
+  kv(mb, "Image", short(r.imageDigest, 30));
+  kv(mb, "TCB", r.tcbStatus);
+  m.appendChild(mb); grid.appendChild(m);
+
+  const h = el("div", "card");
+  const hh = el("div", "hd"); hh.appendChild(el("h2", null, "RA-TLS handshake")); h.appendChild(hh);
+  const hb = el("div", "bd");
+  for (const step of r.handshake) {
+    const line = el("div", "row"); line.style.alignItems = "flex-start"; line.style.marginBottom = "8px";
+    line.appendChild(lz(step.ok ? "ok" : "fail", step.ok ? "g" : "r"));
+    const d = el("div"); d.style.minWidth = "0";
+    d.appendChild(el("div", "mono", step.label));
+    const dt = el("div", null, step.detail); dt.style.fontSize = "12px"; dt.style.color = "var(--muted)";
+    d.appendChild(dt); line.appendChild(d); hb.appendChild(line);
+  }
+  h.appendChild(hb); grid.appendChild(h);
+  host.appendChild(grid);
+
+  if (!hw) {
+    host.appendChild(spacer());
+    const c = el("div", "card");
+    const ch = el("div", "hd"); ch.appendChild(el("h2", null, "How this reaches pass")); c.appendChild(ch);
+    const cb = el("div", "bd");
+    const pre = el("pre", "code");
+    pre.textContent =
+      "# 1 · deploy the evidence plane into a confidential VM\n" +
+      "cd deploy && phala deploy -c docker-compose.yml -n cool-evidence\n\n" +
+      "# 2 · point cool at the guest agent inside it\n" +
+      "export DSTACK_ENDPOINT=/var/run/dstack.sock\n\n" +
+      "# 3 · give it a vendor root to check the quote against\n" +
+      "export QUOTE_VERIFIER_URL=https://api.phala.network/attest/verify\n\n" +
+      "# 4 · pin the measurement you approved\n" +
+      "phala cvms attestation <cvm-id>\n" +
+      "export COOL_PIN_MRTD=hex:<mrtd>\n\n" +
+      "# 5 · prove it end to end\n" +
+      "cool wire && cool verify last --require-hardware";
+    cb.appendChild(pre); c.appendChild(cb); host.appendChild(c);
+  }
+}
+
+/* ── wiring ──────────────────────────────────────────────────────────── */
+
+function render() {
+  const host = $("#view"); host.innerHTML = "";
+  if (view === "overview") vOverview();
+  else if (view === "ledger") vLedger();
+  else if (view === "files") vFiles();
+  else if (view === "governance") vGovernance();
+  else if (view === "verifier") vVerifier();
+  else if (view === "attestation") vAttestation();
+}
+
+async function load() {
+  STATE = await (await fetch("/api/state")).json();
+  renderChrome(); renderRail(); renderMob(); render();
+}
+
+function connect() {
+  const src = new EventSource("/api/events");
+  src.addEventListener("record", (e) => {
+    const data = JSON.parse(e.data);
+    for (const r of STATE.rows) r.fresh = false;
+    STATE.rows.unshift(data.row);
+    if (data.treeSize != null) STATE.log.treeSize = data.treeSize;
+    renderChrome(); renderRail();
+    /* A change arriving while you are reading the ledger or the overview should
+       appear there; it should not yank you out of the verifier mid-check. */
+    if (view === "overview" || view === "ledger" || view === "files") render();
+  });
+  src.addEventListener("note", (e) => {
+    STATE.notes.push(JSON.parse(e.data).message);
+    if (view === "overview") render();
+  });
+  /* A dropped stream means the CLI stopped. Say so rather than looking live. */
+  src.onerror = () => {
+    const c = $("#runchip");
+    c.innerHTML = ""; c.style.color = "var(--red-bold)";
+    c.textContent = "disconnected — cool ui stopped";
+  };
+}
+
+load().then(connect);
+</script>
+</body>
+</html>

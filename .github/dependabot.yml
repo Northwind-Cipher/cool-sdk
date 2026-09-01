@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      noble:
+        patterns: ["@noble/*"]
+    ignore:
+      # Major bumps of crypto/serialisation deps are reviewed by hand.
+      - dependency-name: "@noble/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "cbor2"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

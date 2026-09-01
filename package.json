@@ -1,0 +1,94 @@
+{
+  "name": "cool-nwc",
+  "version": "3.0.0",
+  "description": "Cryptographic Observability & On-chain Ledger — tamper-evident, offline-verifiable execution evidence for AI and enterprise workloads. Hybrid post-quantum signatures (ML-DSA-65 + Ed25519), an RFC 6962 transparency log, measurement-sealed keys via Phala dstack, and a verifier that trusts nothing but the bytes.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./tee": {
+      "types": "./dist/tee.d.ts",
+      "default": "./dist/tee.js"
+    },
+    "./phala": {
+      "types": "./dist/phala/index.d.ts",
+      "default": "./dist/phala/index.js"
+    },
+    "./verify": {
+      "types": "./dist/verify.d.ts",
+      "default": "./dist/verify.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "default": "./dist/node.js"
+    },
+    "./cli": "./dist/cli/index.js"
+  },
+  "bin": {
+    "cool": "dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "keywords": [
+    "cryptographic-evidence",
+    "observability",
+    "attestation",
+    "transparency-log",
+    "rfc6962",
+    "post-quantum",
+    "ml-dsa",
+    "ed25519",
+    "tee",
+    "confidential-computing",
+    "intel-tdx",
+    "phala",
+    "dstack",
+    "remote-attestation",
+    "ai-provenance",
+    "verifiable-evidence",
+    "audit-trail"
+  ],
+  "author": "Northwind Cipher Pvt. Ltd.",
+  "homepage": "https://github.com/Northwind-Cipher/cool-sdk#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Northwind-Cipher/cool-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Northwind-Cipher/cool-sdk/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@noble/curves": "^1.9.1",
+    "@noble/hashes": "^1.8.0",
+    "@noble/post-quantum": "^0.4.1",
+    "ajv": "^8.20.0",
+    "cbor2": "^1.12.0",
+    "ulid": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "prepack": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test \"tests/*.test.ts\"",
+    "verify:package": "node scripts/verify-package.mjs",
+    "demo": "node --import tsx scripts/demo.ts",
+    "verify:all": "npm run typecheck && npm run test"
+  }
+}

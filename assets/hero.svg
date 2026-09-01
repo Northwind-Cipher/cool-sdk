@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="240" viewBox="0 0 880 240" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
+  <rect width="880" height="240" fill="#0b0f14"/>
+  <defs>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b0f14" stop-opacity="0"/>
+      <stop offset="0.75" stop-color="#0b0f14" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0b0f14" stop-opacity="1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- drifting cryptographic fragments -->
+  <g fill="#1f6f43" font-size="12" opacity="0.55">
+    <text x="40" y="0">SHA256
+      <animate attributeName="y" from="-20" to="260" dur="7s" repeatCount="indefinite"/>
+    </text>
+    <text x="150" y="0">ML-DSA-65
+      <animate attributeName="y" from="-60" to="260" dur="9s" repeatCount="indefinite"/>
+    </text>
+    <text x="300" y="0">RTMR3
+      <animate attributeName="y" from="-120" to="260" dur="8s" repeatCount="indefinite"/>
+    </text>
+    <text x="430" y="0">0x7f91c3
+      <animate attributeName="y" from="-200" to="260" dur="6.5s" repeatCount="indefinite"/>
+    </text>
+    <text x="560" y="0">QUOTE
+      <animate attributeName="y" from="-40" to="260" dur="10s" repeatCount="indefinite"/>
+    </text>
+    <text x="660" y="0">MERKLE
+      <animate attributeName="y" from="-150" to="260" dur="7.5s" repeatCount="indefinite"/>
+    </text>
+    <text x="770" y="0">Ed25519
+      <animate attributeName="y" from="-90" to="260" dur="8.5s" repeatCount="indefinite"/>
+    </text>
+    <text x="220" y="0">TDX
+      <animate attributeName="y" from="-240" to="260" dur="9.5s" repeatCount="indefinite"/>
+    </text>
+    <text x="500" y="0">mh:sha256
+      <animate attributeName="y" from="-300" to="260" dur="11s" repeatCount="indefinite"/>
+    </text>
+  </g>
+
+  <rect width="880" height="240" fill="url(#fade)"/>
+
+  <text x="40" y="96" fill="#e6edf3" font-size="46" font-weight="700" letter-spacing="6">CooL</text>
+  <text x="42" y="126" fill="#8b949e" font-size="15" letter-spacing="1">Cryptographic Observability &amp; On-chain Ledger</text>
+
+  <g transform="translate(42,158)" fill="#7ee2a8" font-size="13" letter-spacing="2">
+    <text x="0" y="0">OBSERVE</text>
+    <text x="92" y="0" fill="#8b949e">&#8594;</text>
+    <text x="112" y="0">COMMIT</text>
+    <text x="196" y="0" fill="#8b949e">&#8594;</text>
+    <text x="216" y="0">SIGN</text>
+    <text x="272" y="0" fill="#8b949e">&#8594;</text>
+    <text x="292" y="0">ATTEST</text>
+    <text x="372" y="0" fill="#8b949e">&#8594;</text>
+    <text x="392" y="0">ANCHOR</text>
+    <text x="476" y="0" fill="#8b949e">&#8594;</text>
+    <text x="496" y="0">VERIFY</text>
+  </g>
+  <text x="42" y="200" fill="#8b949e" font-size="12">verifiable execution evidence for AI and enterprise workloads &#183; ML-DSA-65 + Ed25519 &#183; RFC 6962 &#183; Phala dstack</text>
+</svg>

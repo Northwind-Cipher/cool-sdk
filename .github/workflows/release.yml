@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write        # create the GitHub Release
+  id-token: write        # npm trusted publishing (OIDC) + provenance
+
+jobs:
+  publish:
+    name: publish to npm
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Verify (typecheck + tests)
+        run: npm run verify:all
+
+      - name: Consumer install check
+        run: npm run verify:package
+
+      - name: Tag matches package.json
+        run: |
+          PKG="v$(node -p "require('./package.json').version")"
+          if [ "$PKG" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} != package.json ${PKG}"
+            exit 1
+          fi
+
+      - name: Publish (OIDC trusted publishing + provenance)
+        run: npm publish --provenance --access public
+        # No NODE_AUTH_TOKEN: this repo uses npm trusted publishing. The npm
+        # package must list this repo + workflow as a trusted publisher.
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body_path: /dev/null

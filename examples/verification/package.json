@@ -1,0 +1,9 @@
+{
+  "name": "cool-example-verification",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node index.mjs" },
+  "dependencies": {
+    "cool-nwc": "file:../.."
+  }
+}

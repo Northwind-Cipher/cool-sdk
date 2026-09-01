@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit + adversarial tests
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Demo (valid -> tamper -> fail)
+        run: npm run demo
+        env:
+          NO_COLOR: "1"
+
+  consumer:
+    name: consumer install check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      # Packs the tarball, installs it into a clean project, records + verifies
+      # evidence, and typechecks a consumer under nodenext AND bundler.
+      - run: npm run verify:package
+
+  examples:
+    name: examples run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: basic
+        run: cd examples/basic && npm install --no-audit --no-fund && node index.mjs
+      - name: verification
+        run: cd examples/verification && npm install --no-audit --no-fund && node index.mjs
+      - name: agent
+        run: cd examples/agent && npm install --no-audit --no-fund && node index.mjs
