@@ -1,12 +1,12 @@
 /**
- * Faithful stand-ins for the three services the SDK talks to.
+ * Faithful stand-ins for the services the SDK talks to over the wire.
  *
- * The point of these is narrow and important: until now the hardware code paths
- * — `HttpDstackClient`, `remoteQuoteVerifier`, `PhalaPrivateLLM` — had never
- * executed. Not "were untested"; had never run at all. A mock server does not
- * conjure silicon, but it does execute every line between our API and the wire,
- * which is where integration bugs actually live: encodings, path names, error
- * shapes, and what happens when a service answers slowly, wrongly or not at all.
+ * The point of these is narrow and important: the hardware code paths —
+ * `HttpDstackClient`, `remoteQuoteVerifier` — otherwise never execute off real
+ * silicon. A mock server does not conjure silicon, but it does execute every
+ * line between our API and the wire, which is where integration bugs actually
+ * live: encodings, path names, error shapes, and what happens when a service
+ * answers slowly, wrongly or not at all.
  *
  * Each server mirrors the real thing's observed wire format and is deliberately
  * configurable in the ways the real ones vary (hex vs base64, `0x` prefixes,
@@ -227,55 +227,3 @@ export async function startMockQuoteVerifier(
   return { url, calls, close: closeLater(server) };
 }
 
-/* ── 3 · Phala's confidential inference endpoint ──────────────────────── */
-
-export interface MockLLMOptions {
-  /** Serve `/attestation/report`. When false, the SDK must degrade cleanly. */
-  readonly withAttestation?: boolean;
-  readonly completionStatus?: number;
-  readonly content?: string;
-}
-
-export async function startMockPhalaLLM(options: MockLLMOptions = {}): Promise<MockServer> {
-  const withAttestation = options.withAttestation ?? true;
-  const { server, url, calls } = await listen((req, res, body) => {
-    const path = (req.url ?? "").split("?")[0];
-
-    if (path === "/attestation/report") {
-      if (!withAttestation) {
-        json(res, 404, { error: "not enabled for this endpoint" });
-        return;
-      }
-      json(res, 200, {
-        signing_address: "0x9f2c1e6b4d8a3f57c0b1e2d3a4f5968708192a3b",
-        nvidia_payload: { evidence: "AgABAL8LAAAMAAsA", gpu: "H200" },
-        intel_quote: "0400020081000000",
-      });
-      return;
-    }
-
-    if (path === "/chat/completions") {
-      if (options.completionStatus && options.completionStatus !== 200) {
-        json(res, options.completionStatus, { error: { message: "upstream failure" } });
-        return;
-      }
-      const model = (body as { model?: string } | null)?.model ?? "unknown";
-      json(res, 200, {
-        id: "chatcmpl-mock",
-        model,
-        choices: [
-          {
-            index: 0,
-            message: { role: "assistant", content: options.content ?? "Score 62/100. Decline." },
-            finish_reason: "stop",
-          },
-        ],
-      });
-      return;
-    }
-
-    json(res, 404, { error: `no such path: ${path}` });
-    void req;
-  });
-  return { url, calls, close: closeLater(server) };
-}
