@@ -276,7 +276,9 @@ test("packs build and verify, and a tampered pack is rejected", () => {
 
     const pack = JSON.parse(readFileSync(path, "utf8"));
     const record = pack.records[0].receipt.record;
-    record.change.after_hash = record.change.after_hash.replace(/.$/, "0");
+    record.change.after_hash = record.change.after_hash.replace(/.$/, (ch: string) =>
+      ch === "0" ? "1" : "0",
+    );
     writeFileSync(path, JSON.stringify(pack));
     const verdict = cool(["pack", "verify", path], dir);
     assert.equal(verdict.code, 1);

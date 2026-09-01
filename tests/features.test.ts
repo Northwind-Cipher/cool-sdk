@@ -263,7 +263,14 @@ test("witnesses: a forged co-signature is counted as invalid, never as independe
 
   const tampered = JSON.parse(JSON.stringify(witnessed)) as ReceiptV2;
   const external = tampered.sth!.witnesses.find((w) => w.external)!;
-  (external as { ed25519: string }).ed25519 = external.ed25519.replace(/.$/, "A");
+  // Flip the first base64 char after the `base64:` prefix — it always carries
+  // significant bits, so the decoded signature bytes are guaranteed to change
+  // (a trailing base64 char can be altered without changing the bytes it
+  // decodes to, which would make this a no-op tamper).
+  const sig = external.ed25519;
+  const at = "base64:".length;
+  (external as { ed25519: string }).ed25519 =
+    sig.slice(0, at) + (sig[at] === "A" ? "B" : "A") + sig.slice(at + 1);
 
   assert.equal(countWitnesses(tampered).external, 0);
   assert.equal(countWitnesses(tampered).invalid, 1);
