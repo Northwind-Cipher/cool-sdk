@@ -86,7 +86,7 @@
     "build": "node scripts/build.mjs",
     "prepack": "node scripts/build.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --import tsx --test \"tests/*.test.ts\"",
+    "test": "node scripts/run-tests.mjs",
     "verify:package": "node scripts/verify-package.mjs",
     "demo": "node --import tsx scripts/demo.ts",
     "verify:all": "npm run typecheck && npm run test"
