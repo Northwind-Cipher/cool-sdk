@@ -10,8 +10,11 @@ updates:
         patterns: ["@noble/*"]
     ignore:
       # Major bumps of crypto/serialisation deps are reviewed by hand.
+      # @noble/* is pre-1.0, so a minor bump can be breaking too — ignore both.
       - dependency-name: "@noble/*"
-        update-types: ["version-update:semver-major"]
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
       - dependency-name: "cbor2"
         update-types: ["version-update:semver-major"]
 
