@@ -1,98 +1,89 @@
 # Reproducing the CooL x Phala Real-TEE Validation
 
+Two deployments are used. Keep them distinct:
+
+| Role | Compose file | Image (registry tag / digest recorded in the run) |
+|---|---|---|
+| **Deployment A - primary validation image** | `phala-validation/docker-compose.deployment-a.yaml` | `final-a` / `sha256:3535a90e49a375c4f92a1cdc0d05190d05ca551053d03d96c4f16e198860eff5` |
+| **Deployment B - workload-change test only** | `phala-validation/docker-compose.deployment-b.yaml` | `final-b` (`WORKLOAD_MARKER=v2`) / `sha256:1372fbe7ab61418519772146e59765a042c16a5d3f0080c1356e1cff4875ebca` |
+
+Historical Run 1 evidence (commit de7230b, images `deployment-a` / `deployment-b`) is preserved under `artifacts/` and is
+not what these compose files reference.
+
 ## 1. Prerequisites
 
-- Node.js 22+, npm
-- Docker, logged into a registry you can push to
-- Phala CLI (`npm install -g phala`), authenticated (`phala login`)
-- A Phala Cloud account with available credit
+- Node.js 22+, npm; Docker logged in to a registry you control; Phala CLI (`npm i -g phala`) authenticated (`phala login`); Phala Cloud credit (a run costs a few cents).
+- Network access to `https://cloud-api.phala.com/api/v1/attestations/verify` (attestation verification is online).
+- Accounts/credentials required: Phala Cloud, a container registry. No secrets are placed in any repository file or container.
 
-## 2. Exact commit
-
-```
-git clone https://github.com/Northwind-Cipher/cool-sdk.git
-cd cool-sdk
-git checkout 0eaf98533a55dcea7829218f7701da48a56b8b5c
-```
-
-Apply the `src/phala/dstack.ts` fix described in `artifacts/cool-phala-validation-report.md`
-("Engineering issues found and fixed", item 3) if it has not yet been merged to `main`.
-
-## 3. Build
+## 2. Build and test
 
 ```sh
+git clone https://github.com/Northwind-Cipher/cool-sdk.git && cd cool-sdk
 npm install
-npm run typecheck   # expect: clean
-npm run build       # expect: 82 files compiled into dist/
-npm test            # expect: 85 pass / 0 fail / 1 skipped (OTS calendar test, network-dependent)
+npm run typecheck && npm run build && npm test     # expect 97 tests: 96 pass, 0 fail, 1 skipped (network-dependent)
 ```
 
-## 4. Build and push the validation image
+## 3. Build and push the images
+
+Image digests are not reproducible builds: rebuilding yields new digests and new RTMR3 values. Use your own registry and
+record the digests you obtain.
 
 ```sh
-docker build -t <you>/cool-phala-validation:deployment-a -f phala-validation/Dockerfile .
-docker push <you>/cool-phala-validation:deployment-a
+docker build -t <you>/cool-phala-validation:final-a --build-arg WORKLOAD_MARKER=v1 -f phala-validation/Dockerfile .
+docker build -t <you>/cool-phala-validation:final-b --build-arg WORKLOAD_MARKER=v2 -f phala-validation/Dockerfile .
+docker push <you>/cool-phala-validation:final-a && docker push <you>/cool-phala-validation:final-b
 ```
 
-Expected digest (this validation's actual build):
-`sha256:cc4c8b917bfacd492e6afe6e6815777c4af5108d069284542466a7fbc7f64b75`
+In both compose files set `image:` to your tag and `COOL_IMAGE_DIGEST` to the pushed digest of that same image (the digest is only
+known after the push, so this is a second edit).
 
-## 5. Deploy to Phala Cloud
-
-Edit `phala-validation/docker-compose.yaml`'s `image:` to your pushed tag, then:
+## 4. Deploy A and collect evidence
 
 ```sh
-phala deploy --name cool-phala-validation --compose phala-validation/docker-compose.yaml \
-  --instance-type tdx.small --wait
+phala deploy --name cool-phala-final --compose phala-validation/docker-compose.deployment-a.yaml --instance-type tdx.small --wait
+phala cvms get --cvm-id <vm_uuid> --json        # read endpoints.app (the gateway host depends on the node)
+curl <app-endpoint>/receipts > receipts-A.json
 ```
 
-## 6. Pull evidence
+## 5. Deploy B to the same CVM and collect evidence
 
 ```sh
-curl https://<app_id>-8080.<gateway-domain>/receipt   > receipt.json
-curl https://<app_id>-8080.<gateway-domain>/handshake > handshake.json
-curl https://<app_id>-8080.<gateway-domain>/verdict   > verdict-internal.json
+phala deploy --cvm-id <vm_uuid> --compose phala-validation/docker-compose.deployment-b.yaml --wait
+curl <app-endpoint>/receipts > receipts-B.json
+phala cvms delete --cvm-id <vm_uuid> --force    # then: phala cvms list  -> total 0
 ```
 
-## 7. Verify externally
+## 6. Verify outside the CVM
 
 ```sh
-node phala-validation/external-verify.mjs receipt.json out-verdict.json
+node phala-validation/final-verify.mjs receipts-A.json receipts-B.json out/
 ```
 
-Expected: `ok: true`, all seven domains shown individually, `attestation: pass` against
-`intel-dcap`, `enclave: pass` with a non-zero MRTD.
+Writes `binding-`, `signature-`, `inclusion-`, `consistency-`, `witness-`, `attestation-`, `enclave-domain-final.json`,
+`workload-change-final.json`, `tamper-final.json`, `tamper-final/`, `final-external-verification.json` and the raw Phala
+API response. Exit code 0 means every check that must hold did hold.
 
-## 8. Tamper test
+Expected: all seven direct checks true; witness `operationally_independent: NOT DEMONSTRATED`; `B_against_A_pin` fails on `rtmr3`;
+`B_against_B_pin` and historical A pass; binding_hash tamper fails binding, signature, inclusion; metadata_hash tamper fails binding and signature.
+
+Optional local DCAP check using the collateral archived in the Phala response:
 
 ```sh
-node -e '
-const fs = require("fs");
-const r = JSON.parse(fs.readFileSync("receipt.json","utf8"));
-const h = r.binding_hash;
-r.binding_hash = h.slice(0,-1) + (h.slice(-1)==="0"?"1":"0");
-fs.writeFileSync("tampered.json", JSON.stringify(r,null,2));
-'
-node phala-validation/external-verify.mjs tampered.json
+npm i --no-save @phala/dcap-qvl
+node phala-validation/offline-dcap-verify.mjs receipts-A.json out/phala-attestation-api-response-A.json out/offline-dcap-verification-A.json
 ```
 
-Expected: exit code 1, `ok: false`, `binding`/`signature`/`inclusion` all `fail`.
+Expected: `result: PASS`, `tcb_status` reported by the library, and `negative_control.rejected: true`. This is offline at verify time only.
 
-## 9. Workload-change test
+## 7. Witness operated by a third party (not demonstrated in this validation)
 
-Rebuild with `--build-arg WORKLOAD_MARKER=v2`, push under a new tag, redeploy the same CVM, pull
-the new receipt, and compare `record.runtime.enclave_measurement` between the two receipts — only
-`rtmr3` should differ. Then run `verifyReceiptV2` with `expectedMeasurement` set to the old
-receipt's measurement (expect `enclave: fail`) and then to the new one (expect `enclave: pass`).
+`final-verify.mjs` generates its own witness key, so it cannot show organizational independence. To do that, an independent operator runs
+`cosign(sth, theirKey)` (`src/phala/witness.ts`) over the published STH (`log_id`, `tree_size`, `root_hash`, `timestamp`) and returns the statement;
+the verifier obtains their public key out of band and passes it with `withTrustedKeys`.
 
-## 10. Cleanup
+## 8. Notes
 
-```sh
-phala cvms delete --cvm-id <vm_uuid> --force
-```
-
-## Security note
-
-No secrets, credentials, or personal data are required by or embedded in any step above. The
-container never receives a Phala API key, Docker credential, or any customer data — only synthetic
-event metadata (`"input": "synthetic-input"`, etc).
+- Measurement pins in the tests are taken from the receipts under test. Approval is procedural.
+- The workload exposes only `/health`, `/receipt`, `/receipts`, `/verdict`, `/handshake`, `/environment`; Phala's default public gateway makes them internet-reachable while the CVM runs.
+- The CVM used a dev OS image (`is_dev: true`). Not a production configuration.

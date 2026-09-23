@@ -79,6 +79,11 @@ export interface MockAgentOptions {
   readonly broken?: boolean;
   readonly appId?: string;
   readonly imageSeed?: string;
+  /**
+   * Return `tcb_info` as a JSON-encoded string, the way the real dstack guest
+   * agent does (observed on a live Phala Cloud CVM), instead of a nested object.
+   */
+  readonly tcbInfoAsString?: boolean;
 }
 
 export interface MockAgent extends MockServer {
@@ -133,22 +138,23 @@ export async function startMockAgent(options: MockAgentOptions = {}): Promise<Mo
         json(res, 405, { error: "method not allowed" });
         return;
       }
+      const tcbInfo = {
+        mrtd: measurement.mrtd,
+        rtmr0: measurement.rtmr0,
+        rtmr1: measurement.rtmr1,
+        rtmr2: measurement.rtmr2,
+        rtmr3: measurement.rtmr3,
+        event_log: [
+          { imr: 3, event: "app-id", digest: HEX48("event/app-id") },
+          { imr: 3, event: "compose-hash", digest: HEX48("event/compose") },
+        ],
+      };
       json(res, 200, {
         app_id: appId,
         instance_id: "i-0d5e74639e89ccc1",
         app_name: "cool-evidence-plane",
         app_url: "https://cool-evidence-plane.dstack-prod.phala.network",
-        tcb_info: {
-          mrtd: measurement.mrtd,
-          rtmr0: measurement.rtmr0,
-          rtmr1: measurement.rtmr1,
-          rtmr2: measurement.rtmr2,
-          rtmr3: measurement.rtmr3,
-          event_log: [
-            { imr: 3, event: "app-id", digest: HEX48("event/app-id") },
-            { imr: 3, event: "compose-hash", digest: HEX48("event/compose") },
-          ],
-        },
+        tcb_info: options.tcbInfoAsString ? JSON.stringify(tcbInfo, null, 2) : tcbInfo,
       });
       return;
     }

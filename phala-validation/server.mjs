@@ -14,7 +14,6 @@
  * for the workload-change / measurement-pin test.
  */
 import http from "node:http";
-import fs from "node:fs";
 import { CoolTee, HttpDstackClient, remoteQuoteVerifier, verifyReceiptV2 } from "cool-nwc/phala";
 import { unixFetch, isSocketPath } from "cool-nwc/node";
 
@@ -76,24 +75,25 @@ async function init() {
       },
     });
 
-    const receipt = await tee.record({
-      type: "model.execution",
-      metadata: {
-        model: "demo-model",
-        version: "1.0.0",
-        policy: "policy-v1",
-        workload_marker: WORKLOAD_MARKER,
-      },
-      payloads: {
-        input: "synthetic-input",
-        output: "synthetic-output",
-      },
-      software: {
-        name: "cool-phala-validation",
-        version: "0.1.0",
-        ...(IMAGE_DIGEST_MULTIHASH ? { digest: IMAGE_DIGEST_MULTIHASH } : {}),
-      },
-    });
+    // Six synthetic events so the transparency log reaches tree size 6 and the
+    // final receipt carries a non-trivial inclusion path; heads at sizes 1..6 are
+    // all served so consistency can be checked between signed heads.
+    const receipts = [];
+    for (let i = 0; i < 6; i++) {
+      receipts.push(
+        await tee.record({
+          type: "model.execution",
+          metadata: { model: "demo-model", version: "1.0.0", policy: "policy-v1", workload_marker: WORKLOAD_MARKER, seq: i },
+          payloads: { input: "synthetic-input", output: "synthetic-output" },
+          software: {
+            name: "cool-phala-validation",
+            version: "0.1.0",
+            ...(IMAGE_DIGEST_MULTIHASH ? { digest: IMAGE_DIGEST_MULTIHASH } : {}),
+          },
+        }),
+      );
+    }
+    const receipt = receipts[receipts.length - 1];
 
     const verdict = await verifyReceiptV2(receipt, {
       requireHardware: true,
@@ -105,6 +105,7 @@ async function init() {
       handshake: tee.handshake,
       keyDirectory: tee.keyDirectory,
       receipt,
+      receipts,
       verdict,
       workload_marker: WORKLOAD_MARKER,
       image_digest: RAW_IMAGE_DIGEST,
@@ -134,50 +135,16 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({ status: state.status, workload_marker: WORKLOAD_MARKER }));
     return;
   }
-  if (req.url === "/debug") {
-    let listing = null, socketExists = null, err = null;
-    try { socketExists = fs.existsSync(DSTACK_ENDPOINT); } catch (e) { err = String(e); }
-    try { listing = fs.readdirSync("/var/run"); } catch (e) { err = (err ?? "") + " " + String(e); }
-    res.writeHead(200);
-    res.end(JSON.stringify({ DSTACK_ENDPOINT, socketExists, varRunListing: listing, err }, null, 2));
-    return;
-  }
-  if (req.url === "/debug-raw-info") {
-    (async () => {
-      try {
-        const raw = await unixFetch(DSTACK_ENDPOINT)("/Info");
-        const text = await raw.text();
-        res.writeHead(200);
-        res.end(text);
-      } catch (e) {
-        res.writeHead(500);
-        res.end(JSON.stringify({ error: String(e) }));
-      }
-    })();
-    return;
-  }
-  if (req.url === "/debug-raw-quote") {
-    (async () => {
-      try {
-        const raw = await unixFetch(DSTACK_ENDPOINT)("/GetQuote", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ report_data: "00".repeat(64) }),
-        });
-        const text = await raw.text();
-        res.writeHead(200);
-        res.end(text.length > 3000 ? text.slice(0, 3000) + "...TRUNCATED" : text);
-      } catch (e) {
-        res.writeHead(500);
-        res.end(JSON.stringify({ error: String(e) }));
-      }
-    })();
-    return;
-  }
   if (req.url === "/receipt") {
     if (state.status !== "ready") { res.writeHead(503); res.end(JSON.stringify(state)); return; }
     res.writeHead(200);
     res.end(JSON.stringify(state.receipt, null, 2));
+    return;
+  }
+  if (req.url === "/receipts") {
+    if (state.status !== "ready") { res.writeHead(503); res.end(JSON.stringify(state)); return; }
+    res.writeHead(200);
+    res.end(JSON.stringify(state.receipts, null, 2));
     return;
   }
   if (req.url === "/verdict") {
@@ -200,7 +167,7 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === "/") {
     res.writeHead(state.status === "ready" ? 200 : 503);
-    res.end(JSON.stringify({ status: state.status, workload_marker: WORKLOAD_MARKER, error: state.error ?? null, routes: ["/health", "/receipt", "/verdict", "/handshake", "/environment", "/debug"] }));
+    res.end(JSON.stringify({ status: state.status, workload_marker: WORKLOAD_MARKER, error: state.error ?? null, routes: ["/health", "/receipt", "/receipts", "/verdict", "/handshake", "/environment"] }));
     return;
   }
   res.writeHead(404);

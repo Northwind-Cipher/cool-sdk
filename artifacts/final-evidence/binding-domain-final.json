@@ -1,0 +1,46 @@
+{
+  "domain": "binding",
+  "checked_at": "2026-09-23T14:56:19.970Z",
+  "method": "canonical CBOR (cbor2 cdeEncodeOptions) of the record core (record minus signature), SHA-256 via node:crypto, compared to stored binding_hash",
+  "independence": "Recomputed by a script that does not call verifyReceiptV2 and uses node:crypto rather than @noble/hashes; it shares the cbor2 library with the SDK.",
+  "receipts_checked": 6,
+  "results": [
+    {
+      "index": 0,
+      "stored": "mh:sha256:6abf0b560ae6c5b826c617cbc6fbd88966f020c0513b02c9098189fcb5c6b42d",
+      "recomputed": "mh:sha256:6abf0b560ae6c5b826c617cbc6fbd88966f020c0513b02c9098189fcb5c6b42d",
+      "match": true
+    },
+    {
+      "index": 1,
+      "stored": "mh:sha256:5b227cafea6672299f0aac452083f42e9fbb1c4baa8eac7a6b11c1332de2ba23",
+      "recomputed": "mh:sha256:5b227cafea6672299f0aac452083f42e9fbb1c4baa8eac7a6b11c1332de2ba23",
+      "match": true
+    },
+    {
+      "index": 2,
+      "stored": "mh:sha256:6af45bd1cd4a9998bc59dc7a905a9325e97f4014af433df610ab9295ffebe10c",
+      "recomputed": "mh:sha256:6af45bd1cd4a9998bc59dc7a905a9325e97f4014af433df610ab9295ffebe10c",
+      "match": true
+    },
+    {
+      "index": 3,
+      "stored": "mh:sha256:657f7da644aa12f80414e64cd1a442b507e0575bbc661d362b371ba89551e421",
+      "recomputed": "mh:sha256:657f7da644aa12f80414e64cd1a442b507e0575bbc661d362b371ba89551e421",
+      "match": true
+    },
+    {
+      "index": 4,
+      "stored": "mh:sha256:2da65c395680a6feab977e6b5b0780bba5a4d77ffc006319a6178fc98baa234b",
+      "recomputed": "mh:sha256:2da65c395680a6feab977e6b5b0780bba5a4d77ffc006319a6178fc98baa234b",
+      "match": true
+    },
+    {
+      "index": 5,
+      "stored": "mh:sha256:70691f2397e2887597832f9952a713b08593bd9ef58d946579ecef566f7bf276",
+      "recomputed": "mh:sha256:70691f2397e2887597832f9952a713b08593bd9ef58d946579ecef566f7bf276",
+      "match": true
+    }
+  ],
+  "result": "PASS"
+}

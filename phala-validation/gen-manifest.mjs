@@ -1,3 +1,6 @@
+// Regenerates artifacts/evidence-manifest.json: SHA-256 of every file under
+// artifacts/ (except the manifest itself) plus the reproduction guide and the
+// validation workload files. Run from the repository root.
 import fs from "node:fs";
 import crypto from "node:crypto";
 import path from "node:path";
@@ -12,9 +15,12 @@ function walk(dir, out) {
 
 const files = [];
 walk("artifacts", files);
+walk("phala-validation", files);
+files.push("COOL_PHALA_REPRODUCTION.md", "tests/real-tee-validation.test.ts");
 
 const manifest = files
   .filter((f) => !f.endsWith("evidence-manifest.json"))
+  .sort()
   .map((f) => {
     const buf = fs.readFileSync(f);
     return {
@@ -26,6 +32,15 @@ const manifest = files
 
 fs.writeFileSync(
   "artifacts/evidence-manifest.json",
-  JSON.stringify({ generated_at_utc: new Date().toISOString(), file_count: manifest.length, files: manifest }, null, 2),
+  JSON.stringify(
+    {
+      generated_at_utc: new Date().toISOString(),
+      note: "Unsigned integrity index; detects change, does not authenticate the author. Files outside the repository (e.g. the audit DOCX) are not listed.",
+      file_count: manifest.length,
+      files: manifest,
+    },
+    null,
+    2,
+  ),
 );
 console.log("manifest entries:", manifest.length);

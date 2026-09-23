@@ -1,0 +1,16 @@
+{
+  "mode": "OFFLINE at verify time (archived collateral); collateral was obtained online via Phala's API",
+  "library": "@phala/dcap-qvl",
+  "checked_at_unix": 1790175482,
+  "result": "PASS",
+  "tcb_status": "UpToDate",
+  "advisory_ids": [],
+  "report_summary": {
+    "tee_type": "td10"
+  },
+  "negative_control": {
+    "description": "one byte of MRTD in the quote body flipped",
+    "rejected": true,
+    "error": "ISV enclave report signature is invalid"
+  }
+}

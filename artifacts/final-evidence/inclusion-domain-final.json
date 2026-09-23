@@ -1,0 +1,62 @@
+{
+  "domain": "inclusion",
+  "checked_at": "2026-09-23T14:56:20.042Z",
+  "method": "RFC 6962 audit path reconstructs the STH root; STH hybrid signature verified directly with @noble",
+  "final_receipt": {
+    "leaf_index": 5,
+    "tree_size": 6,
+    "audit_path_length": 2
+  },
+  "results": [
+    {
+      "index": 0,
+      "leaf_index": 0,
+      "tree_size": 1,
+      "audit_path_length": 0,
+      "audit_path_ok": true,
+      "sth_signature_ok": true
+    },
+    {
+      "index": 1,
+      "leaf_index": 1,
+      "tree_size": 2,
+      "audit_path_length": 1,
+      "audit_path_ok": true,
+      "sth_signature_ok": true
+    },
+    {
+      "index": 2,
+      "leaf_index": 2,
+      "tree_size": 3,
+      "audit_path_length": 1,
+      "audit_path_ok": true,
+      "sth_signature_ok": true
+    },
+    {
+      "index": 3,
+      "leaf_index": 3,
+      "tree_size": 4,
+      "audit_path_length": 2,
+      "audit_path_ok": true,
+      "sth_signature_ok": true
+    },
+    {
+      "index": 4,
+      "leaf_index": 4,
+      "tree_size": 5,
+      "audit_path_length": 1,
+      "audit_path_ok": true,
+      "sth_signature_ok": true
+    },
+    {
+      "index": 5,
+      "leaf_index": 5,
+      "tree_size": 6,
+      "audit_path_length": 2,
+      "audit_path_ok": true,
+      "sth_signature_ok": true
+    }
+  ],
+  "result": "PASS",
+  "limitation": "The log and its STH key live inside the same enclave/operator; this proves internal log consistency, not an external log operator."
+}

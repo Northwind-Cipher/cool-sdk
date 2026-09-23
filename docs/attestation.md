@@ -73,3 +73,13 @@ The signing and log keys are **derived inside the enclave** from the measurement
 (dstack `GetKey`). There is no key to configure and none to leak into config.
 A redeploy that changes the image rotates the keys automatically; historical
 receipts stay verifiable because each carries its own `key_directory`.
+
+## `requireHardware` and the enclave domain
+
+Without `requireHardware`, the `enclave` domain checks the binding between the quote and the record (quote digest inside the
+signed core, measurement equality, `report_data` committing to the signing key, and the measurement pin if one is set). It can
+report `pass` while `attestation` is only `absent` (a quote that was reported but not chained to a vendor root).
+
+With `requireHardware: true` (also set by `security.requireAttestation`), the `enclave` domain fails closed unless `attestation`
+is `pass`, and the overall verdict is `ok: false`. Verification of a hardware quote needs a `quoteVerifier` (for example
+`remoteQuoteVerifier`); that verification is online unless you supply a local verifier with collateral.

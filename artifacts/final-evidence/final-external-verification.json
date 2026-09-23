@@ -1,0 +1,34 @@
+{
+  "checked_at": "2026-09-23T14:56:27.930Z",
+  "run_outside_cvm": true,
+  "receipts_source": {
+    "A": "receipts-A.json",
+    "B": "receipts-B.json"
+  },
+  "verifyReceiptV2_on_witnessed_final_receipt": {
+    "ok": true,
+    "checks": {
+      "binding": "pass",
+      "signature": "pass",
+      "inclusion": "pass",
+      "witnesses": "pass",
+      "attestation": "pass",
+      "enclave": "pass",
+      "anchor": "absent"
+    },
+    "reasons": []
+  },
+  "direct_domain_checks": {
+    "binding": true,
+    "signature": true,
+    "inclusion": true,
+    "consistency": true,
+    "witness_cryptographic": true,
+    "attestation_online": true,
+    "enclave": true
+  },
+  "operational_independence_of_witness": "NOT DEMONSTRATED",
+  "attestation_mode": "ONLINE",
+  "consistency_scope": "real CooL log mechanism on enclave-signed heads; not a verdict field",
+  "failures": []
+}

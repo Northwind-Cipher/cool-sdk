@@ -1,0 +1,40 @@
+{
+  "checked_at": "2026-09-23T14:56:26.866Z",
+  "original": "tamper-final/original-final-receipt.json",
+  "variants": {
+    "binding_hash": {
+      "ok": false,
+      "domains": {
+        "binding": "fail",
+        "signature": "fail",
+        "inclusion": "fail",
+        "witnesses": "absent",
+        "attestation": "pass",
+        "enclave": "pass",
+        "anchor": "absent"
+      },
+      "reasons": [
+        "binding: recomputed binding_hash does not match the receipt",
+        "signature: ML-DSA-65 and Ed25519 did not verify (record altered or wrong key)",
+        "inclusion: audit path does not reconstruct the STH root"
+      ]
+    },
+    "record.event.metadata_hash": {
+      "ok": false,
+      "domains": {
+        "binding": "fail",
+        "signature": "fail",
+        "inclusion": "pass",
+        "witnesses": "absent",
+        "attestation": "pass",
+        "enclave": "pass",
+        "anchor": "absent"
+      },
+      "reasons": [
+        "binding: recomputed binding_hash does not match the receipt",
+        "signature: ML-DSA-65 and Ed25519 did not verify (record altered or wrong key)"
+      ]
+    }
+  },
+  "note": "Flipping binding_hash fails binding, signature and inclusion (the log leaf is derived from the stored binding_hash). Flipping a field inside the record (metadata_hash) fails binding and signature; inclusion still passes because the log committed to the original binding digest, which is exactly what should not change. Hardware domains stay valid in both because the quote and measurement were untouched."
+}

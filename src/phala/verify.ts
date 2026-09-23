@@ -437,6 +437,18 @@ function verifyEnclaveDomain(
     pinNote = `matches the pinned image ${pin.mrtd.slice(4, 16)}…`;
   }
 
+  // 5. Under `requireHardware`, a measurement is only meaningful if the quote it
+  // came from was chained to a vendor root. Without this the enclave domain can
+  // read `pass` next to an `absent`/`simulated` attestation domain.
+  if (options.requireHardware && attestationStatus !== "pass") {
+    reasons.push(
+      `enclave: requireHardware is set but attestation is '${attestationStatus}', so the measurement is unattested`,
+    );
+    return fail(
+      `FAILED — requireHardware: binding and pin checks hold, but the quote is not hardware-verified (attestation is '${attestationStatus}')`,
+    );
+  }
+
   const detail = `quote is inside the signature; measurement ${quote.body.measurement.mrtd.slice(4, 16)}… holds the signing key; ${pinNote}`;
   return attestationStatus === "simulated"
     ? { status: "simulated", detail: `${detail} — but the quote itself is simulated` }

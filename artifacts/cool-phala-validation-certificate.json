@@ -1,13 +1,18 @@
 {
   "document_type": "CooL x Phala Real-TEE Validation Certificate",
   "disclaimer": "This is a technical validation certificate produced from evidence gathered by Northwind Cipher during this validation run. It is NOT a third-party certification. Phala Network did not issue, endorse, or co-sign this document. No SOC 2, ISO, or other compliance certification is claimed.",
-  "product": { "name": "CooL", "package": "cool-nwc", "version": "3.0.0", "organization": "Northwind Cipher Pvt. Ltd." },
+  "product": {
+    "name": "CooL",
+    "package": "cool-nwc",
+    "version": "3.0.0",
+    "organization": "Northwind Cipher Pvt. Ltd."
+  },
   "repository": "https://github.com/Northwind-Cipher/cool-sdk.git",
   "source_commit": "0eaf98533a55dcea7829218f7701da48a56b8b5c",
   "sdk_fix_applied": {
     "file": "src/phala/dstack.ts",
     "description": "HttpDstackClient.info() now parses tcb_info as a JSON-encoded string (the real dstack guest-agent response shape) instead of assuming it is already a nested object; previously this caused every real deployment to silently fall back to an all-zero measurement.",
-    "verified_not_regressed_by": "npm test: 85/85 passing (1 pre-existing network-dependent test skipped), before and after"
+    "verified_not_regressed_by": "Validated against real hardware; covered by dedicated regression tests in tests/real-tee-validation.test.ts (added after the audit; negative-controlled against the pre-fix code). Full suite: 97 tests, 96 pass, 0 fail, 1 network-dependent skip."
   },
   "container_image": {
     "repository": "docker.io/pranauvshrinaath/cool-phala-validation",
@@ -39,7 +44,7 @@
     "measurement_note": "MRTD/RTMR0-2 identical between deployment A and B (same base dstack OS image/firmware); only RTMR3 (application/compose identity) differs, matching expected TDX register semantics. Docker image digest is recorded separately and never conflated with the TDX measurement."
   },
   "attestation_verification": {
-    "method": "real Intel DCAP check via Phala Cloud's live attestation-verification API",
+    "method": "Online Intel TDX quote verification through Phala Cloud's attestation service; additionally a local @phala/dcap-qvl check using archived Intel collateral (offline at verify time, collateral obtained online).",
     "endpoint": "https://cloud-api.phala.com/api/v1/attestations/verify",
     "verification_type": "online, collateral-assisted (network call to Phala's API required — explicitly NOT claimed as offline)",
     "result": "verified: true"
@@ -56,14 +61,19 @@
     "synthetic_data_only": true
   },
   "seven_domain_result": {
-    "binding": "PASS", "signature": "PASS", "inclusion": "PASS",
-    "consistency": "PASS (via tested log implementation; not a distinct verdict field in this codebase)",
-    "witness": "PASS (independent keypair cosignature; see limitations)",
-    "attestation": "PASS (real Intel DCAP via Phala Cloud API)",
-    "enclave": "PASS (real MRTD/RTMR match + measurement-pin enforcement)",
-    "overall": "7/7 REAL"
+    "binding": "PASS",
+    "signature": "PASS",
+    "inclusion": "PASS (final run: leaf 5 of a size-6 tree)",
+    "consistency": "PASS as a mechanism on the deployed log's enclave-signed heads (final run); NOT a receipt verdict domain; not exercised by the size-1 Run 1 receipt",
+    "witness": "Cryptographically independent key demonstrated (PASS); operational third-party independence NOT demonstrated",
+    "attestation": "PASS: online via Phala Cloud attestation service; local dcap-qvl check with archived collateral PASS (TCB UpToDate)",
+    "enclave": "PASS: measurements match raw quote, report_data binds signing key, wrong pin fails, requireHardware fails closed",
+    "overall": "6 of 7 verified with real evidence; witness partial. NOT reported as 7/7."
   },
-  "tamper_test": { "field_modified": "binding_hash (one hex character)", "result": "verification FAILED as expected: binding, signature, and inclusion all reported fail" },
+  "tamper_test": {
+    "field_modified": "binding_hash (one hex character)",
+    "result": "verification FAILED as expected: binding, signature, and inclusion all reported fail"
+  },
   "workload_change_test": {
     "b_against_pinned_a": "FAIL (rtmr3 mismatch correctly detected)",
     "b_against_approved_b": "PASS",
@@ -71,12 +81,27 @@
   },
   "verifier_version_context": "src/phala/verify.ts as of commit 0eaf98533a55dcea7829218f7701da48a56b8b5c, plus the dstack.ts tcb_info parsing fix described above",
   "verification_timestamp_utc": "2026-09-23T14:17:00Z",
-  "cost": { "authorized_max_usd": 10.00, "estimated_actual_usd": 0.03, "note": "Estimate from elapsed runtime x hourly rate; exact billed figure is authoritative on the Phala Cloud dashboard" },
+  "cost": {
+    "authorized_max_usd": 10,
+    "estimated_actual_usd": 0.04,
+    "note": "Estimate from elapsed runtime x hourly rate; exact billed figure is authoritative on the Phala Cloud dashboard"
+  },
   "limitations": [
     "GPU/confidential-GPU attestation was not tested; this validation is CPU Intel TDX only.",
     "The witness domain's independence is cryptographically real but operationally self-administered in this test (same operator controls both keys).",
     "Attestation verification depends on Phala Cloud's attestation API being reachable at verify time (online, not offline/air-gapped).",
     "No SOC 2 / ISO / HIPAA / other compliance certification is claimed or implied.",
-    "This is not a claim of production readiness, a Phala partnership, or a commercial contract."
-  ]
+    "This is not a claim of production readiness, a Phala partnership, or a commercial contract.",
+    "Consistency is not a receipt verdict domain.",
+    "CooL records tcb_status as 'Unknown'; TCB UpToDate was reported by the local dcap-qvl check, not by CooL.",
+    "Evidence manifest is unsigned."
+  ],
+  "correction_notice": "This certificate was corrected after an independent audit. Earlier text reported '7/7 REAL', 'consistency PASS' and a test-suite claim for the tcb_info fix; those statements were not supported and are replaced below. See artifacts/final-verification-matrix.md.",
+  "final_run": {
+    "cvm_uuid": "3c1fcf8c-3c11-4965-936d-b32545c711a0",
+    "app_id": "facc79f103f122331845c5a52ab425ff29fe6512",
+    "image_a": "sha256:3535a90e49a375c4f92a1cdc0d05190d05ca551053d03d96c4f16e198860eff5",
+    "image_b": "sha256:1372fbe7ab61418519772146e59765a042c16a5d3f0080c1356e1cff4875ebca",
+    "evidence": "artifacts/final-evidence/"
+  }
 }

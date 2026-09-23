@@ -1,0 +1,239 @@
+{
+  "ok": true,
+  "mode": "hardware",
+  "info": {
+    "appId": "facc79f103f122331845c5a52ab425ff29fe6512",
+    "instanceId": "4e20cf4ff335693838cb85202d2d69513c822917",
+    "appName": "",
+    "vendor": "intel-tdx",
+    "mode": "hardware",
+    "measurement": {
+      "mrtd": "hex:f06dfda6dce1cf904d4e2bab1dc370634cf95cefa2ceb2de2eee127c9382698090d7a4a13e14c536ec6c9c3c8fa87077",
+      "rtmr0": "hex:68102e7b524af310f7b7d426ce75481e36c40f5d513a9009c046e9d37e31551f0134d954b496a3357fd61d03f07ffe96",
+      "rtmr1": "hex:07e6f51aa763abfe75c3ddfbf4f425fe3f0ceff66d807a75e049303dce9addf68e7218729bd419638af63a370f65878c",
+      "rtmr2": "hex:a2a58c9a959a4fa44bd6da0c97a2270c051faf12084cfe91ae900e4fdff6cdd4f69a82005e04ee920f231497894d677f",
+      "rtmr3": "hex:c4c39cf2aa8effe91ffe094ebcf853b6a0de09c72abec3462cbfebd2204a0f6fbf74696872be1bb6bc986ed0ccdedb58"
+    },
+    "tcbStatus": "Unknown",
+    "eventLog": [
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:0b8772e5b0b41b83e6044a68397e02f49fb47066b4fbe4917ea2c45c64f323fdacbb37948f821ebaf8bc9c938ba8a749"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:344bc51c980ba621aaa00da3ed7436f7d6e549197dfe699515dfa2c6583d95e6412af21c097d473155875ffd561d6790"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:9dc3a1f80bcec915391dcda5ffbb15e7419f77eab462bbf72b42166fb70d50325e37b36f93537a863769bcf9bedae6fb"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:6f2e3cbc14f9def86980f5f66fd85e99d63e69a73014ed8a5633ce56eca5b64b692108c56110e22acadcef58c3250f1b"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:d607c0efb41c0d757d69bca0615c3a9ac0b1db06c557d992e906c6b7dee40e0e031640c7bfd7bcd35844ef9edeadc6f9"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:08a74f8963b337acb6c93682f934496373679dd26af1089cb4eaf0c30cf260a12e814856385ab8843e56a9acea19e127"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:18cc6e01f0c6ea99aa23f8a280423e94ad81d96d0aeb5180504fc0f7a40cb3619dd39bd6a95ec1680a86ed6ab0f9828d"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:394341b7182cd227c5c6b07ef8000cdfd86136c4292b8e576573ad7ed9ae41019f5818b4b971c9effc60e1ad9f1289f0"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:39740da2ea1e7e6c69e5e6569755b2ad6d622a8a9983a2c5b32d5574659dbdc4ca8b95b1c766bd610bc5c26dcde842f8"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:6385b89d2decb3de678d51faba0ff3506835915818fd3ee53a739aa678cd9c76bdd755adfa0aa714cf35a1abe062b253"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:05705c3ca9d71e908d5ce70d4331b6aadce5331b9a6a546f222f017fb0e1797b951a3dac72f59cb197a0c897a201ca07"
+      },
+      {
+        "imr": 1,
+        "event": "",
+        "digest": "hex:90e278aa4d688f4f05bf76f1786fea174abcea0d6b44e81cea5b3327f3f211e5c465a9c34b513283bed2512bca6d4a19"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:1dd6f7b457ad880d840d41c961283bab688e94e4b59359ea45686581e90feccea3c624b1226113f824f315eb60ae0a7c"
+      },
+      {
+        "imr": 0,
+        "event": "",
+        "digest": "hex:23ada07f5261f12f34a0bd8e46760962d6b4d576a416f1fea1c64bc656b1d28eacf7047ae6e967c58fd2a98bfa74c298"
+      },
+      {
+        "imr": 1,
+        "event": "",
+        "digest": "hex:77a0dab2312b4e1e57a84d865a21e5b2ee8d677a21012ada819d0a98988078d3d740f6346bfe0abaa938ca20439a8d71"
+      },
+      {
+        "imr": 1,
+        "event": "",
+        "digest": "hex:394341b7182cd227c5c6b07ef8000cdfd86136c4292b8e576573ad7ed9ae41019f5818b4b971c9effc60e1ad9f1289f0"
+      },
+      {
+        "imr": 2,
+        "event": "",
+        "digest": "hex:6ec1ffeee872ca08ae3301c05890516deead7a24d961eb24eefef1ab63901aab85afdc971d5d6c43dfa183009f49df9f"
+      },
+      {
+        "imr": 2,
+        "event": "",
+        "digest": "hex:5eb4f34f2ec49071551c5562ebaab9f86408f4a0eadaa3d7f05157e37ab04a1f040a82eaae94015d628a7ea4aa482cd2"
+      },
+      {
+        "imr": 1,
+        "event": "",
+        "digest": "hex:214b0bef1379756011344877743fdc2a5382bac6e70362d624ccf3f654407c1b4badf7d8f9295dd3dabdef65b27677e0"
+      },
+      {
+        "imr": 1,
+        "event": "",
+        "digest": "hex:0a2e01c85deae718a530ad8c6d20a84009babe6c8989269e950d8cf440c6e997695e64d455c4174a652cd080f6230b74"
+      },
+      {
+        "imr": 3,
+        "event": "system-preparing",
+        "digest": "hex:f9974020ef507068183313d0ca808e0d1ca9b2d1ad0c61f5784e7157c362c06536f5ddacdad4451693f48fcc72fff624"
+      },
+      {
+        "imr": 3,
+        "event": "app-id",
+        "digest": "hex:2b94edd87264318c9ebe2e714e5a229b055f7dbbdce0adc35bfbe4d7653fcc3d2c4c89029c4638acfff1857522019e41"
+      },
+      {
+        "imr": 3,
+        "event": "compose-hash",
+        "digest": "hex:2891a5ab6eaaa9298739fb50f90081ce246f4e38762a86c06d2c8d386be91b967872ac44f4fe364e1039a929240956eb"
+      },
+      {
+        "imr": 3,
+        "event": "instance-id",
+        "digest": "hex:adace8586c78f33ed175189df7976b246cfb99495816eacc815c8f12e08e1d40cfb8497d533e4b25653028f9790848f6"
+      },
+      {
+        "imr": 3,
+        "event": "boot-mr-done",
+        "digest": "hex:98bd7e6bd3952720b65027fd494834045d06b4a714bf737a06b874638b3ea00ff402f7f583e3e3b05e921c8570433ac6"
+      },
+      {
+        "imr": 3,
+        "event": "mr-kms",
+        "digest": "hex:48b690a412a6d1637469b44f8186834cb4710b865e33b7ca50992ab71848c7dee46c4070d42196e19d6a5f8bab2a193e"
+      },
+      {
+        "imr": 3,
+        "event": "os-image-hash",
+        "digest": "hex:ce4d96a1544f2f558070c691b7911370690ea3f7f6cd41e67dbd0a30a9f745ff72b1a4f6ccdc3cbfe6d0e794b72d66eb"
+      },
+      {
+        "imr": 3,
+        "event": "key-provider",
+        "digest": "hex:83368b43a0fc6f824f5a9220592df85fd30e2d405ecbd253a5c6354af63e6c9b41aec557c38a38e348ab87f9ac8fc68c"
+      },
+      {
+        "imr": 3,
+        "event": "storage-fs",
+        "digest": "hex:ba51104636900268b0e059fa3d266419d079d1e94aea26fb9fcbb8d764bf4c89a67ac271b8a0d1a3989945132a111fc7"
+      },
+      {
+        "imr": 3,
+        "event": "system-ready",
+        "digest": "hex:1a76b2a80a0be71eae59f80945d876351a7a3fb8e9fd1ff1cede5734aa84ea11fd72b4edfbb6f04e5a85edd114c751bd"
+      }
+    ],
+    "imageDigest": "f06dfda6dce1cf904d4e2bab1dc370634cf95cefa2ceb2de2eee127c9382698090d7a4a13e14c536ec6c9c3c8fa87077",
+    "appUrl": null
+  },
+  "quote": {
+    "format": "dstack.tdx.v4",
+    "root": "intel-dcap",
+    "body": {
+      "vendor": "intel-tdx",
+      "measurement": {
+        "mrtd": "hex:f06dfda6dce1cf904d4e2bab1dc370634cf95cefa2ceb2de2eee127c9382698090d7a4a13e14c536ec6c9c3c8fa87077",
+        "rtmr0": "hex:68102e7b524af310f7b7d426ce75481e36c40f5d513a9009c046e9d37e31551f0134d954b496a3357fd61d03f07ffe96",
+        "rtmr1": "hex:07e6f51aa763abfe75c3ddfbf4f425fe3f0ceff66d807a75e049303dce9addf68e7218729bd419638af63a370f65878c",
+        "rtmr2": "hex:a2a58c9a959a4fa44bd6da0c97a2270c051faf12084cfe91ae900e4fdff6cdd4f69a82005e04ee920f231497894d677f",
+        "rtmr3": "hex:c4c39cf2aa8effe91ffe094ebcf853b6a0de09c72abec3462cbfebd2204a0f6fbf74696872be1bb6bc986ed0ccdedb58"
+      },
+      "report_data": "mh:sha256:00ad8fd8492862bad21f6a272bddf5cac71a56018baf9a791292d5507b3edae3",
+      "tcb_status": "Unknown",
+      "app_id": "facc79f103f122331845c5a52ab425ff29fe6512",
+      "instance_id": "4e20cf4ff335693838cb85202d2d69513c822917",
+      "issued_at": "2026-09-23T14:49:43.197Z"
+    },
+    "signature": null,
+    "raw": "base64:BAACAIEAAAAAAAAAk5pyM/ecTKmUCg2zlX8GByKLGyUzQWVhUFttbvQjbHkAAAAACwEFAAAAAAAAAAAAAAAAAHvwYygOlPsFH13XsfxZzpqsQruWHfjUS3Ccmw/4entN9khle6bRGJWJ/qsdWjyanQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAHAgAAAAAAAPBt/abc4c+QTU4rqx3DcGNM+Vzvos6y3i7uEnyTgmmAkNekoT4UxTbsbJw8j6hwdwE/JHQZX1xeEiYQfi+qT/BUjqhaBh4lgeO9+fBtnRY2jQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGgQLntSSvMQ97fUJs51SB42xA9dUTqQCcBG6dN+MVUfATTZVLSWozV/1h0D8H/+lgfm9RqnY6v+dcPd+/T0Jf4/DO/2bYB6deBJMD3Omt32jnIYcpvUGWOK9jo3D2WHjKKljJqVmk+kS9baDJeiJwwFH68SCEz+ka6QDk/f9s3U9pqCAF4E7pIPIxSXiU1nf8TDnPKqjv/pH/4JTrz4U7ag3gnHKr7DRiy/69IgSg9vv3RpaHK+G7a8mG7QzN7bWACtj9hJKGK60h9qJyvd9crHGlYBi6+aeRKS1VB7PtrjAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADQEAAA5WK6L5RnqC7cT9rgGGkgjXGadcQmkW3zKtDWb9tID5nVOL1DWzwsO/3/aiEjroslJy8reSeGbzC2Pkg4tlEQhNSuoKsqXP3EeeKwJZnY4w19y8wRvFUGgaFdB3fSmIZ0Za3aCHejG/SoDdIn0LHFPyY6/lE2CBaY/4kQFiLFYW8GAEoQAAAFBQoKBf8AAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVAAAAAAAAAAcAAAAAAAAA5aOntdgwwpU7mFNMbFmjo0/cNOkz9/WJjwqFzwiEa8oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANyeKnxvlI8XR040p/xD7QMPfBVj8bq932NAyC4OVKjFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALv18v3R/R/C4W4TgQsi0Z3tEC1H3N42vrU3s3cwYl+qAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgZ6MPlZ7lcUoo5t57voCjO2jrVWlW89vvIxc1DXqa1Y1l14681wflqMK2WNMR56dQqQLnN8IESVCdLUV2OBmoIAAAAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHwUAYg4AAC0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlFOGpDQ0JKaWdBd0lCQWdJVkFOWkJNQnJxdVQzV1VVVWI0NUJsT2N6M2M2aUJNQW9HQ0NxR1NNNDlCQU1DCk1IQXhJakFnQmdOVkJBTU1HVWx1ZEdWc0lGTkhXQ0JRUTBzZ1VHeGhkR1p2Y20wZ1EwRXhHakFZQmdOVkJBb00KRVVsdWRHVnNJRU52Y25CdmNtRjBhVzl1TVJRd0VnWURWUVFIREF0VFlXNTBZU0JEYkdGeVlURUxNQWtHQTFVRQpDQXdDUTBFeEN6QUpCZ05WQkFZVEFsVlRNQjRYRFRJMk1ERXlPVEExTXpJd05sb1hEVE16TURFeU9UQTFNekl3Ck5sb3djREVpTUNBR0ExVUVBd3daU1c1MFpXd2dVMGRZSUZCRFN5QkRaWEowYVdacFkyRjBaVEVhTUJnR0ExVUUKQ2d3UlNXNTBaV3dnUTI5eWNHOXlZWFJwYjI0eEZEQVNCZ05WQkFjTUMxTmhiblJoSUVOc1lYSmhNUXN3Q1FZRApWUVFJREFKRFFURUxNQWtHQTFVRUJoTUNWVk13V1RBVEJnY3Foa2pPUFFJQkJnZ3Foa2pPUFFNQkJ3TkNBQVI5CkYwRVF1VVgrQ3Rmd1FqYXJqa0JwQ29OZGNhdGZCUDFoRE4vd2Z3OXBCeXhRWEtCRkx0aW5ubFhjenhWYWlIVEwKck8vY1J2T3Q3VWN1dk15MjF3L1hvNElERFRDQ0F3a3dId1lEVlIwakJCZ3dGb0FVbFc5ZHpiMGI0ZWxBU2NuVQo5RFBPQVZjTDNsUXdhd1lEVlIwZkJHUXdZakJnb0Y2Z1hJWmFhSFIwY0hNNkx5OWhjR2t1ZEhKMWMzUmxaSE5sCmNuWnBZMlZ6TG1sdWRHVnNMbU52YlM5elozZ3ZZMlZ5ZEdsbWFXTmhkR2x2Ymk5Mk5DOXdZMnRqY213L1kyRTkKY0d4aGRHWnZjbTBtWlc1amIyUnBibWM5WkdWeU1CMEdBMVVkRGdRV0JCUlR6dE1TQTVDdjlMZ1RnMUw3QzE2VApLUHlVMERBT0JnTlZIUThCQWY4RUJBTUNCc0F3REFZRFZSMFRBUUgvQkFJd0FEQ0NBam9HQ1NxR1NJYjRUUUVOCkFRU0NBaXN3Z2dJbk1CNEdDaXFHU0liNFRRRU5BUUVFRUQ0d2JoTTdmOXFudTNuMmRqVExVZ3d3Z2dGa0Jnb3EKaGtpRytFMEJEUUVDTUlJQlZEQVFCZ3NxaGtpRytFMEJEUUVDQVFJQkJUQVFCZ3NxaGtpRytFMEJEUUVDQWdJQgpCVEFRQmdzcWhraUcrRTBCRFFFQ0F3SUJBakFRQmdzcWhraUcrRTBCRFFFQ0JBSUJBakFRQmdzcWhraUcrRTBCCkRRRUNCUUlCQlRBUkJnc3Foa2lHK0UwQkRRRUNCZ0lDQVA4d0VBWUxLb1pJaHZoTkFRMEJBZ2NDQVFBd0VBWUwKS29aSWh2aE5BUTBCQWdnQ0FRSXdFQVlMS29aSWh2aE5BUTBCQWdrQ0FRQXdFQVlMS29aSWh2aE5BUTBCQWdvQwpBUUF3RUFZTEtvWklodmhOQVEwQkFnc0NBUUF3RUFZTEtvWklodmhOQVEwQkFnd0NBUUF3RUFZTEtvWklodmhOCkFRMEJBZzBDQVFBd0VBWUxLb1pJaHZoTkFRMEJBZzRDQVFBd0VBWUxLb1pJaHZoTkFRMEJBZzhDQVFBd0VBWUwKS29aSWh2aE5BUTBCQWhBQ0FRQXdFQVlMS29aSWh2aE5BUTBCQWhFQ0FRMHdId1lMS29aSWh2aE5BUTBCQWhJRQpFQVVGQWdJRi93QUNBQUFBQUFBQUFBQXdFQVlLS29aSWh2aE5BUTBCQXdRQ0FBQXdGQVlLS29aSWh2aE5BUTBCCkJBUUdJS0J2QUFBQU1BOEdDaXFHU0liNFRRRU5BUVVLQVFFd0hnWUtLb1pJaHZoTkFRMEJCZ1FRcEVIYy9lNU0KeEtDRFY2MGZRdHkyZmpCRUJnb3Foa2lHK0UwQkRRRUhNRFl3RUFZTEtvWklodmhOQVEwQkJ3RUJBZjh3RUFZTApLb1pJaHZoTkFRMEJCd0lCQWY4d0VBWUxLb1pJaHZoTkFRMEJCd01CQWY4d0NnWUlLb1pJemowRUF3SURTQUF3ClJRSWdRUUcxTld1elVkdWYxektRZWFWL1ZhbS9DWHZXUGdSVE96c2IyaUE2bEdnQ0lRRFI1MUZwY291clR6TlcKeFcrYlZvNDgremt6MTJlVzlTK0svUUdkTVR2UjNRPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQotLS0tLUJFR0lOIENFUlRJRklDQVRFLS0tLS0KTUlJQ2xqQ0NBajJnQXdJQkFnSVZBSlZ2WGMyOUcrSHBRRW5KMVBRenpnRlhDOTVVTUFvR0NDcUdTTTQ5QkFNQwpNR2d4R2pBWUJnTlZCQU1NRVVsdWRHVnNJRk5IV0NCU2IyOTBJRU5CTVJvd0dBWURWUVFLREJGSmJuUmxiQ0JECmIzSndiM0poZEdsdmJqRVVNQklHQTFVRUJ3d0xVMkZ1ZEdFZ1EyeGhjbUV4Q3pBSkJnTlZCQWdNQWtOQk1Rc3cKQ1FZRFZRUUdFd0pWVXpBZUZ3MHhPREExTWpFeE1EVXdNVEJhRncwek16QTFNakV4TURVd01UQmFNSEF4SWpBZwpCZ05WQkFNTUdVbHVkR1ZzSUZOSFdDQlFRMHNnVUd4aGRHWnZjbTBnUTBFeEdqQVlCZ05WQkFvTUVVbHVkR1ZzCklFTnZjbkJ2Y21GMGFXOXVNUlF3RWdZRFZRUUhEQXRUWVc1MFlTQkRiR0Z5WVRFTE1Ba0dBMVVFQ0F3Q1EwRXgKQ3pBSkJnTlZCQVlUQWxWVE1Ga3dFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRU5TQi83dDIxbFhTTwoyQ3V6cHh3NzRlSkI3MkV5REdnVzVyWEN0eDJ0VlRMcTZoS2s2eitVaVJaQ25xUjdwc092Z3FGZVN4bG1UbEpsCmVUbWkyV1l6M3FPQnV6Q0J1REFmQmdOVkhTTUVHREFXZ0JRaVpReldXcDAwaWZPRHRKVlN2MUFiT1NjR3JEQlMKQmdOVkhSOEVTekJKTUVlZ1JhQkRoa0ZvZEhSd2N6b3ZMMk5sY25ScFptbGpZWFJsY3k1MGNuVnpkR1ZrYzJWeQpkbWxqWlhNdWFXNTBaV3d1WTI5dEwwbHVkR1ZzVTBkWVVtOXZkRU5CTG1SbGNqQWRCZ05WSFE0RUZnUVVsVzlkCnpiMGI0ZWxBU2NuVTlEUE9BVmNMM2xRd0RnWURWUjBQQVFIL0JBUURBZ0VHTUJJR0ExVWRFd0VCL3dRSU1BWUIKQWY4Q0FRQXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdYc1ZraTB3K2k2VllHVzNVRi8yMnVhWGUwWUpEajFVZQpuQStUakQxYWk1Y0NJQ1liMVNBbUQ1eGtmVFZwdm80VW95aVNZeHJEV0xtVVI0Q0k5Tkt5ZlBOKwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlDanpDQ0FqU2dBd0lCQWdJVUltVU0xbHFkTkluemc3U1ZVcjlRR3prbkJxd3dDZ1lJS29aSXpqMEVBd0l3CmFERWFNQmdHQTFVRUF3d1JTVzUwWld3Z1UwZFlJRkp2YjNRZ1EwRXhHakFZQmdOVkJBb01FVWx1ZEdWc0lFTnYKY25CdmNtRjBhVzl1TVJRd0VnWURWUVFIREF0VFlXNTBZU0JEYkdGeVlURUxNQWtHQTFVRUNBd0NRMEV4Q3pBSgpCZ05WQkFZVEFsVlRNQjRYRFRFNE1EVXlNVEV3TkRVeE1Gb1hEVFE1TVRJek1USXpOVGsxT1Zvd2FERWFNQmdHCkExVUVBd3dSU1c1MFpXd2dVMGRZSUZKdmIzUWdRMEV4R2pBWUJnTlZCQW9NRVVsdWRHVnNJRU52Y25CdmNtRjAKYVc5dU1SUXdFZ1lEVlFRSERBdFRZVzUwWVNCRGJHRnlZVEVMTUFrR0ExVUVDQXdDUTBFeEN6QUpCZ05WQkFZVApBbFZUTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFQzZuRXdNRElZWk9qL2lQV3NDemFFS2k3CjFPaU9TTFJGaFdHamJuQlZKZlZua1k0dTNJamtEWVlMME14TzRtcXN5WWpsQmFsVFZZeEZQMnNKQks1emxLT0IKdXpDQnVEQWZCZ05WSFNNRUdEQVdnQlFpWlF6V1dwMDBpZk9EdEpWU3YxQWJPU2NHckRCU0JnTlZIUjhFU3pCSgpNRWVnUmFCRGhrRm9kSFJ3Y3pvdkwyTmxjblJwWm1sallYUmxjeTUwY25WemRHVmtjMlZ5ZG1salpYTXVhVzUwClpXd3VZMjl0TDBsdWRHVnNVMGRZVW05dmRFTkJMbVJsY2pBZEJnTlZIUTRFRmdRVUltVU0xbHFkTkluemc3U1YKVXI5UUd6a25CcXd3RGdZRFZSMFBBUUgvQkFRREFnRUdNQklHQTFVZEV3RUIvd1FJTUFZQkFmOENBUUV3Q2dZSQpLb1pJemowRUF3SURTUUF3UmdJaEFPVy81UWtSK1M5Q2lTRGNOb293THVQUkxzV0dmL1lpN0dTWDk0Qmd3VHdnCkFpRUE0SjBsckhvTXMrWG81by9zWDZPOVFXeEhSQXZaVUdPZFJRN2N2cVJYYXFJPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  },
+  "directory": {},
+  "steps": [
+    {
+      "label": "enclave info",
+      "ok": true,
+      "detail": " · app facc79f103f1 · instance 4e20cf4ff335"
+    },
+    {
+      "label": "quote fetched",
+      "ok": true,
+      "detail": "dstack.tdx.v4 · TCB Unknown"
+    },
+    {
+      "label": "quote structure",
+      "ok": true,
+      "detail": "well-formed"
+    },
+    {
+      "label": "root of trust",
+      "ok": true,
+      "detail": "verified by Phala Cloud attestation API (real Intel DCAP check)"
+    },
+    {
+      "label": "vendor",
+      "ok": true,
+      "detail": "intel-tdx permitted"
+    },
+    {
+      "label": "measurement pin",
+      "ok": true,
+      "detail": "no pin configured (development posture)"
+    },
+    {
+      "label": "key binding",
+      "ok": true,
+      "detail": "quote report_data commits to the endpoint's signing key"
+    },
+    {
+      "label": "channel",
+      "ok": true,
+      "detail": "open — events may be transmitted"
+    }
+  ],
+  "reasons": [],
+  "at": "2026-09-23T14:49:45.161Z"
+}

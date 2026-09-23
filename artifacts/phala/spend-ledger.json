@@ -1,9 +1,15 @@
 {
-  "authorized_max_spend_usd": 10.00,
+  "authorized_max_spend_usd": 10,
   "target_spend_usd": "3-8",
   "actual_note": "Actual spend came in far below target; validation completed in ~35 minutes of tdx.small runtime across 6 redeploys of the same CVM (no new CVM created after the first).",
   "instance_type": "tdx.small",
-  "instance_spec": { "vcpu": 1, "memory_mb": 2048, "hourly_rate_compute_usd": 0.058, "hourly_rate_disk_usd": 0.00278, "hourly_rate_total_usd": 0.06078 },
+  "instance_spec": {
+    "vcpu": 1,
+    "memory_mb": 2048,
+    "hourly_rate_compute_usd": 0.058,
+    "hourly_rate_disk_usd": 0.00278,
+    "hourly_rate_total_usd": 0.06078
+  },
   "region": "US-WEST-1",
   "node": "prod9 (device_id 573f4908a95b4159c4c262fc8244a485a77d874dc4b1bdf28d38afe80ca77431)",
   "cvm": {
@@ -18,19 +24,81 @@
     "note_on_precision": "Estimate computed from wall-clock elapsed time x hourly_rate.total. Phala bills per compute-second/rounded interval per its own billing engine; the account dashboard/invoice is authoritative for exact billed amount. The CLI's /users/me and /balance-style endpoints returned 404 in this environment, so an exact starting/remaining credit figure could not be read programmatically — this is disclosed rather than guessed."
   },
   "images_deployed": [
-    { "tag": "v1-0eaf9853", "digest": "sha256:9f1c5276116628d9dc8a0ba7c8be6804ca0157a1e031a12ec15457c5b7f288be", "purpose": "initial deploy, proved fail-closed (no dstack socket wiring yet)" },
-    { "tag": "v1-0eaf9853-fix1", "digest": "sha256:7693fba52c75b497a9eeabdf65fb7073223bb3d8a6784c7d1536a611566cb5b6", "purpose": "wired unix-socket transport via cool-nwc/node" },
-    { "tag": "v1-debug2", "digest": "sha256:3ee4050f294441dc6952fdf39037fee2e29e1e995de5f25db8792b9284cae45d", "purpose": "debug endpoint to surface DstackUnavailableError.cause" },
-    { "tag": "v1-fixedpaths", "digest": "sha256:c636048d4c76588e546caaa84fdd77104f87d78965c77c097c71811303d74ce3", "purpose": "corrected dstack RPC paths (/Info,/GetQuote,/GetKey, no /prpc prefix)" },
-    { "tag": "v1-final", "digest": "sha256:c799196597cdd31364aa8df1d991905eb525fa29aa4adf2f151ecd8a16afc4d5", "purpose": "switched to CoolTee + real remoteQuoteVerifier against Phala Cloud attestation API" },
-    { "tag": "v1-final2", "digest": "sha256:9e3fcc7d83c4ff0f85ee59973ae1922a2edc1103934469b85c5ca878887c323a", "purpose": "fixed software.digest multihash formatting; FIRST run to reach 5/7 real PASS" },
-    { "tag": "v1-debug3", "digest": "sha256:39584f83ac39860f92bb9fc5f5a9c93aee66c27c16eb263e99cefd50e49d8006", "purpose": "surfaced raw /Info response, found tcb_info is a JSON string, not an object" },
-    { "tag": "deployment-a", "digest": "sha256:cc4c8b917bfacd492e6afe6e6815777c4af5108d069284542466a7fbc7f64b75", "purpose": "final image with dstack.ts tcb_info parsing fix; produced the validation's primary receipt (real non-zero MRTD/RTMR)" },
-    { "tag": "deployment-b", "digest": "sha256:a86b0de03f379e4076d19dc4a449dff6b6226bc27ecbc7c9a5b13aa2fcf92465", "purpose": "workload-change test: WORKLOAD_MARKER=v2, one-line build-arg change" }
+    {
+      "tag": "v1-0eaf9853",
+      "digest": "sha256:9f1c5276116628d9dc8a0ba7c8be6804ca0157a1e031a12ec15457c5b7f288be",
+      "purpose": "initial deploy, proved fail-closed (no dstack socket wiring yet)"
+    },
+    {
+      "tag": "v1-0eaf9853-fix1",
+      "digest": "sha256:7693fba52c75b497a9eeabdf65fb7073223bb3d8a6784c7d1536a611566cb5b6",
+      "purpose": "wired unix-socket transport via cool-nwc/node"
+    },
+    {
+      "tag": "v1-debug2",
+      "digest": "sha256:3ee4050f294441dc6952fdf39037fee2e29e1e995de5f25db8792b9284cae45d",
+      "purpose": "debug endpoint to surface DstackUnavailableError.cause"
+    },
+    {
+      "tag": "v1-fixedpaths",
+      "digest": "sha256:c636048d4c76588e546caaa84fdd77104f87d78965c77c097c71811303d74ce3",
+      "purpose": "corrected dstack RPC paths (/Info,/GetQuote,/GetKey, no /prpc prefix)"
+    },
+    {
+      "tag": "v1-final",
+      "digest": "sha256:c799196597cdd31364aa8df1d991905eb525fa29aa4adf2f151ecd8a16afc4d5",
+      "purpose": "switched to CoolTee + real remoteQuoteVerifier against Phala Cloud attestation API"
+    },
+    {
+      "tag": "v1-final2",
+      "digest": "sha256:9e3fcc7d83c4ff0f85ee59973ae1922a2edc1103934469b85c5ca878887c323a",
+      "purpose": "fixed software.digest multihash formatting; FIRST run to reach 5/7 real PASS"
+    },
+    {
+      "tag": "v1-debug3",
+      "digest": "sha256:39584f83ac39860f92bb9fc5f5a9c93aee66c27c16eb263e99cefd50e49d8006",
+      "purpose": "surfaced raw /Info response, found tcb_info is a JSON string, not an object"
+    },
+    {
+      "tag": "deployment-a",
+      "digest": "sha256:cc4c8b917bfacd492e6afe6e6815777c4af5108d069284542466a7fbc7f64b75",
+      "purpose": "final image with dstack.ts tcb_info parsing fix; produced the validation's primary receipt (real non-zero MRTD/RTMR)"
+    },
+    {
+      "tag": "deployment-b",
+      "digest": "sha256:a86b0de03f379e4076d19dc4a449dff6b6226bc27ecbc7c9a5b13aa2fcf92465",
+      "purpose": "workload-change test: WORKLOAD_MARKER=v2, one-line build-arg change"
+    }
   ],
   "cleanup": {
     "action": "phala cvms delete --cvm-id 48fab3a0-eac5-44ec-834f-3de2e701e7b4 --force",
     "result": "success: true, deleted: true",
     "confirmed_status": "deleting (transitional state at time of check; CVM removed from active list)"
-  }
+  },
+  "run2": {
+    "cvm": {
+      "vm_uuid": "3c1fcf8c-3c11-4965-936d-b32545c711a0",
+      "app_id": "facc79f103f122331845c5a52ab425ff29fe6512",
+      "name": "cool-phala-final",
+      "node": "prod5",
+      "region": "US-WEST-1",
+      "created_at_utc": "2026-09-23T14:49:04Z",
+      "delete_requested_utc": "2026-09-23T14:55:50Z",
+      "elapsed_minutes_approx": 6.8,
+      "estimated_cost_usd": 0.0069,
+      "deletion_confirmed": "phala cvms list total 0"
+    },
+    "images": [
+      {
+        "tag": "final-a",
+        "digest": "sha256:3535a90e49a375c4f92a1cdc0d05190d05ca551053d03d96c4f16e198860eff5"
+      },
+      {
+        "tag": "final-b",
+        "digest": "sha256:1372fbe7ab61418519772146e59765a042c16a5d3f0080c1356e1cff4875ebca"
+      }
+    ]
+  },
+  "total_estimated_usd_both_runs": 0.0386,
+  "total_note": "Estimate only (elapsed time x hourly rate); billing dashboard is authoritative."
 }

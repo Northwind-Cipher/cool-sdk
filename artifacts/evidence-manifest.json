@@ -1,7 +1,13 @@
 {
-  "generated_at_utc": "2026-09-23T14:19:10.293Z",
-  "file_count": 19,
+  "generated_at_utc": "2026-09-23T15:00:53.784Z",
+  "note": "Unsigned integrity index; detects change, does not authenticate the author. Files outside the repository (e.g. the audit DOCX) are not listed.",
+  "file_count": 55,
   "files": [
+    {
+      "path": "COOL_PHALA_REPRODUCTION.md",
+      "sha256": "59dc8bc3e5ceae2f3801cee4a49041af05816c7f4d4fcd0186bc42a1c12af15c",
+      "size_bytes": 4707
+    },
     {
       "path": "artifacts/attestation/deployment-a-environment.json",
       "sha256": "b976ace72cbf9fcba51a2ff6596c7d639984b992ee14cc00e859d595a8b2729c",
@@ -28,14 +34,54 @@
       "size_bytes": 6359
     },
     {
+      "path": "artifacts/cool-phala-validation-certificate.json",
+      "sha256": "60e73ca4c5f9b5dcd9c3bd39a3d97f4b5e7fe9705ad5bf2fce00e28ceb83b2c5",
+      "size_bytes": 7051
+    },
+    {
+      "path": "artifacts/cool-phala-validation-report.md",
+      "sha256": "65c30cb15c189c4ddb6cfdfd6cc03bedc021f6339fc995a38aabd0a8ab6b53bd",
+      "size_bytes": 5792
+    },
+    {
+      "path": "artifacts/final-evidence/attestation-domain-final.json",
+      "sha256": "ec92a72dfa5e69168c994cd3f50939582bfc1a07c10575038d0e1194956542e0",
+      "size_bytes": 28490
+    },
+    {
+      "path": "artifacts/final-evidence/binding-domain-final.json",
+      "sha256": "305c07b13fb2ae5c44a71a230eaf2134f70b86729c1e1edc28bb82e353531a70",
+      "size_bytes": 1917
+    },
+    {
+      "path": "artifacts/final-evidence/consistency-domain-final.json",
+      "sha256": "7c898fa2da324788e88ad1168a1bdcdb9f953f9dcb072dc1a491e9b0cb6881cc",
+      "size_bytes": 4717
+    },
+    {
+      "path": "artifacts/final-evidence/enclave-domain-final.json",
+      "sha256": "ff26fd43ed777b0bd765071b381cddb401866c77c3746a5863b80fd2f3c8f61c",
+      "size_bytes": 2606
+    },
+    {
       "path": "artifacts/final-evidence/external-verification-deployment-a.json",
       "sha256": "d7f0cb1926e431dac9bde70d965762b6fb4b8b629e552a3d3868ec7c9ab8c1b3",
       "size_bytes": 1221
     },
     {
+      "path": "artifacts/final-evidence/final-external-verification.json",
+      "sha256": "b0bfeef44e5636aef50bb993e8fbfdc712bbdf00f6b564249f821bf6493eb44a",
+      "size_bytes": 871
+    },
+    {
       "path": "artifacts/final-evidence/historical-receipt-A-still-valid.json",
       "sha256": "a5ecfaecfe3db45299faacacb3ee0b0c747fd6d8e7bd11b87924a44ca5a09259",
       "size_bytes": 1224
+    },
+    {
+      "path": "artifacts/final-evidence/inclusion-domain-final.json",
+      "sha256": "e2ecb6b8782fce203046ca8c8b36eadc62b9c367f06190ab9c0a2a4e0da5d974",
+      "size_bytes": 1463
     },
     {
       "path": "artifacts/final-evidence/measurement-change-B-vs-pinA.json",
@@ -48,14 +94,99 @@
       "size_bytes": 1224
     },
     {
+      "path": "artifacts/final-evidence/offline-dcap-verification-A.json",
+      "sha256": "c45226b9886201dbb21686044303ca83bccb1abcdaefc28cb66e99f82ffa838f",
+      "size_bytes": 464
+    },
+    {
+      "path": "artifacts/final-evidence/phala-attestation-api-response-A.json",
+      "sha256": "bea0419c9529a7c95fd408724a7f318e32829999925ad712ad7eaefa3e84e2af",
+      "size_bytes": 26030
+    },
+    {
+      "path": "artifacts/final-evidence/raw/environment-A.json",
+      "sha256": "60bf9122b2a33453cbdc346f5d6c267174941948614d9e72c125cb256f182353",
+      "size_bytes": 5642
+    },
+    {
+      "path": "artifacts/final-evidence/raw/handshake-A.json",
+      "sha256": "2e1fc67a4339916a91d8144f6e4c1dfc053a1ff17ccc3fd641388cac1c50564d",
+      "size_bytes": 15287
+    },
+    {
+      "path": "artifacts/final-evidence/raw/handshake-B.json",
+      "sha256": "cacf7ca36e58172494464f1cd2b5f04307ee800a9dd01d3b748ff743676a6a3c",
+      "size_bytes": 15287
+    },
+    {
+      "path": "artifacts/final-evidence/raw/internal-verdict-A.json",
+      "sha256": "946cbce670e32af0a00908abd2dd03429abc40bb7db08b5c9255293c2d92078e",
+      "size_bytes": 1221
+    },
+    {
+      "path": "artifacts/final-evidence/raw/receipts-A.json",
+      "sha256": "01329a371ad228aae8318500011b1f69ec234248e1b311a82ba21472402d76d6",
+      "size_bytes": 181864
+    },
+    {
+      "path": "artifacts/final-evidence/raw/receipts-B.json",
+      "sha256": "096c17a9f58000654076e6aab50f60804420945be843d840341345b06cee9ff7",
+      "size_bytes": 181864
+    },
+    {
+      "path": "artifacts/final-evidence/signature-domain-final.json",
+      "sha256": "09845cd8d751d78fe619c9b0511aa2dceca80a516447c72e20d9b105972483a2",
+      "size_bytes": 1749
+    },
+    {
+      "path": "artifacts/final-evidence/tamper-final.json",
+      "sha256": "e473d882d6c5c051583f946a0c4aff3604ba2d9766487ca9f1e7f6a21ef67993",
+      "size_bytes": 1549
+    },
+    {
+      "path": "artifacts/final-evidence/tamper-final/original-final-receipt.json",
+      "sha256": "8498dae8ab02d4b1acbaec184e944f03d859663e9d164e0cde8feedc9edb747d",
+      "size_bytes": 30145
+    },
+    {
+      "path": "artifacts/final-evidence/tamper-final/tampered-binding_hash.json",
+      "sha256": "b6ba62582b749fe98ed17009d0fa79c8ca51b69fe4906410a6d02d8aa281a14a",
+      "size_bytes": 30145
+    },
+    {
+      "path": "artifacts/final-evidence/tamper-final/tampered-record_event_metadata_hash.json",
+      "sha256": "564d647224034f9cb1b23df27fc6c6980f1cad27d2955122745f47a46b84e56f",
+      "size_bytes": 30145
+    },
+    {
+      "path": "artifacts/final-evidence/witness-domain-final.json",
+      "sha256": "3122d64ae8d28c41792d943e73f304683f76bea00f190002e2483aad47ea0d52",
+      "size_bytes": 8929
+    },
+    {
       "path": "artifacts/final-evidence/witness-domain-pass.json",
       "sha256": "63d79cb098b80fb5d43a47c4bcaf54823f1f30c24b4165aeb854ebfb79b429ea",
       "size_bytes": 1219
     },
     {
+      "path": "artifacts/final-evidence/witnessed-final-receipt.json",
+      "sha256": "9e82e6e57dcdfaa1baa8c3c391b9d0617725547cffa240b7efe5feca3757f4bf",
+      "size_bytes": 37569
+    },
+    {
+      "path": "artifacts/final-evidence/workload-change-final.json",
+      "sha256": "5dcfcaf88205dcc689ce2c16a04ce6d38e7f713a03405eefe833e03a6b3fc752",
+      "size_bytes": 1567
+    },
+    {
+      "path": "artifacts/final-verification-matrix.md",
+      "sha256": "1ac8981796dd84d715460844481a8c2ec7734e97f09d517fd94e2a9e2e711b85",
+      "size_bytes": 5384
+    },
+    {
       "path": "artifacts/phala/spend-ledger.json",
-      "sha256": "9748246fd757f70f77cdd24e2b0f054a01b6efd6b4de365c3b6cd7a8abd3e4e6",
-      "size_bytes": 3512
+      "sha256": "c0bcad16bf80601f8b85d610e9167756f7b891b9d5552598b2c67a69b6a6b3a5",
+      "size_bytes": 4630
     },
     {
       "path": "artifacts/receipts/deployment-a-receipt.json",
@@ -94,8 +225,58 @@
     },
     {
       "path": "artifacts/verification-matrix.md",
-      "sha256": "ac4dd5b0561cb339df67e9f27f128a80e9d52fa6723691eca56bc22cf4ed6b71",
-      "size_bytes": 4702
+      "sha256": "28a4ba971f0dcd2987d816216330f2e45cb249965edf9c71166f3e75a7b0c52d",
+      "size_bytes": 1584
+    },
+    {
+      "path": "phala-validation/Dockerfile",
+      "sha256": "5dfd73bdbb7783ecd8a93ea9f1170ff3ed97cd980c39858d6f9ee7cabaf53fc9",
+      "size_bytes": 824
+    },
+    {
+      "path": "phala-validation/docker-compose.deployment-a.yaml",
+      "sha256": "b85da579b904492849500093b0c86e094d6ea4b9c23236ce9b96937dbd0af678",
+      "size_bytes": 504
+    },
+    {
+      "path": "phala-validation/docker-compose.deployment-b.yaml",
+      "sha256": "7cf5d6800ca722384b730d3506b95760b356def4e6905bff0b075651527fc32e",
+      "size_bytes": 529
+    },
+    {
+      "path": "phala-validation/external-verify.mjs",
+      "sha256": "ebcd54ecdc90a96dd4ff0b04cd6d9fffe00d09953e3dfd29147499010706f0fd",
+      "size_bytes": 1638
+    },
+    {
+      "path": "phala-validation/final-verify.mjs",
+      "sha256": "ad4a5fc54c3615676a4d4f4e4b4c0e7083518a3e694b9889ec6666c6f7edc3c8",
+      "size_bytes": 22042
+    },
+    {
+      "path": "phala-validation/gen-manifest.mjs",
+      "sha256": "4c84cc6c7690b47e68f63407f082d6cbe07934c4ce58188ee4c6faf36cfb0216",
+      "size_bytes": 1420
+    },
+    {
+      "path": "phala-validation/offline-dcap-verify.mjs",
+      "sha256": "f3919bfca2391ac88826cbc2be8f0618b52cc22570825fa188e75638d8f2db0e",
+      "size_bytes": 2930
+    },
+    {
+      "path": "phala-validation/package.json",
+      "sha256": "2cb6c595d6d9446c784305f9240d43d6ec4098a9d3c466df61f03737f96701d9",
+      "size_bytes": 152
+    },
+    {
+      "path": "phala-validation/server.mjs",
+      "sha256": "ef7fab1d9e3297e0c7bfddd4f7474b84e745f7f5274e64e6e7419ea5576eb6ac",
+      "size_bytes": 6966
+    },
+    {
+      "path": "tests/real-tee-validation.test.ts",
+      "sha256": "889a3c9f38d6c52efd62160043a3548a21daca7f5fc3aa51255d85254d552aa7",
+      "size_bytes": 12453
     }
   ]
 }

@@ -1,0 +1,171 @@
+{
+  "domain": "consistency",
+  "checked_at": "2026-09-23T14:56:20.044Z",
+  "scope": "REAL CooL log mechanism exercised on the deployed enclave's own signed tree heads (sizes 1..6). Consistency is NOT a field of the receipt verdict (verifyReceiptV2); it is verified by this script.",
+  "method": "Leaf hashes come from the receipts' binding digests; the proof is computed by consistencyProof() outside the CVM and checked with verifyConsistency() against roots taken from STHs that the enclave signed (each STH signature is verified in inclusion-domain-final.json).",
+  "headline": {
+    "from_size": 2,
+    "to_size": 6,
+    "proof": [
+      "hex:10c1f73a9e075e688f70057760d846ac6480e055fe8437319a074b739c1a128b",
+      "hex:5ed9dd43afe954fcab411f8cdb825b858f9cfb2f9642c5bd5caafd0f925935cf"
+    ],
+    "from": 2,
+    "to": 6,
+    "proof_hashes": 2,
+    "verifies_against_enclave_signed_heads": true,
+    "forged_first_root_rejected": true
+  },
+  "pairs_checked": 21,
+  "results": [
+    {
+      "from": 1,
+      "to": 1,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 1,
+      "to": 2,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 1,
+      "to": 3,
+      "proof_hashes": 2,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 1,
+      "to": 4,
+      "proof_hashes": 2,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 1,
+      "to": 5,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 1,
+      "to": 6,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 2,
+      "to": 2,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 2,
+      "to": 3,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 2,
+      "to": 4,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 2,
+      "to": 5,
+      "proof_hashes": 2,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 2,
+      "to": 6,
+      "proof_hashes": 2,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 3,
+      "to": 3,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 3,
+      "to": 4,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 3,
+      "to": 5,
+      "proof_hashes": 4,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 3,
+      "to": 6,
+      "proof_hashes": 4,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 4,
+      "to": 4,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 4,
+      "to": 5,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 4,
+      "to": 6,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 5,
+      "to": 5,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 5,
+      "to": 6,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    },
+    {
+      "from": 6,
+      "to": 6,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true,
+      "forged_first_root_rejected": true
+    }
+  ],
+  "result": "PASS",
+  "limitation": "The proof was computed externally from public leaf hashes, not requested from a log service; the deployed log exposes no consistency endpoint. The earlier size-1 receipts (artifacts/receipts/deployment-a-receipt.json) did NOT exercise consistency."
+}

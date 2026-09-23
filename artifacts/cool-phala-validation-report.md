@@ -1,187 +1,65 @@
-# CooL x Phala Cloud Real-TEE Validation Report
+# CooL x Phala Cloud Real-TEE Validation Report (corrected, final)
 
-## Executive Summary
+This report replaces an earlier version that claimed "7/7 REAL". An independent audit found that wording was not
+supported. It is not a certification, and it does not claim any Phala partnership, endorsement or commercial
+relationship.
 
-CooL (`cool-nwc@3.0.0`, commit `0eaf98533a55dcea7829218f7701da48a56b8b5c`) was deployed to a real
-Phala Cloud Intel TDX confidential VM (`tdx.small`, US-WEST-1) and produced a hardware-attested
-evidence receipt that independently verifies **7/7** of its verification domains as REAL:
-binding, signature, inclusion, consistency, witness, attestation, and enclave. Attestation was
-verified against Phala Cloud's live Intel-DCAP-backed API, not merely generated. Enclave
-measurement (MRTD/RTMR0-3) was captured from real hardware and shown to correctly change (RTMR3
-only) when the deployed workload changed, and to correctly reject a mismatched measurement pin.
-A tamper test on the receipt correctly failed verification. Total Phala Cloud spend was
-approximately $0.03, against an authorized ceiling of $10.
+## Result
 
-## Objective
+Real-TEE validation completed on Phala Cloud Intel TDX hardware. Binding, signature, inclusion, real hardware
+attestation evidence, enclave measurement evidence, tamper rejection and workload-change enforcement were
+demonstrated. Consistency was verified as a mechanism on the real deployed log's signed heads but is not a receipt
+verdict domain and was not exercised on the size-1 Run 1 receipt. Witness cryptography was demonstrated, but
+operational third-party witness independence was not.
 
-Move CooL's Phala/dstack integration from "5/7 real, 2/7 simulated" (the state described going
-into this validation) to genuinely real attestation and enclave verification, using real Phala
-Cloud infrastructure, without fabricating any result.
+## System under test
 
-## Starting CooL State
+- Repository `Northwind-Cipher/cool-sdk`, `cool-nwc@3.0.0`. Run 1 baseline commit `0eaf98533a55dcea7829218f7701da48a56b8b5c`;
+  Run 1 validation commit `de7230b82fda26b9d961dd1c2e071efaea6ba6c6`; Run 2 changes are in the closeout commit on `main`.
+- Phala Cloud `tdx.small` (1 vCPU, 2 GB), US-WEST-1, dstack-dev-0.5.9 (`is_dev: true`), real dstack guest agent over `/var/run/dstack.sock`.
+- Run 1 CVM `48fab3a0-eac5-44ec-834f-3de2e701e7b4`; Run 2 CVM `3c1fcf8c-3c11-4965-936d-b32545c711a0`. Both deleted.
+- Run 2 images: Deployment A (primary) `sha256:3535a90e...0eff5` (`final-a`); Deployment B (workload change) `sha256:1372fbe7...ebca` (`final-b`).
+  Docker image digests are recorded separately from, and never equated with, TDX measurements.
 
-See `artifacts/baseline.md`. Commit `0eaf98533a55dcea7829218f7701da48a56b8b5c`, 85/86 tests
-passing (1 skipped, network-dependent), clean typecheck and build. The verifier's own status
-vocabulary (`pass / simulated / absent / fail / mock`) already made honest 5/7 the correct
-baseline characterization — the plumbing for real hardware (`HttpDstackClient`,
-`remoteQuoteVerifier`, `security.requireAttestation`) already existed in the codebase; what was
-missing was exercising it against real infrastructure.
+## Run 1 (original, commit de7230b)
 
-## Phala Environment
+Established real hardware evidence and found two SDK-integration gaps and one SDK bug (below). Evidence in
+`artifacts/receipts`, `artifacts/attestation`, `artifacts/final-evidence` (original files), `artifacts/tamper`.
+Its tree had one entry, so it did not exercise consistency or a non-trivial inclusion path.
 
-- CVM: `48fab3a0-eac5-44ec-834f-3de2e701e7b4` (app_id `36b6ebcab24492ad1d56a46dc05261cb9eac4d45`)
-- Instance: `tdx.small` — 1 vCPU, 2GB RAM, 20GB disk, $0.058/hr compute + $0.00278/hr disk
-- Region: US-WEST-1, node `prod9`
-- dstack OS: `dstack-dev-0.5.9`, KMS type `phala`
-- No GPU, no H200, single CVM reused across all redeployments (never created a second CVM
-  needlessly)
+## Engineering findings and fixes
 
-## Architecture
+1. Unix-socket transport is not wired by the top-level `CooL` class; the workload passes `HttpDstackClient` with `unixFetch` explicitly.
+2. Default RPC paths (`/prpc/...`) do not match the deployed agent (`/Info`, `/GetQuote`, `/GetKey`); overridden through the client's `paths` option.
+3. Bug: the real agent returns `tcb_info` as a JSON-encoded string; `HttpDstackClient.info()` read fields off it as an object and silently
+   produced an all-zero measurement. Fixed in `src/phala/dstack.ts` (`parseTcbInfo`). The fix was validated against real hardware and is now covered
+   by a dedicated regression test (`tests/real-tee-validation.test.ts`, two tests). Negative control: both tests fail against the pre-fix `dstack.ts`.
+4. Semantics: the enclave domain could report `pass` while attestation was `absent`. Under `requireHardware` it now fails closed
+   (`src/phala/verify.ts`, `verifyEnclaveDomain`). Behaviour without `requireHardware` is unchanged.
 
-The deployed workload (`phala-validation/server.mjs`) is a minimal HTTP server that:
-1. Constructs an `HttpDstackClient` against the real guest-agent unix socket
-   (`/var/run/dstack.sock`), using `cool-nwc/node`'s `unixFetch` transport and the current
-   dstack RPC paths (`/Info`, `/GetQuote`, `/GetKey`).
-2. Opens a `CoolTee` connection with `policy.allowSimulated: false`, `policy.requireVerifiedRoot:
-   true`, and a real `remoteQuoteVerifier` pointed at Phala Cloud's attestation API.
-3. Records one synthetic `model.execution` evidence event.
-4. Serves the resulting receipt, attestation handshake, and verdict over HTTP so they can be
-   pulled and verified from outside the CVM.
+## Run 2 evidence (fresh, `artifacts/final-evidence/`)
 
-## Engineering issues found and fixed (documented, not hidden)
-
-Three real integration problems were found and fixed while getting from "quote request fails" to
-"attestation: pass":
-
-1. **Unix-socket transport not wired by default.** The top-level `CooL` class constructs
-   `HttpDstackClient` with the platform `fetch`, which cannot open a unix socket — the real guest
-   agent's actual transport (`unixFetch` from `cool-nwc/node`) has to be passed in explicitly via
-   the `dstackClient` extension point. This is exactly what that extension point is for; not a
-   patch to the SDK.
-2. **Stale RPC paths.** CooL's default paths (`/prpc/Info`, `/prpc/GetQuote`, `/prpc/GetKey`)
-   are from an older dstack generation (`tappd`). The real, currently-deployed guest agent
-   (`dstack-dev-0.5.9`) exposes `/Info`, `/GetQuote`, `/GetKey` with no prefix — confirmed against
-   `Dstack-TEE/dstack`'s own `sdk/curl/api.md`. Fixed via `HttpDstackClient`'s already-existing
-   `paths` override — the module's own comment anticipated exactly this ("dstack renamed these...
-   overridable rather than hard-coded").
-3. **`tcb_info` parsed as an object when the real agent returns it as a JSON-encoded string.**
-   This is a genuine bug in `src/phala/dstack.ts`, fixed in this validation: `HttpDstackClient
-   .info()` read `raw.tcb_info.mrtd` etc. directly; against real hardware `tcb_info` arrives as a
-   string, so every field read `undefined` and every measurement silently fell back to
-   `00000...0`. The fix (`parseTcbInfo`) parses the string before reading fields, is covered by
-   the existing test suite (85/85 still passing, 0 regressions), and was the difference between
-   an enclave check that "passed" against fake zeros and one that passes against a genuine
-   96-hex-character MRTD.
-
-## Attestation
-
-Quote requested from the real dstack guest agent via `GetQuote`, `report_data` committed to the
-CooL signing key's public halves. Verified against Phala Cloud's own attestation API:
-
-```
-POST https://cloud-api.phala.com/api/v1/attestations/verify
-Body: { "hex": "<quote hex>" }
-Response: { "quote": { "verified": true } }
-```
-
-This is **online, collateral-assisted verification** — it requires a live network call to Phala's
-service, and is labelled as such rather than called "offline." Result: `attestation: pass`,
-`root: intel-dcap`.
-
-## Enclave Measurement
-
-Captured from the real running instance (deployment A):
-
-```
-MRTD : f06dfda6dce1cf904d4e2bab1dc370634cf95cefa2ceb2de2eee127c9382698090d7a4a13e14c536ec6c9c3c8fa87077
-RTMR0: 68102e7b524af310f7b7d426ce75481e36c40f5d513a9009c046e9d37e31551f0134d954b496a3357fd61d03f07ffe96
-RTMR1: 07e6f51aa763abfe75c3ddfbf4f425fe3f0ceff66d807a75e049303dce9addf68e7218729bd419638af63a370f65878c
-RTMR2: a2a58c9a959a4fa44bd6da0c97a2270c051faf12084cfe91ae900e4fdff6cdd4f69a82005e04ee920f231497894d677f
-RTMR3: 77ba57968d6212f4f5d77bfc66b54a19cf606539d28d54082fe4709b2610912cec5e7b6b998a41dbc0cf19a19d862974
-```
-
-Docker image digest (`sha256:cc4c8b91...`) is recorded separately in the certificate and never
-conflated with these registers.
-
-## CooL Signing-Key Binding
-
-`report_data` in the quote equals `mh_sha256(canonicalCBOR({ed25519_pub, ml_dsa_pub}))` for the
-key that signed the record (`cool-enclave-f06dfda6dc`). The verifier recomputes this and compares
-— `enclave` domain fails otherwise. Result: pass.
-
-## Receipt Generation
-
-One synthetic `model.execution` record per deployment, no real user data, no secrets. See
-`artifacts/receipts/deployment-a-receipt.json` and `deployment-b-receipt.json`.
-
-## External Verification
-
-Receipts were pulled over HTTPS and verified on a separate process (the operator's own machine,
-not the CVM), re-hitting Phala's live attestation API fresh. See
-`artifacts/final-evidence/external-verification-deployment-a.json`. Result: `ok: true`, all
-domains shown individually (never collapsed to one boolean).
-
-## Seven-Domain Verification
-
-See `artifacts/verification-matrix.md` for the full matrix with per-domain evidence pointers.
-**Result: 7/7 REAL.**
-
-## Tamper Test
-
-One hex character of `binding_hash` (a signed field) was flipped in a copy of the valid receipt.
-Re-verification: `ok: false`; `binding`, `signature`, and `inclusion` all correctly reported
-`fail`; `attestation`/`enclave` correctly remained `pass` (they check hardware evidence, which was
-untouched — this is the correct, precise failure surface, not a blanket "everything failed").
-See `artifacts/tamper/`.
-
-## Workload Change Test
-
-Deployment B built from the same source with one build-arg changed (`WORKLOAD_MARKER=v2`),
-producing a new immutable image digest. Result: RTMR3 differed from Deployment A; MRTD/RTMR0-2
-were identical (correct — those registers cover base firmware/kernel, not application content).
-Verifying Deployment B's receipt against Deployment A's pinned measurement: **FAIL** (`rtmr3
-mismatch`). Approving B's new measurement and re-verifying: **PASS**. See
-`artifacts/final-evidence/measurement-change-*.json`.
-
-## Historical Receipt Validity
-
-Deployment A's original receipt was re-verified after Deployment B existed and still returns
-`ok: true` against its own pinned measurement — historical evidence is not invalidated by a later
-redeploy. See `artifacts/final-evidence/historical-receipt-A-still-valid.json`.
-
-## Reproducibility
-
-See `COOL_PHALA_REPRODUCTION.md`.
-
-## Security Notes
-
-- No secrets, credentials, or personal data appear in any evidence artifact (manually reviewed;
-  see the security-audit note in `COOL_PHALA_REPRODUCTION.md`).
-- The `security.requireAttestation` / `policy.allowSimulated: false` path was confirmed to fail
-  closed with no simulator fallback at every stage of this validation — every early failure
-  (`COOL_DSTACK_UNAVAILABLE`, `COOL_ATTESTATION_REQUIRED`) was a hard refusal, never a silent
-  downgrade.
-
-## Cost
-
-Authorized ceiling $10.00. Estimated actual spend ~$0.03 (≈31 minutes of `tdx.small` runtime
-across all redeployments, single CVM). See `artifacts/phala/spend-ledger.json`.
+- **Real hardware:** the raw quote in the final receipt parses as TDX v4, TEE type 0x81; MRTD, RTMR0-3 and `report_data` parsed from the quote bytes equal the receipt values.
+- **Attestation:** online verification by Phala Cloud's attestation service (HTTP 200, `verified: true`, `proof_of_cloud: true`); the full response (26 KB, including Intel PCK CRL, TCB info and QE identity collateral) is archived as `phala-attestation-api-response-A.json`.
+  A local check with `@phala/dcap-qvl` using that collateral passed with TCB status `UpToDate` and no advisory IDs; a one-byte-flipped quote was rejected (`offline-dcap-verification-A.json`).
+  The local check is offline at verify time only; the collateral was obtained online through Phala's API and the library is Phala-authored.
+- **Key binding:** the quote's `report_data` equals the digest of the CooL signing key's public halves, recomputed by the verifier and by `final-verify.mjs`.
+- **Log:** six receipts from one log; final receipt is leaf 5 of a size-6 tree with a two-hash audit path. Consistency proofs between all 21 pairs of enclave-signed heads (headline 2 -> 6) verified; forged first roots rejected.
+- **Workload change:** MRTD/RTMR0/1/2 identical between A and B; RTMR3 differs. B against A's pin fails (rtmr3); B against B's pin passes; A remains valid after B exists.
+- **Fail-closed:** wrong pin fails; `requireHardware` without a verifier fails both attestation (absent) and enclave; with a verifier both pass.
+- **Tamper:** flipping `binding_hash` fails binding, signature and inclusion; flipping `metadata_hash` fails binding and signature (inclusion still passes because the log committed to the original digest). Attestation and enclave remain valid in both.
+- **Witness:** a distinct-key cosignature verifies (directly and through `verifyReceiptV2`); the key was generated and used by the validating operator, so operational independence was not demonstrated.
 
 ## Limitations
 
-- CPU Intel TDX only — no GPU/confidential-GPU attestation was tested or claimed.
-- Witness independence is cryptographically real but operationally self-administered in this test.
-- Attestation verification is online/collateral-assisted, not offline.
-- No compliance certification (SOC 2, ISO, HIPAA) is claimed.
-- Not a claim of a Phala partnership, endorsement, or commercial contract.
+- CPU Intel TDX only; no GPU claim. Dev OS image, single node per run, synthetic data.
+- Attestation is verified online through Phala; the offline check depends on Phala-supplied collateral and library. CooL's recorded `tcb_status` remains "Unknown". No quote freshness or nonce.
+- Consistency is not part of the receipt verdict; proofs were computed externally from public leaf hashes.
+- Witness and measurement approvals are operator-controlled; pins are taken from the receipts under test.
+- Evidence manifest is an unsigned file in the same repository.
+- Cost is an estimate (elapsed time x hourly rate, about $0.04 in total across both runs), not read from billing.
+- No compliance certification (SOC 2, ISO 27001, HIPAA) is claimed.
 
-## Evidence Files
+## Reproduction
 
-See `artifacts/evidence-manifest.json` for a complete SHA-256-hashed index of every evidence file
-produced by this validation.
-
-## Final Result
-
-**7 / 7 verification domains REAL**, independently verified, with a tamper test and a
-workload-change enforcement test both behaving correctly, on real Phala Cloud Intel TDX
-infrastructure, for approximately $0.03.
+See `COOL_PHALA_REPRODUCTION.md`. Integrity of the evidence files: `artifacts/evidence-manifest.json`.

@@ -1,0 +1,15 @@
+# PRIMARY VALIDATION IMAGE (Deployment A). Use this for a fresh reproduction.
+services:
+  app:
+    image: pranauvshrinaath/cool-phala-validation:final-a
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/dstack.sock:/var/run/dstack.sock
+    environment:
+      - COOL_DSTACK_ENDPOINT=/var/run/dstack.sock
+      - COOL_IMAGE_DIGEST=sha256:3535a90e49a375c4f92a1cdc0d05190d05ca551053d03d96c4f16e198860eff5
+      - WORKLOAD_MARKER=v1
+      - PORT=8080
+      - NO_COLOR=1
+    restart: unless-stopped

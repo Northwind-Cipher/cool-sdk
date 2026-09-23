@@ -1,0 +1,52 @@
+{
+  "domain": "signature",
+  "checked_at": "2026-09-23T14:56:20.023Z",
+  "method": "signed message = canonicalCBOR(core) || 32-byte binding digest; ML-DSA-65 and Ed25519 verified by calling @noble/post-quantum and @noble/curves directly (not hybridVerify)",
+  "receipts_checked": 6,
+  "results": [
+    {
+      "index": 0,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "84b4aadcf9b9e70da1f26565b1caef7609c6ad1347b2364bb20524e3b92eb342",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 1,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "e13f650d3137743b7e684e4f101cd83122d5872be5da0df094cd170645e68ef7",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 2,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "00a758f96e92801232e67bf596c6a1e7e76193673cae4eadbb19bcea02206ae8",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 3,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "dedd061eab15e68746e76f85aac594aae634310f1c848d66ff3ee25503ae1732",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 4,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "375ad36aad4accc5717297ad33e52842a5d293da2e62b2c99348a89d583f5d17",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 5,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "e59db63a4b78f58fec55c51b0025aae11025d79dccca11e5a1b05d9302cba27f",
+      "ml_dsa_65": true,
+      "ed25519": true
+    }
+  ],
+  "result": "PASS",
+  "limitation": "No second independent implementation of ML-DSA-65 was used; the same @noble libraries back the SDK."
+}

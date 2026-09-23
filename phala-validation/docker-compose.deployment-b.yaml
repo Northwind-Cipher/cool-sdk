@@ -1,13 +1,14 @@
+# WORKLOAD-CHANGE IMAGE (Deployment B, WORKLOAD_MARKER=v2). Used only for the measurement-change test.
 services:
   app:
-    image: pranauvshrinaath/cool-phala-validation:deployment-b
+    image: pranauvshrinaath/cool-phala-validation:final-b
     ports:
       - "8080:8080"
     volumes:
       - /var/run/dstack.sock:/var/run/dstack.sock
     environment:
       - COOL_DSTACK_ENDPOINT=/var/run/dstack.sock
-      - COOL_IMAGE_DIGEST=sha256:a86b0de03f379e4076d19dc4a449dff6b6226bc27ecbc7c9a5b13aa2fcf92465
+      - COOL_IMAGE_DIGEST=sha256:1372fbe7ab61418519772146e59765a042c16a5d3f0080c1356e1cff4875ebca
       - WORKLOAD_MARKER=v2
       - PORT=8080
       - NO_COLOR=1
