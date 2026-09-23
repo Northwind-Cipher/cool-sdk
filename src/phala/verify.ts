@@ -190,7 +190,15 @@ export async function verifyReceiptV2(
     );
   }
 
-  return { ok, schema: "cool.receipt.v2", subject, checks, reasons };
+  // The record's own `mode` says which client class produced it. Only a
+  // verified quote earns the word "hardware" here.
+  const verifiedHardware = r.record.runtime.mode === "hardware" && attestation.status === "pass";
+  const tee =
+    r.record.runtime.mode === "hardware" && !verifiedHardware
+      ? `${r.record.runtime.tee_vendor} · hardware quote NOT verified (attestation ${attestation.status})`
+      : subject.tee;
+
+  return { ok, schema: "cool.receipt.v2", subject: { ...subject, tee }, checks, reasons };
 }
 
 /* ── domains ──────────────────────────────────────────────────────────── */

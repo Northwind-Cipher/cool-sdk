@@ -30,6 +30,7 @@ import {
   type EvidenceEvent,
   type EvidencePayloads,
 } from "./engine";
+import { assessRuntime, type RuntimeStatus } from "./runtime";
 import { AttestedChannel, type AttestationHandshake, type AttestationPolicy } from "./ratls";
 import { ulid } from "./ulid";
 import type {
@@ -206,6 +207,15 @@ export class CoolTee {
   /** The attestation transcript. Render it; it is the customer's proof. */
   get handshake(): AttestationHandshake {
     return this.channel.handshake;
+  }
+
+  /**
+   * What this process can honestly claim about where it runs, derived from the
+   * handshake and the agent's evidence — never from configuration. Only
+   * `state === "real"` means verified TDX evidence.
+   */
+  get runtime(): RuntimeStatus {
+    return assessRuntime(this.plane.info, this.channel.handshake);
   }
 
   /** Public keys any verifier needs — publish this next to your receipts. */

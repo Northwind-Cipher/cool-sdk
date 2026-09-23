@@ -1,12 +1,12 @@
 {
-  "generated_at_utc": "2026-09-23T15:00:53.784Z",
+  "generated_at_utc": "2026-09-23T15:39:10.711Z",
   "note": "Unsigned integrity index; detects change, does not authenticate the author. Files outside the repository (e.g. the audit DOCX) are not listed.",
-  "file_count": 55,
+  "file_count": 56,
   "files": [
     {
       "path": "COOL_PHALA_REPRODUCTION.md",
-      "sha256": "59dc8bc3e5ceae2f3801cee4a49041af05816c7f4d4fcd0186bc42a1c12af15c",
-      "size_bytes": 4707
+      "sha256": "835fad55d0c9d3d4ba1c2ff38241e57ca1c37c4f13e00437e7edc71d6f4c089a",
+      "size_bytes": 4829
     },
     {
       "path": "artifacts/attestation/deployment-a-environment.json",
@@ -185,8 +185,8 @@
     },
     {
       "path": "artifacts/phala/spend-ledger.json",
-      "sha256": "c0bcad16bf80601f8b85d610e9167756f7b891b9d5552598b2c67a69b6a6b3a5",
-      "size_bytes": 4630
+      "sha256": "0b774006818438aedf707ff69b5560e491adb12d389952783f1009c2d622f3dd",
+      "size_bytes": 5568
     },
     {
       "path": "artifacts/receipts/deployment-a-receipt.json",
@@ -207,6 +207,11 @@
       "path": "artifacts/receipts/deployment-b-receipt.json",
       "sha256": "9912db90a16abfda6a72e74f26494c88f3c098cf6944c16ccd3c73fd67f8f729",
       "size_bytes": 29973
+    },
+    {
+      "path": "artifacts/runtime-status/live-cvm-runtime.json",
+      "sha256": "1d0c6eda117699c70dd4c295e73e5032dcdfadb39aa2854d4a57cb91d2c14df8",
+      "size_bytes": 4878
     },
     {
       "path": "artifacts/tamper/original-receipt.json",
@@ -235,8 +240,8 @@
     },
     {
       "path": "phala-validation/docker-compose.deployment-a.yaml",
-      "sha256": "b85da579b904492849500093b0c86e094d6ea4b9c23236ce9b96937dbd0af678",
-      "size_bytes": 504
+      "sha256": "20dc66bfa1fa61c5d5352ad8eb039c5ead5e4fa2887f4c29baa11ea0c0c2e588",
+      "size_bytes": 506
     },
     {
       "path": "phala-validation/docker-compose.deployment-b.yaml",
@@ -270,8 +275,8 @@
     },
     {
       "path": "phala-validation/server.mjs",
-      "sha256": "ef7fab1d9e3297e0c7bfddd4f7474b84e745f7f5274e64e6e7419ea5576eb6ac",
-      "size_bytes": 6966
+      "sha256": "1ca74e27a1483ea511990c00ea42d46d1719171a2e363d4fb5a72a60247444c1",
+      "size_bytes": 8416
     },
     {
       "path": "tests/real-tee-validation.test.ts",

@@ -274,6 +274,39 @@ export function remoteQuoteVerifier(options: RemoteVerifierOptions): QuoteVerifi
   };
 }
 
+/** Phala Cloud's public quote-verification service (online). */
+export const PHALA_ATTESTATION_ENDPOINT = "https://cloud-api.phala.com/api/v1/attestations/verify";
+
+/**
+ * A {@link QuoteVerifier} for Phala Cloud's attestation service, using its
+ * observed wire contract: `POST {hex}` → `{quote: {verified: boolean}}`.
+ *
+ * ONLINE and delegated: the service performs the Intel DCAP chain check; CooL
+ * sees only the boolean. Say so wherever the result is shown.
+ */
+export function phalaQuoteVerifier(
+  options: { endpoint?: string; headers?: Readonly<Record<string, string>> } = {},
+): QuoteVerifier {
+  return remoteQuoteVerifier({
+    endpoint: options.endpoint ?? PHALA_ATTESTATION_ENDPOINT,
+    root: "intel-dcap",
+    name: "phala-cloud-attestation-api",
+    ...(options.headers ? { headers: options.headers } : {}),
+    encode: (rawQuoteBase64: string) => ({
+      hex: Array.from(atob(rawQuoteBase64), (ch) => ch.charCodeAt(0).toString(16).padStart(2, "0")).join(""),
+    }),
+    decode: (response: unknown) => {
+      const verified = ((response ?? {}) as { quote?: { verified?: unknown } }).quote?.verified === true;
+      return {
+        ok: verified,
+        detail: verified
+          ? "quote verified by Phala Cloud's attestation service (online)"
+          : `Phala Cloud's attestation service did not verify the quote: ${JSON.stringify(response)}`,
+      };
+    },
+  });
+}
+
 /* ── structural checks (always offline, always run) ───────────────────── */
 
 const HEX32 = /^hex:[0-9a-f]{96}$|^hex:[0-9a-f]{64}$/;

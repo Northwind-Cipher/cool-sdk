@@ -37,6 +37,15 @@ export { CaptureQueue } from "./capture";
 export type { CaptureOptions, CaptureStats } from "./capture";
 
 export { HttpDstackClient, SimulatedDstackClient } from "./dstack";
+export {
+  assessRuntime,
+  describe as describeRuntime,
+  hardwareEvidenceIssues,
+  isZeroRegister,
+  measurementIssues,
+  unavailableRuntime,
+} from "./runtime";
+export type { RuntimeState, RuntimeStatus } from "./runtime";
 export type {
   DstackClient,
   EnclaveEvent,
@@ -64,6 +73,8 @@ export {
   quoteDigest,
   quoteSigningMessage,
   remoteQuoteVerifier,
+  phalaQuoteVerifier,
+  PHALA_ATTESTATION_ENDPOINT,
   reportDataBytes,
   shortMeasurement,
   signSimulatedQuote,

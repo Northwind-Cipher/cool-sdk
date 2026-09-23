@@ -22,6 +22,7 @@ export {
   ConfigurationError,
   DstackUnavailableError,
   AttestationRequiredError,
+  HardwareRequiredError,
   AttestationError,
   EvidenceError,
   ClosedError,

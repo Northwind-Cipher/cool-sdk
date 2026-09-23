@@ -186,7 +186,7 @@ export async function ui(workspace: Workspace | null, argv: string[]): Promise<n
 
   /* ── what the operator sees ── */
 
-  const hardware = active.info.mode === "hardware";
+  const hardware = active.runtime.state === "real";
   const verified = active.verifier !== null;
 
   out();
@@ -202,7 +202,7 @@ export async function ui(workspace: Workspace | null, argv: string[]): Promise<n
   } else {
     out(`  ${c.faint("git")}       ${c.dim("not a repository — records carry no commit provenance")}`);
   }
-  out(`  ${c.faint("runtime")}   ${active.info.vendor} · ${active.info.mode}`);
+  out(`  ${c.faint("runtime")}   ${active.runtime.display}${active.runtime.state === "real" ? "" : c.faint(` — ${active.runtime.reason}`)}`);
   out(
     `  ${c.faint("evidence")}  ${existing} existing · log ${active.cool.plane.logSize} · ${c.dim(
       join(args.root, ".cool"),

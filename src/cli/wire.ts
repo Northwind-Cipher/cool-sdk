@@ -47,14 +47,17 @@ export async function wire(workspace: Workspace): Promise<number> {
   out();
 
   /* 1 · hardware */
-  const onHardware = info.mode === "hardware";
+  // A reachable agent with complete evidence; whether its quote is REAL is what
+  // steps 3-5 decide. A simulator, a failed or incomplete agent is never step-1 ok.
+  const runtimeState = workspace.runtime.state;
+  const onHardware = runtimeState === "real" || runtimeState === "unverified";
   steps.push({
     n: 1,
     title: "real TDX hardware",
     ok: onHardware,
     detail: onHardware
-      ? `${info.vendor} · app ${info.appId}`
-      : "running CooL's in-process simulator — no confidential VM in sight",
+      ? `${workspace.runtime.display} · app ${info.appId}`
+      : `${workspace.runtime.display} — ${workspace.runtime.reason}`,
     fix: [
       "Deploy the evidence plane to a Phala CVM (this repo ships the compose file):",
       "  cd deploy && phala deploy -c docker-compose.yml -n cool-evidence",

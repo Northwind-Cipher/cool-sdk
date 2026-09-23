@@ -30,6 +30,7 @@ import {
   simulatedQuoteVerifier,
 } from "./quote";
 import type { QuoteVerifier } from "./quote";
+import { hardwareEvidenceIssues } from "./runtime";
 import type { Measurement, QuoteEnvelope, RuntimeMode, TeeVendor } from "./types";
 
 /** What the client demands of the endpoint before it will transmit. */
@@ -74,6 +75,12 @@ export interface AttestationHandshake {
   readonly directory: KeyDirectory;
   readonly steps: readonly HandshakeStep[];
   readonly reasons: readonly string[];
+  /**
+   * True only when a configured verifier actually chained the quote to a vendor
+   * root during this handshake. `ok` alone does not imply it: with
+   * `requireVerifiedRoot: false` a channel can open on a quote nobody checked.
+   */
+  readonly rootVerified: boolean;
   readonly at: string;
 }
 
@@ -110,9 +117,22 @@ export async function attestEndpoint(
   const directory = { ...client.directory() };
   step("quote fetched", true, `${quote.format} · TCB ${quote.body.tcb_status}`);
 
+  if (client.mode === "hardware") {
+    // A hardware-mode client must present real evidence: a complete, non-zero
+    // measurement and an agent identity. An agent that answers with an empty
+    // TCB block is not a TDX guest, and its receipts must not claim to be.
+    const issues = hardwareEvidenceIssues(info);
+    step(
+      "hardware evidence",
+      issues.length === 0,
+      issues.length === 0 ? "complete non-zero MRTD/RTMR0-3 and agent identity" : issues.join("; "),
+    );
+  }
+
   const structural = checkQuoteStructure(quote);
   step("quote structure", structural === null, structural?.detail ?? "well-formed");
 
+  let rootVerified = false;
   const allowSimulated = policy.allowSimulated ?? true;
   const simulated = quote.root === "cool-sim-root";
   if (simulated && !allowSimulated) {
@@ -131,6 +151,7 @@ export async function attestEndpoint(
     } else {
       const verification = await verifier.verify(quote);
       step("root of trust", verification.ok, verification.detail);
+      rootVerified = verification.ok && !simulated && verification.root !== "cool-sim-root";
     }
   }
 
@@ -182,6 +203,7 @@ export async function attestEndpoint(
     directory,
     steps,
     reasons,
+    rootVerified,
     at: new Date().toISOString(),
   };
 }

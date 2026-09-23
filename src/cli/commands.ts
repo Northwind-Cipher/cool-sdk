@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { domainOrder } from "../phala/index";
-import type { ChangeKind, ReceiptV2, VerdictV2 } from "../phala/index";
+import type { ChangeKind, ReceiptV2, RuntimeState, VerdictV2 } from "../phala/index";
 import {
   analytics,
   loadReceipts,
@@ -49,16 +49,32 @@ export const VERSION = resolveVersion();
 
 /* ── help ─────────────────────────────────────────────────────────────── */
 
+/** Colour for a runtime state: only REAL is green. */
+export function toneFor(state: RuntimeState | undefined): (text: string) => string {
+  switch (state) {
+    case "real":
+      return c.green;
+    case "simulated":
+      return c.cyan;
+    case "unverified":
+      return c.yellow;
+    case "failed":
+    case "unavailable":
+      return c.red;
+    default:
+      return c.grey;
+  }
+}
+
 export function banner(workspace: Workspace | null): void {
-  const mode = workspace?.info.mode ?? "unknown";
-  const vendor = workspace?.info.vendor ?? "—";
-  const tone = mode === "hardware" ? c.green : c.cyan;
+  const runtime = workspace?.runtime ?? null;
+  const tone = toneFor(runtime?.state);
 
   panel("CooL", [
     `${c.bold("evidence for AI, sealed in a TEE")}   ${c.faint(`v${VERSION}`)}`,
     "",
-    `${c.grey("enclave")}   ${tone(`${vendor} · ${mode}`)}${
-      mode === "simulated" ? c.faint("   (no hardware — every receipt says so)") : ""
+    `${c.grey("enclave")}   ${tone(runtime?.display ?? "— · not connected")}${
+      runtime && runtime.state !== "real" ? c.faint(`   (${runtime.reason})`) : ""
     }`,
     `${c.grey("key")}       ${workspace?.cool.plane.keys.record.keyId ?? "—"}`,
     `${c.grey("channel")}   ${
@@ -84,9 +100,10 @@ export function statusPanel(workspace: Workspace): void {
     "enclave",
     [
       `${c.grey("vendor")}       ${info.vendor}`,
-      `${c.grey("mode")}         ${
-        info.mode === "hardware" ? c.green(info.mode) : c.cyan(`${info.mode} — not hardware evidence`)
-      }`,
+      `${c.grey("runtime")}      ${toneFor(workspace.runtime.state)(workspace.runtime.display)}`,
+      `${c.grey("why")}          ${workspace.runtime.reason}`,
+      `${c.grey("endpoint")}     ${workspace.endpointSource ?? "none — in-process simulator"}`,
+      `${c.grey("hardware req")}  ${workspace.hardwareRequired ? "yes (fail-closed)" : "no (development mode allowed)"}`,
       `${c.grey("app id")}       ${info.appId}`,
       `${c.grey("instance")}     ${info.instanceId}`,
       `${c.grey("mrtd")}         ${measurement.mrtd.slice(4, 44)}…`,
@@ -94,7 +111,7 @@ export function statusPanel(workspace: Workspace): void {
       `${c.grey("signing key")}  ${cool.plane.keys.record.keyId} ${c.faint("(derived from the measurement)")}`,
       `${c.grey("log")}          ${cool.plane.logSize} entr${cool.plane.logSize === 1 ? "y" : "ies"}`,
     ],
-    info.mode === "hardware" ? c.green : c.brand,
+    workspace.runtime.state === "real" ? c.green : c.brand,
   );
   out();
 

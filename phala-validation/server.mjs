@@ -14,6 +14,10 @@
  * for the workload-change / measurement-pin test.
  */
 import http from "node:http";
+import { execFile } from "node:child_process";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { CoolTee, HttpDstackClient, remoteQuoteVerifier, verifyReceiptV2 } from "cool-nwc/phala";
 import { unixFetch, isSocketPath } from "cool-nwc/node";
 
@@ -62,6 +66,17 @@ const dstackClient = isSocketPath(DSTACK_ENDPOINT)
 
 let state = { status: "starting" };
 
+// Run the real `cool` CLI inside the CVM so its status line is observed on
+// hardware, not asserted. Hardware-required mode fails unless the runtime is REAL.
+function runCli(args, env) {
+  return new Promise((resolve) => {
+    const cwd = mkdtempSync(join(tmpdir(), "cool-cli-"));
+    execFile(process.execPath, ["/sdk/dist/cli/index.js", ...args], { cwd, env: { ...process.env, NO_COLOR: "1", ...env }, timeout: 60000 }, (err, stdout, stderr) => {
+      resolve({ args, code: err ? (err.code ?? 1) : 0, stdout, stderr });
+    });
+  });
+}
+
 async function init() {
   try {
     const tee = await CoolTee.connect({
@@ -100,8 +115,17 @@ async function init() {
       quoteVerifier: phalaQuoteVerifier(),
     });
 
+    const cliEnv = { DSTACK_ENDPOINT: DSTACK_ENDPOINT, DSTACK_RPC_STYLE: "plain", DSTACK_ENDPOINT_SOURCE: "explicit" };
+    const cli = [
+      await runCli(["status"], { ...cliEnv, QUOTE_VERIFIER_URL: "phala", COOL_REQUIRE_HARDWARE: "1" }),
+      await runCli(["status"], { ...cliEnv }),
+      await runCli(["status"], { ...cliEnv, QUOTE_VERIFIER_URL: "phala", COOL_EXPECTED_MEASUREMENT: JSON.stringify({ ...tee.plane.info.measurement, rtmr3: "hex:" + "ab".repeat(48) }), COOL_REQUIRE_HARDWARE: "1" }),
+    ];
+
     state = {
       status: "ready",
+      runtime: tee.runtime,
+      cli,
       handshake: tee.handshake,
       keyDirectory: tee.keyDirectory,
       receipt,
@@ -139,6 +163,11 @@ const server = http.createServer((req, res) => {
     if (state.status !== "ready") { res.writeHead(503); res.end(JSON.stringify(state)); return; }
     res.writeHead(200);
     res.end(JSON.stringify(state.receipt, null, 2));
+    return;
+  }
+  if (req.url === "/runtime") {
+    res.writeHead(state.status === "ready" ? 200 : 503);
+    res.end(JSON.stringify({ runtime: state.runtime ?? null, cli: state.cli ?? null }, null, 2));
     return;
   }
   if (req.url === "/receipts") {

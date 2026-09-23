@@ -83,3 +83,30 @@ report `pass` while `attestation` is only `absent` (a quote that was reported bu
 With `requireHardware: true` (also set by `security.requireAttestation`), the `enclave` domain fails closed unless `attestation`
 is `pass`, and the overall verdict is `ok: false`. Verification of a hardware quote needs a `quoteVerifier` (for example
 `remoteQuoteVerifier`); that verification is online unless you supply a local verifier with collateral.
+
+## Runtime modes
+
+The CLI and SDK derive a runtime status from evidence. It is never read from the vendor label, a pinned measurement, a Docker
+digest or the client class (`HttpDstackClient` is always "hardware", whatever answers behind it).
+
+| Status | Meaning |
+|---|---|
+| `intel-tdx · REAL` | A dstack agent answered with a complete, non-zero MRTD and RTMR0-3 and an agent identity; a quote was obtained; a configured verifier chained it to a vendor root; the key binding and any pin held; the channel opened. |
+| `intel-tdx · UNVERIFIED` | The agent's evidence is complete but nothing verified the quote. This cannot be told apart from a protocol simulator, so it is not shown as real. |
+| `intel-tdx · SIMULATED` | CooL's in-process simulator. Every receipt says `simulated`. Never hardware evidence. |
+| `UNAVAILABLE` | No dstack agent could be reached. |
+| `EVIDENCE INCOMPLETE` / `ATTESTATION FAILED` / `MEASUREMENT MISMATCH` | An agent answered but its evidence is incomplete, or the handshake failed. Not real. |
+
+**Local / development.** With no agent (`DSTACK_ENDPOINT` unset and no `/var/run/dstack.sock`) the CLI runs the simulator and says
+`SIMULATED — no dstack hardware agent detected`. An endpoint that is configured or detected but does not answer is an error, never a
+quiet switch to the simulator.
+
+**Real TDX.** Inside a CVM the socket is detected automatically. Use `DSTACK_RPC_STYLE=plain` for the current agent paths
+(`/Info`, `/GetQuote`, `/GetKey`), `QUOTE_VERIFIER_URL=phala` (or your own verifier URL) to chain the quote, and
+`COOL_EXPECTED_MEASUREMENT='{"mrtd":"hex:…","rtmr0":…,"rtmr1":…,"rtmr2":…,"rtmr3":…}'` to pin the approved image. Without a pin the
+CLI pins whatever the agent reports, which proves nothing about which workload is running. Phala's verification is online.
+
+**Hardware required.** `COOL_REQUIRE_HARDWARE=1` or `--require-hardware` (not `verify`, where the flag keeps its verifier meaning)
+makes the CLI fail closed: no agent, no verifier, a failed attestation, a measurement mismatch or any status other than REAL is an
+error with a non-zero exit. Library equivalents: `policy.allowSimulated: false`, `policy.requireVerifiedRoot`, `verify(..., { requireHardware: true })`;
+`CoolTee.runtime` and `CooL.environment.runtime` expose the derived status.

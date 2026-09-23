@@ -4,7 +4,7 @@ Two deployments are used. Keep them distinct:
 
 | Role | Compose file | Image (registry tag / digest recorded in the run) |
 |---|---|---|
-| **Deployment A - primary validation image** | `phala-validation/docker-compose.deployment-a.yaml` | `final-a` / `sha256:3535a90e49a375c4f92a1cdc0d05190d05ca551053d03d96c4f16e198860eff5` |
+| **Deployment A - primary validation image** | `phala-validation/docker-compose.deployment-a.yaml` | `runtime-a` / `sha256:a8a5f42c092771d65508e152a4cdffb5199ef1242622328a0fff083bd2f13633` (the earlier validation evidence used `final-a`, `sha256:3535a90e…`; the workload now also runs the CLI status check) |
 | **Deployment B - workload-change test only** | `phala-validation/docker-compose.deployment-b.yaml` | `final-b` (`WORKLOAD_MARKER=v2`) / `sha256:1372fbe7ab61418519772146e59765a042c16a5d3f0080c1356e1cff4875ebca` |
 
 Historical Run 1 evidence (commit de7230b, images `deployment-a` / `deployment-b`) is preserved under `artifacts/` and is

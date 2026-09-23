@@ -100,5 +100,29 @@
     ]
   },
   "total_estimated_usd_both_runs": 0.0386,
-  "total_note": "Estimate only (elapsed time x hourly rate); billing dashboard is authoritative."
+  "total_note": "Estimate only (elapsed time x hourly rate); billing dashboard is authoritative.",
+  "run3": {
+    "cvm": {
+      "vm_uuid": "89a0835b-8ecb-485b-aa32-567dc3f797a3",
+      "app_id": "44b2b8e0c55cd62f288cdfc83aa3d38080d42663",
+      "created_at_utc": "2026-09-23T15:34:55Z",
+      "deleted_utc": "2026-09-23T15:36:15Z",
+      "estimated_cost_usd": 0.0014,
+      "purpose": "runtime-status check (CLI run inside the CVM)"
+    },
+    "image": {
+      "tag": "runtime-a",
+      "digest": "sha256:a8a5f42c092771d65508e152a4cdffb5199ef1242622328a0fff083bd2f13633"
+    }
+  },
+  "run4_left_running": {
+    "cvm": {
+      "vm_uuid": "45cd7bc9-a468-44c3-ae5d-aa5786234df1",
+      "app_id": "774f4f4493d59bdc5faf921dbfe28a1f92428f44",
+      "created_at_utc": "2026-09-23T15:36:46Z",
+      "status": "RUNNING - intentionally left running at the operator's request",
+      "hourly_usd": 0.06078,
+      "note": "Accrues about $0.06/hour until deleted: phala cvms delete --cvm-id 45cd7bc9-a468-44c3-ae5d-aa5786234df1 --force"
+    }
+  }
 }

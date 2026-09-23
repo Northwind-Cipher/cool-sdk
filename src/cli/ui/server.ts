@@ -258,13 +258,17 @@ export class Console {
       runtime: {
         vendor: info.vendor,
         mode: info.mode,
+        state: workspace.runtime.state,
+        label: workspace.runtime.label,
+        display: workspace.runtime.display,
+        reason: workspace.runtime.reason,
         tcbStatus: info.tcbStatus,
         appId: info.appId,
         instanceId: info.instanceId,
         imageDigest: info.imageDigest,
         measurement: info.measurement,
-        /** True only when a guest agent is answering AND a root can check it. */
-        hardware: info.mode === "hardware",
+        /** True only when the runtime is REAL: complete evidence AND a verified quote. */
+        hardware: workspace.runtime.state === "real",
         verifierConfigured: workspace.verifier !== null,
         endpoint:
           process.env["DSTACK_ENDPOINT"] ?? process.env["DSTACK_SIMULATOR_ENDPOINT"] ?? null,

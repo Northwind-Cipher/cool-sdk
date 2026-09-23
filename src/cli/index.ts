@@ -16,7 +16,7 @@
  * that is not already required to compute a signature.
  */
 import { createInterface } from "node:readline";
-import { openWorkspace, type Workspace } from "./workspace";
+import { openWorkspace, type OpenOptions, type Workspace } from "./workspace";
 import {
   VERSION,
   attest,
@@ -60,13 +60,13 @@ const USAGE = `
   )} ${c.dim(".cool/log/")}${c.faint(".")}
 `;
 
-async function boot(quiet = false): Promise<Workspace> {
+async function boot(quiet = false, options: OpenOptions = {}): Promise<Workspace> {
   const progress = quiet ? null : new Progress().start("starting the evidence plane");
   try {
-    const workspace = await openWorkspace();
+    const workspace = await openWorkspace(process.cwd(), options);
     progress?.succeed(
       `evidence plane ready ${c.faint(
-        `(${workspace.info.vendor} · ${workspace.info.mode} · log ${workspace.cool.plane.logSize})`,
+        `(${workspace.runtime.display} · log ${workspace.cool.plane.logSize})`,
       )}`,
     );
     return workspace;
@@ -263,7 +263,9 @@ async function main(): Promise<void> {
     name === "console" ||
     name === "dashboard" ||
     (name === "verify" && args.some((arg) => !arg.startsWith("--") && arg.includes(".")));
-  const workspace = readOnly ? null : await boot(true);
+  // `--require-hardware` on `verify` is a verifier option, not a boot option.
+  const hardwareFlag = argv.includes("--require-hardware") && name !== "verify";
+  const workspace = readOnly ? null : await boot(true, hardwareFlag ? { requireHardware: true } : {});
 
   const code = await run(name ?? "help", args, workspace);
   if (workspace) await workspace.cool.close();
@@ -272,5 +274,7 @@ async function main(): Promise<void> {
 
 void main().catch((error: unknown) => {
   out(`  ${c.red("cool:")} ${(error as Error).message}`);
+  const action = (error as { action?: string }).action;
+  if (action) out(`  ${c.faint(action)}`);
   process.exitCode = 1;
 });

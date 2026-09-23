@@ -26,6 +26,7 @@ import { CoolTee, type RecordRequest } from "./phala/client";
 import { HttpDstackClient } from "./phala/dstack";
 import type { DstackClient, EnclaveInfo } from "./phala/dstack";
 import type { AttestationHandshake } from "./phala/ratls";
+import type { RuntimeStatus } from "./phala/runtime";
 import type { Measurement, ReceiptV2, TeeVendor } from "./phala/types";
 import { verifyEvidence, type Verdict, type VerifyOptions } from "./verify";
 import type { KeyDirectory, Multihash } from "./types";
@@ -119,8 +120,10 @@ export interface Environment {
   readonly appId: string;
   readonly instanceId: string;
   readonly measurement: Measurement;
-  /** True only when a verified hardware quote backs this plane. */
+  /** True only when a verified hardware quote backs this plane (`runtime.state === "real"`). */
   readonly hardware: boolean;
+  /** Evidence-derived status: REAL, UNVERIFIED, SIMULATED, UNAVAILABLE or FAILED. */
+  readonly runtime: RuntimeStatus;
 }
 
 const DEFAULT_SOCKET = "/var/run/dstack.sock";
@@ -342,7 +345,8 @@ export class CooL {
       appId: info.appId,
       instanceId: info.instanceId,
       measurement: info.measurement,
-      hardware: info.mode === "hardware" && this.tee.handshake.ok,
+      hardware: this.tee.runtime.state === "real",
+      runtime: this.tee.runtime,
     };
   }
 

@@ -15,13 +15,16 @@
  * ticket or an audit request. There is no database and no daemon.
  */
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { CoolTee, DEFAULT_POLICY, HttpDstackClient, SimulatedDstackClient } from "../phala/index";
 import { FileLog } from "../phala/log-file";
 import { transportFor } from "../phala/unix";
 import type { CaptureStats, DstackClient, EnclaveInfo, ReceiptV2, VerdictV2 } from "../phala/index";
-import { remoteQuoteVerifier, sealedKeyset, verifyReceiptV2 } from "../phala/index";
+import { phalaQuoteVerifier, remoteQuoteVerifier, sealedKeyset, verifyReceiptV2 } from "../phala/index";
+import type { RuntimeStatus } from "../phala/index";
+import type { Measurement } from "../phala/types";
+import { ConfigurationError, DstackUnavailableError, HardwareRequiredError } from "../errors";
 import type { QuoteVerifier } from "../phala/index";
 
 export const RECEIPT_DIR = ".cool/receipts";
@@ -33,7 +36,19 @@ export interface Workspace {
   readonly info: EnclaveInfo;
   readonly root: string;
   readonly verifier: QuoteVerifier | null;
+  /**
+   * What this process can honestly claim about where it runs, derived from the
+   * agent's evidence and the attestation handshake — never from the vendor label
+   * or the client class. Only `state === "real"` is verified TDX evidence.
+   */
+  readonly runtime: RuntimeStatus;
+  /** True when the operator demanded hardware (COOL_REQUIRE_HARDWARE / --require-hardware). */
+  readonly hardwareRequired: boolean;
+  /** Where the dstack endpoint came from, or null when running the simulator. */
+  readonly endpointSource: string | null;
 }
+
+export const DEFAULT_DSTACK_SOCKET = "/var/run/dstack.sock";
 
 /** Stable per-project image digest, so a project's key id does not wander. */
 function projectImage(root: string): string {
@@ -41,16 +56,90 @@ function projectImage(root: string): string {
   return `sha256:${digest}`;
 }
 
-/** Boot an evidence plane for the current directory. */
-export async function openWorkspace(root = process.cwd()): Promise<Workspace> {
-  // Three ways in, in the order a real deployment tries them:
-  //   DSTACK_ENDPOINT           the guest agent inside a CVM (usually a socket)
-  //   DSTACK_SIMULATOR_ENDPOINT Phala's own local simulator, which speaks the
-  //                             real agent protocol — the honest halfway house
-  //   nothing                   CooL's in-process simulator, labelled as such
-  const endpoint =
-    process.env["DSTACK_ENDPOINT"] ?? process.env["DSTACK_SIMULATOR_ENDPOINT"];
+function truthy(value: string | undefined): boolean {
+  return value !== undefined && /^(1|true|yes|on)$/i.test(value.trim());
+}
+
+function readPin(raw: string | undefined): Measurement | null {
+  if (!raw) return null;
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    throw new ConfigurationError(
+      "COOL_EXPECTED_MEASUREMENT is not valid JSON",
+      'expected {"mrtd":"hex:…","rtmr0":…,"rtmr1":…,"rtmr2":…,"rtmr3":…}',
+    );
+  }
+  for (const k of ["mrtd", "rtmr0", "rtmr1", "rtmr2", "rtmr3"]) {
+    if (typeof parsed[k] !== "string") {
+      throw new ConfigurationError(
+        `COOL_EXPECTED_MEASUREMENT is missing ${k}`,
+        "provide all five registers as hex:… strings",
+      );
+    }
+  }
+  return parsed as unknown as Measurement;
+}
+
+export interface OpenOptions {
+  /** Refuse to run without verified hardware evidence. Also set by COOL_REQUIRE_HARDWARE=1. */
+  readonly requireHardware?: boolean;
+}
+
+/**
+ * Boot an evidence plane for the current directory.
+ *
+ * The plane is chosen from what is actually reachable:
+ *   DSTACK_ENDPOINT            the guest agent inside a CVM (usually a socket)
+ *   DSTACK_SIMULATOR_ENDPOINT  Phala's own local simulator (real protocol, no silicon)
+ *   /var/run/dstack.sock       auto-detected when present
+ *   nothing                    CooL's in-process simulator, labelled SIMULATED
+ *
+ * When hardware is required, the last option is never used: a missing agent, a
+ * missing verifier, or any status other than REAL is an error.
+ */
+export async function openWorkspace(
+  root = process.cwd(),
+  options: OpenOptions = {},
+): Promise<Workspace> {
+  const requireHardware = options.requireHardware ?? truthy(process.env["COOL_REQUIRE_HARDWARE"]);
+  const explicit = process.env["DSTACK_ENDPOINT"] ?? process.env["DSTACK_SIMULATOR_ENDPOINT"];
+  const explicitName = process.env["DSTACK_ENDPOINT"] ? "DSTACK_ENDPOINT" : "DSTACK_SIMULATOR_ENDPOINT";
+  const detected = !explicit && existsSync(DEFAULT_DSTACK_SOCKET);
+  const endpoint = explicit ?? (detected ? DEFAULT_DSTACK_SOCKET : undefined);
+  const endpointSource = explicit
+    ? explicitName
+    : detected
+      ? `detected ${DEFAULT_DSTACK_SOCKET}`
+      : null;
   const verifierUrl = process.env["QUOTE_VERIFIER_URL"];
+
+  if (requireHardware && !endpoint) {
+    throw new HardwareRequiredError(
+      "hardware is required but no dstack guest agent was detected (DSTACK_ENDPOINT is unset and /var/run/dstack.sock does not exist)",
+      "run inside a Phala CVM, or unset COOL_REQUIRE_HARDWARE / --require-hardware for a labelled simulator",
+    );
+  }
+
+  const verifier: QuoteVerifier | null = !verifierUrl
+    ? null
+    : verifierUrl === "phala"
+      ? phalaQuoteVerifier()
+      : remoteQuoteVerifier({
+          endpoint: verifierUrl,
+          root: "intel-dcap",
+          ...(process.env["QUOTE_VERIFIER_KEY"]
+            ? { headers: { authorization: `Bearer ${process.env["QUOTE_VERIFIER_KEY"]}` } }
+            : {}),
+        });
+
+  if (requireHardware && !verifier) {
+    throw new HardwareRequiredError(
+      "hardware is required but no quote verifier is configured, so a quote could only be reported, never verified",
+      "set QUOTE_VERIFIER_URL (QUOTE_VERIFIER_URL=phala uses Phala Cloud's attestation service)",
+    );
+  }
 
   const client: DstackClient = endpoint
     ? new HttpDstackClient({
@@ -60,23 +149,30 @@ export async function openWorkspace(root = process.cwd()): Promise<Workspace> {
         // A unix socket or a Windows named pipe needs node:http; `fetch` cannot
         // open one, which is what made /var/run/dstack.sock fail before.
         ...(transportFor(endpoint) ? { fetchImpl: transportFor(endpoint)! as typeof fetch } : {}),
+        // The current guest agent serves /Info, /GetQuote, /GetKey (no /prpc prefix).
+        ...(process.env["DSTACK_RPC_STYLE"] === "plain"
+          ? { paths: { info: "/Info", quote: "/GetQuote", key: "/GetKey" } }
+          : {}),
       })
     : new SimulatedDstackClient({
         appName: basename(root) || "cool-cli",
         imageDigest: process.env["IMAGE_DIGEST"] ?? projectImage(root),
       });
 
-  const verifier = verifierUrl
-    ? remoteQuoteVerifier({
-        endpoint: verifierUrl,
-        root: "intel-dcap",
-        ...(process.env["QUOTE_VERIFIER_KEY"]
-          ? { headers: { authorization: `Bearer ${process.env["QUOTE_VERIFIER_KEY"]}` } }
-          : {}),
-      })
-    : null;
-
-  const info = await client.info();
+  let info: EnclaveInfo;
+  try {
+    info = await client.info();
+  } catch (error) {
+    // An endpoint was configured or detected: never fall back to the simulator.
+    throw new DstackUnavailableError(
+      `the dstack agent at ${endpoint ?? "?"} (${endpointSource ?? "configured"}) did not answer: ${(error as Error).message}`,
+      {
+        cause: error,
+        action:
+          "check the endpoint and RPC paths (DSTACK_RPC_STYLE=plain for /Info,/GetQuote,/GetKey), or unset the endpoint for a labelled simulator",
+      },
+    );
+  }
 
   // One tree per project, kept in .cool/log and appended to across runs. Without
   // this every invocation would start a fresh tree of size one, and a hundred
@@ -88,20 +184,33 @@ export async function openWorkspace(root = process.cwd()): Promise<Workspace> {
     logKey: keys.log,
   });
 
+  const pin = readPin(process.env["COOL_EXPECTED_MEASUREMENT"]) ?? info.measurement;
   const cool = await CoolTee.connect({
     log,
     governance: DEFAULT_POLICY,
     dstack: client,
-    expectedMeasurement: info.measurement,
+    expectedMeasurement: pin,
     policy: {
-      expectedMeasurement: info.measurement,
-      ...(verifier ? { verifier } : { requireVerifiedRoot: false }),
+      expectedMeasurement: pin,
+      ...(requireHardware
+        ? { allowSimulated: false, requireVendor: [info.vendor], requireVerifiedRoot: true }
+        : {}),
+      ...(verifier ? { verifier } : requireHardware ? {} : { requireVerifiedRoot: false }),
     },
     logId: `cool-cli-${basename(root)}`,
     capture: { flushMs: 1 },
   });
 
-  return { cool, info, root, verifier, log };
+  const runtime = cool.runtime;
+  if (requireHardware && runtime.state !== "real") {
+    await cool.close();
+    throw new HardwareRequiredError(
+      `hardware is required but the runtime is ${runtime.display}: ${runtime.reason}`,
+      "fix the reported finding, or unset COOL_REQUIRE_HARDWARE / --require-hardware for development",
+    );
+  }
+
+  return { cool, info, root, verifier, log, runtime, hardwareRequired: requireHardware, endpointSource };
 }
 
 /** Persist a receipt where a human or a CI job can find it. */

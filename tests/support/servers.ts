@@ -84,6 +84,11 @@ export interface MockAgentOptions {
    * agent does (observed on a live Phala Cloud CVM), instead of a nested object.
    */
   readonly tcbInfoAsString?: boolean;
+  /**
+   * Make `Info` incomplete the way a broken or fake agent would: no TCB block at
+   * all, an all-zero TCB block, or no agent identity. None of these is real TDX.
+   */
+  readonly incompleteInfo?: "no-tcb" | "zero-measurement" | "no-identity";
 }
 
 export interface MockAgent extends MockServer {
@@ -149,12 +154,18 @@ export async function startMockAgent(options: MockAgentOptions = {}): Promise<Mo
           { imr: 3, event: "compose-hash", digest: HEX48("event/compose") },
         ],
       };
+      const zero = "0".repeat(96);
+      const shownTcb =
+        options.incompleteInfo === "zero-measurement"
+          ? { ...tcbInfo, mrtd: zero, rtmr0: zero, rtmr1: zero, rtmr2: zero, rtmr3: zero }
+          : tcbInfo;
       json(res, 200, {
-        app_id: appId,
-        instance_id: "i-0d5e74639e89ccc1",
+        ...(options.incompleteInfo === "no-identity" ? {} : { app_id: appId, instance_id: "i-0d5e74639e89ccc1" }),
         app_name: "cool-evidence-plane",
         app_url: "https://cool-evidence-plane.dstack-prod.phala.network",
-        tcb_info: options.tcbInfoAsString ? JSON.stringify(tcbInfo, null, 2) : tcbInfo,
+        ...(options.incompleteInfo === "no-tcb"
+          ? {}
+          : { tcb_info: options.tcbInfoAsString ? JSON.stringify(shownTcb, null, 2) : shownTcb }),
       });
       return;
     }

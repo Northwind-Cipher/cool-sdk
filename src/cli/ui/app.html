@@ -226,7 +226,7 @@ function renderChrome() {
   const r = $("#runchip"); r.innerHTML = "";
   const d = el("span", "dot"); d.style.background = hw ? "var(--green-bold)" : "var(--yellow-bold)";
   r.appendChild(d);
-  r.appendChild(document.createTextNode(hw ? s.runtime.vendor + " · hardware" : s.runtime.vendor + " · " + s.runtime.mode));
+  r.appendChild(document.createTextNode(s.runtime.display));
 }
 
 /* ── overview ────────────────────────────────────────────────────────── */
@@ -245,7 +245,7 @@ function vOverview() {
     const b = el("div", "banner warn");
     b.appendChild(el("span", null, "▲"));
     const txt = el("div");
-    txt.appendChild(el("strong", null, "Runtime is " + s.runtime.mode + ", not hardware. "));
+    txt.appendChild(el("strong", null, "Runtime is " + s.runtime.label + ", not verified hardware. "));
     txt.appendChild(document.createTextNode(
       s.runtime.endpoint && !s.runtime.verifierConfigured
         ? "A guest agent is answering, but no QUOTE_VERIFIER_URL is set — quotes are carried and digested into each record, never chained to Intel. The attestation domain reads absent, which is what unverified means."
@@ -692,7 +692,7 @@ function vAttestation() {
   const b = el("div", "banner " + (hw ? "ok" : "warn"));
   b.appendChild(el("span", null, hw ? "✓" : "▲"));
   const txt = el("div");
-  txt.appendChild(el("strong", null, r.vendor + " · " + (hw ? "hardware" : r.mode) + ". "));
+  txt.appendChild(el("strong", null, r.display + ". "));
   txt.appendChild(document.createTextNode(
     hw ? "A guest agent answered and a vendor root checked the quote. The attestation domain reads pass because something actually verified it."
     : r.endpoint && !r.verifierConfigured ? "A guest agent is answering at " + r.endpoint + ", but no QUOTE_VERIFIER_URL is set, so the quote is carried and digested into the record and never chained to Intel."

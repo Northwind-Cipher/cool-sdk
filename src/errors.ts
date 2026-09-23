@@ -12,6 +12,7 @@ export type CooLErrorCode =
   | "COOL_CONFIGURATION_INVALID"
   | "COOL_DSTACK_UNAVAILABLE"
   | "COOL_ATTESTATION_REQUIRED"
+  | "COOL_HARDWARE_REQUIRED"
   | "COOL_ATTESTATION_FAILED"
   | "COOL_EVIDENCE_INVALID"
   | "COOL_SERIALIZATION_FAILED"
@@ -56,6 +57,13 @@ export class DstackUnavailableError extends CooLError {
 export class AttestationRequiredError extends CooLError {
   constructor(message: string, action?: string) {
     super("COOL_ATTESTATION_REQUIRED", message, action === undefined ? {} : { action });
+  }
+}
+
+/** Hardware evidence was required (allowSimulated:false / requireHardware) and is not present. */
+export class HardwareRequiredError extends CooLError {
+  constructor(message: string, action?: string) {
+    super("COOL_HARDWARE_REQUIRED", message, action === undefined ? {} : { action });
   }
 }
 
