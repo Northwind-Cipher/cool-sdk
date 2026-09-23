@@ -1,0 +1,14 @@
+services:
+  app:
+    image: pranauvshrinaath/cool-phala-validation:deployment-b
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/dstack.sock:/var/run/dstack.sock
+    environment:
+      - COOL_DSTACK_ENDPOINT=/var/run/dstack.sock
+      - COOL_IMAGE_DIGEST=sha256:a86b0de03f379e4076d19dc4a449dff6b6226bc27ecbc7c9a5b13aa2fcf92465
+      - WORKLOAD_MARKER=v2
+      - PORT=8080
+      - NO_COLOR=1
+    restart: unless-stopped

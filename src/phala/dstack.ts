@@ -111,19 +111,39 @@ export interface HttpDstackOptions {
   readonly fetchImpl?: typeof fetch;
 }
 
+interface AgentTcbInfo {
+  mrtd?: string;
+  rtmr0?: string;
+  rtmr1?: string;
+  rtmr2?: string;
+  rtmr3?: string;
+  event_log?: { imr?: number; event?: string; digest?: string }[];
+}
+
 interface AgentInfoResponse {
   app_id?: string;
   instance_id?: string;
   app_name?: string;
-  tcb_info?: {
-    mrtd?: string;
-    rtmr0?: string;
-    rtmr1?: string;
-    rtmr2?: string;
-    rtmr3?: string;
-    event_log?: { imr?: number; event?: string; digest?: string }[];
-  };
+  /**
+   * The real dstack guest agent (confirmed against a live Phala Cloud CVM)
+   * returns this as a JSON-ENCODED STRING, not a nested object — parse it
+   * before reading fields off it. A malformed or absent value degrades to an
+   * empty TCB block (and callers fall back to the zero measurement) rather
+   * than throwing, matching the rest of this client's fail-soft-on-shape
+   * posture.
+   */
+  tcb_info?: string | AgentTcbInfo;
   app_url?: string;
+}
+
+function parseTcbInfo(raw: AgentInfoResponse["tcb_info"]): AgentTcbInfo {
+  if (!raw) return {};
+  if (typeof raw !== "string") return raw;
+  try {
+    return JSON.parse(raw) as AgentTcbInfo;
+  } catch {
+    return {};
+  }
 }
 
 interface AgentQuoteResponse {
@@ -196,7 +216,7 @@ export class HttpDstackClient implements DstackClient {
 
   async info(): Promise<EnclaveInfo> {
     const raw = await this.rpc<AgentInfoResponse>(this.infoPath, undefined, this.infoMethod);
-    const tcb = raw.tcb_info ?? {};
+    const tcb = parseTcbInfo(raw.tcb_info);
     const measurement: Measurement = {
       mrtd: hexField(tcb.mrtd, ZERO_48),
       rtmr0: hexField(tcb.rtmr0, ZERO_48),

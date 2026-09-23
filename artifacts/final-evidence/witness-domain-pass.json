@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "schema": "cool.receipt.v2",
+  "subject": {
+    "kind": "evidence",
+    "subject": "model.execution (cool-phala-validation)",
+    "issued_at": "2026-09-23T14:15:51.812Z",
+    "record_id": "01M379YX86452D98A2QCMZFRC1",
+    "key_id": "cool-enclave-f06dfda6dc",
+    "tee": "intel-tdx · hardware"
+  },
+  "checks": {
+    "binding": {
+      "status": "pass",
+      "detail": "recomputed from record, matches"
+    },
+    "signature": {
+      "status": "pass",
+      "detail": "ML-DSA-65 + Ed25519 valid (key cool-enclave-f06dfda6dc)"
+    },
+    "inclusion": {
+      "status": "pass",
+      "detail": "leaf 0 ∈ tree(1); STH signature valid"
+    },
+    "witnesses": {
+      "status": "pass",
+      "detail": "1 independent (1 self-signature, not counted)"
+    },
+    "attestation": {
+      "status": "pass",
+      "detail": "verified against intel-dcap · TCB Unknown"
+    },
+    "enclave": {
+      "status": "pass",
+      "detail": "quote is inside the signature; measurement f06dfda6dce1… holds the signing key; no measurement pinned by the verifier"
+    },
+    "anchor": {
+      "status": "absent",
+      "detail": "NONE — this head was never submitted to a public chain"
+    }
+  },
+  "reasons": []
+}

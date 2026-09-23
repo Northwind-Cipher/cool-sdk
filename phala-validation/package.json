@@ -1,0 +1,9 @@
+{
+  "name": "cool-phala-validation",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "cool-nwc": "file:/sdk"
+  }
+}

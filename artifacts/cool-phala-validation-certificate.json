@@ -1,0 +1,82 @@
+{
+  "document_type": "CooL x Phala Real-TEE Validation Certificate",
+  "disclaimer": "This is a technical validation certificate produced from evidence gathered by Northwind Cipher during this validation run. It is NOT a third-party certification. Phala Network did not issue, endorse, or co-sign this document. No SOC 2, ISO, or other compliance certification is claimed.",
+  "product": { "name": "CooL", "package": "cool-nwc", "version": "3.0.0", "organization": "Northwind Cipher Pvt. Ltd." },
+  "repository": "https://github.com/Northwind-Cipher/cool-sdk.git",
+  "source_commit": "0eaf98533a55dcea7829218f7701da48a56b8b5c",
+  "sdk_fix_applied": {
+    "file": "src/phala/dstack.ts",
+    "description": "HttpDstackClient.info() now parses tcb_info as a JSON-encoded string (the real dstack guest-agent response shape) instead of assuming it is already a nested object; previously this caused every real deployment to silently fall back to an all-zero measurement.",
+    "verified_not_regressed_by": "npm test: 85/85 passing (1 pre-existing network-dependent test skipped), before and after"
+  },
+  "container_image": {
+    "repository": "docker.io/pranauvshrinaath/cool-phala-validation",
+    "primary_evidence_tag": "deployment-a",
+    "digest": "sha256:cc4c8b917bfacd492e6afe6e6815777c4af5108d069284542466a7fbc7f64b75",
+    "workload_change_tag": "deployment-b",
+    "workload_change_digest": "sha256:a86b0de03f379e4076d19dc4a449dff6b6226bc27ecbc7c9a5b13aa2fcf92465"
+  },
+  "phala_deployment": {
+    "cvm_uuid": "48fab3a0-eac5-44ec-834f-3de2e701e7b4",
+    "app_id": "36b6ebcab24492ad1d56a46dc05261cb9eac4d45",
+    "instance_type": "tdx.small",
+    "region": "US-WEST-1",
+    "node": "prod9",
+    "dstack_os": "dstack-dev-0.5.9",
+    "kms_type": "phala"
+  },
+  "tee": {
+    "vendor": "intel-tdx",
+    "mode": "hardware",
+    "measurement_deployment_a": {
+      "mrtd": "f06dfda6dce1cf904d4e2bab1dc370634cf95cefa2ceb2de2eee127c9382698090d7a4a13e14c536ec6c9c3c8fa87077",
+      "rtmr0": "68102e7b524af310f7b7d426ce75481e36c40f5d513a9009c046e9d37e31551f0134d954b496a3357fd61d03f07ffe96",
+      "rtmr1": "07e6f51aa763abfe75c3ddfbf4f425fe3f0ceff66d807a75e049303dce9addf68e7218729bd419638af63a370f65878c",
+      "rtmr2": "a2a58c9a959a4fa44bd6da0c97a2270c051faf12084cfe91ae900e4fdff6cdd4f69a82005e04ee920f231497894d677f",
+      "rtmr3": "77ba57968d6212f4f5d77bfc66b54a19cf606539d28d54082fe4709b2610912cec5e7b6b998a41dbc0cf19a19d862974"
+    },
+    "measurement_deployment_b_rtmr3": "4cc85d5ec9ba9290d9e25708116c6f4d1f1cd3b45f58b7f9d228d205064a5f49c961a9cbe3e6d2deb74b9e3c62866b0b",
+    "measurement_note": "MRTD/RTMR0-2 identical between deployment A and B (same base dstack OS image/firmware); only RTMR3 (application/compose identity) differs, matching expected TDX register semantics. Docker image digest is recorded separately and never conflated with the TDX measurement."
+  },
+  "attestation_verification": {
+    "method": "real Intel DCAP check via Phala Cloud's live attestation-verification API",
+    "endpoint": "https://cloud-api.phala.com/api/v1/attestations/verify",
+    "verification_type": "online, collateral-assisted (network call to Phala's API required — explicitly NOT claimed as offline)",
+    "result": "verified: true"
+  },
+  "key_binding": {
+    "cool_signing_key_id": "cool-enclave-f06dfda6dc",
+    "mechanism": "quote report_data commits to a canonical CBOR digest of the CooL signing key's public halves (ML-DSA-65 + Ed25519); verifier recomputes and compares",
+    "result": "pass"
+  },
+  "receipt": {
+    "record_id_deployment_a": "01M379SF3SY8T09XA5RQ5T2A7J",
+    "record_id_deployment_b": "01M379YX86452D98A2QCMZFRC1",
+    "schema": "cool.receipt.v2",
+    "synthetic_data_only": true
+  },
+  "seven_domain_result": {
+    "binding": "PASS", "signature": "PASS", "inclusion": "PASS",
+    "consistency": "PASS (via tested log implementation; not a distinct verdict field in this codebase)",
+    "witness": "PASS (independent keypair cosignature; see limitations)",
+    "attestation": "PASS (real Intel DCAP via Phala Cloud API)",
+    "enclave": "PASS (real MRTD/RTMR match + measurement-pin enforcement)",
+    "overall": "7/7 REAL"
+  },
+  "tamper_test": { "field_modified": "binding_hash (one hex character)", "result": "verification FAILED as expected: binding, signature, and inclusion all reported fail" },
+  "workload_change_test": {
+    "b_against_pinned_a": "FAIL (rtmr3 mismatch correctly detected)",
+    "b_against_approved_b": "PASS",
+    "historical_a_still_valid": "PASS"
+  },
+  "verifier_version_context": "src/phala/verify.ts as of commit 0eaf98533a55dcea7829218f7701da48a56b8b5c, plus the dstack.ts tcb_info parsing fix described above",
+  "verification_timestamp_utc": "2026-09-23T14:17:00Z",
+  "cost": { "authorized_max_usd": 10.00, "estimated_actual_usd": 0.03, "note": "Estimate from elapsed runtime x hourly rate; exact billed figure is authoritative on the Phala Cloud dashboard" },
+  "limitations": [
+    "GPU/confidential-GPU attestation was not tested; this validation is CPU Intel TDX only.",
+    "The witness domain's independence is cryptographically real but operationally self-administered in this test (same operator controls both keys).",
+    "Attestation verification depends on Phala Cloud's attestation API being reachable at verify time (online, not offline/air-gapped).",
+    "No SOC 2 / ISO / HIPAA / other compliance certification is claimed or implied.",
+    "This is not a claim of production readiness, a Phala partnership, or a commercial contract."
+  ]
+}
