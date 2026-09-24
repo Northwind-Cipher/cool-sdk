@@ -1,0 +1,19 @@
+# CODEOWNERS - NOT YET ENFORCING.
+#
+# The repository does not record which GitHub user or team should own these paths, and this
+# file deliberately does not guess. To enable enforcement, replace OWNER below with a real
+# GitHub team or user (for example @Northwind-Cipher/maintainers), uncomment the rules, and
+# turn on "Require review from Code Owners" in the branch protection rules for main.
+#
+# Every rule below is commented out so GitHub does not report unknown owners.
+
+# /src/                 OWNER
+# /tests/               OWNER
+# /docs/                OWNER
+# /LICENSE              OWNER
+# /LICENSES/            OWNER
+# /NOTICE.txt           OWNER
+# /SECURITY.md          OWNER
+# /CONTRIBUTING.md      OWNER
+# /artifacts/evidence-manifest.json   OWNER
+# /.github/             OWNER

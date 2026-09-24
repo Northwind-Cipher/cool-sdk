@@ -1,4 +1,13 @@
 /**
+ * CooL
+ * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
+ * SPDX-License-Identifier: BUSL-1.1
+ *
+ * Use of this software is governed by the Business Source License 1.1 in the
+ * LICENSE file at the root of this repository.
+ */
+
+/**
  * The v2 verifier — the whole product, from the buyer's side.
  *
  * Everything else CooL builds exists so that this function can be run by someone

@@ -1,4 +1,13 @@
 /**
+ * CooL
+ * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
+ * SPDX-License-Identifier: BUSL-1.1
+ *
+ * Use of this software is governed by the Business Source License 1.1 in the
+ * LICENSE file at the root of this repository.
+ */
+
+/**
  * Runtime status: what this process can HONESTLY say about where it is running.
  *
  * `DstackClient.mode` only says which client class is in use — `HttpDstackClient`

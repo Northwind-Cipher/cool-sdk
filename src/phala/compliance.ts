@@ -1,4 +1,13 @@
 /**
+ * CooL
+ * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
+ * SPDX-License-Identifier: BUSL-1.1
+ *
+ * Use of this software is governed by the Business Source License 1.1 in the
+ * LICENSE file at the root of this repository.
+ */
+
+/**
  * Obligations, and whether the evidence actually covers them.
  *
  * The catalogue below is the part of CooL that a compliance officer reads and a

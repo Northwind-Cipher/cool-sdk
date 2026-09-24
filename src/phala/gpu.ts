@@ -1,4 +1,13 @@
 /**
+ * CooL
+ * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
+ * SPDX-License-Identifier: BUSL-1.1
+ *
+ * Use of this software is governed by the Business Source License 1.1 in the
+ * LICENSE file at the root of this repository.
+ */
+
+/**
  * Confidential GPU attestation: proving WHICH silicon a workload ran on.
  *
  * A record that names a model is a claim by the caller. When the workload runs

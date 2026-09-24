@@ -1,4 +1,13 @@
 /**
+ * CooL
+ * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
+ * SPDX-License-Identifier: BUSL-1.1
+ *
+ * Use of this software is governed by the Business Source License 1.1 in the
+ * LICENSE file at the root of this repository.
+ */
+
+/**
  * Regression and fail-closed tests that came out of the Phala Cloud real-TDX
  * validation (see artifacts/). Each test pins behaviour that was either found
  * broken against real hardware or that the validation depends on.

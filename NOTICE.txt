@@ -1,0 +1,17 @@
+CooL
+Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
+
+The Licensed Work is licensed, not sold. Its licensing terms are in the LICENSE
+file (Business Source License 1.1).
+
+The software license does not grant any right to use the names "CooL" or
+"Northwind Cipher", or any associated logos or marks, except as expressly
+required by the license.
+
+Third-party components remain subject to their own licenses and notices; see
+docs/THIRD_PARTY_LICENSES.md and docs/IP-OWNERSHIP.md. Nothing in this notice
+claims ownership of third-party material.
+
+Files that originate from the Apache-2.0 licensed project "cool-sdk"
+(github.com/KenidoesCode/cool-sdk) retain their original license; the Apache
+License, Version 2.0 text is in LICENSES/Apache-2.0.txt.

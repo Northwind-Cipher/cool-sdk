@@ -1,4 +1,13 @@
 /**
+ * CooL
+ * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
+ * SPDX-License-Identifier: BUSL-1.1
+ *
+ * Use of this software is governed by the Business Source License 1.1 in the
+ * LICENSE file at the root of this repository.
+ */
+
+/**
  * Local (no network at verify time) Intel DCAP verification of a receipt's raw
  * TDX quote, using the pure-JS @phala/dcap-qvl library and the Intel collateral
  * that Phala Cloud's attestation API returned and that final-verify.mjs archived.

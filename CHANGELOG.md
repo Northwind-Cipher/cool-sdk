@@ -5,6 +5,13 @@ All notable changes to `cool-nwc` are documented here. The format follows
 [semantic versioning](https://semver.org). The evidence schema is versioned
 independently (`cool.evidence.v1`, `cool.receipt.v2`).
 
+## [Unreleased]
+
+### Changed
+
+- **Licensing:** the repository moves from Apache-2.0 to the Business Source License 1.1 (Change Date 2030-01-01, Change License Apache-2.0). Versions released before this change, including 3.0.0, remain available under Apache-2.0. A few vendored files keep their Apache-2.0 license. See `LICENSE`, `NOTICE.txt` and `docs/IP-OWNERSHIP.md`.
+- Added copyright and SPDX headers to Northwind-owned source files (comment-only).
+
 ## [3.0.0] — 2026-09-02
 
 The SDK is now a standalone, publicly consumable package. The public surface is

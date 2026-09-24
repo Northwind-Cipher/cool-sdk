@@ -1,4 +1,13 @@
 /**
+ * CooL
+ * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
+ * SPDX-License-Identifier: BUSL-1.1
+ *
+ * Use of this software is governed by the Business Source License 1.1 in the
+ * LICENSE file at the root of this repository.
+ */
+
+/**
  * External verification: runs OUTSIDE the Phala CVM, on the operator's own
  * machine, against a receipt pulled over HTTPS from the deployed workload.
  * Proves the receipt is independently checkable without trusting the

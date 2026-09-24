@@ -1,4 +1,13 @@
 /**
+ * CooL
+ * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
+ * SPDX-License-Identifier: BUSL-1.1
+ *
+ * Use of this software is governed by the Business Source License 1.1 in the
+ * LICENSE file at the root of this repository.
+ */
+
+/**
  * Closure verification: every domain checked OUTSIDE the CVMs, from evidence
  * files, with negative controls. Nothing is hard-coded; every JSON written is
  * computed from the inputs and the process exits non-zero if a check that must

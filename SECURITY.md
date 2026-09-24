@@ -9,7 +9,7 @@
 
 ## Reporting a vulnerability
 
-Please **do not** open a public issue for a security report.
+Please **do not** open a public issue, pull request or discussion for a security report, and **never include credentials, tokens, private keys or customer data** in any issue or report. Security-sensitive reports must not be made public until a fix is available.
 
 Use GitHub's private vulnerability reporting on this repository
 (**Security → Report a vulnerability**), or email the maintainers at the address
@@ -53,3 +53,17 @@ Design invariants the test suite enforces on every commit:
 - a valid quote cannot be stapled onto a record it did not attest;
 - the verifier never throws on malformed input — it returns a failed verdict;
 - `simulated` is never reported as `pass`.
+
+## Responsible disclosure
+
+Give us a reasonable time to investigate and fix before any public disclosure. Do not access, modify or exfiltrate data that is not yours, and do not test against systems you do not own.
+Good-faith research that follows this policy will not be pursued by Northwind Cipher Pvt. Ltd.
+
+## Reporting channel
+
+The channel is GitHub private vulnerability reporting (Security tab of this repository). **Before publication the maintainer must confirm that private vulnerability reporting is
+enabled on the repository, or add a monitored security contact to the organization profile** - this policy deliberately names no e-mail address.
+
+## Supported versions
+
+Only the latest release of the `3.x` line receives security fixes. Versions released before the Business Source License change remain available under their original license but are not separately supported.

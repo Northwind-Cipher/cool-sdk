@@ -58,3 +58,12 @@ breaks on install".
 Maintainers only — see [`docs/release.md`](docs/release.md). Publishing is done
 by the tagged GitHub Actions workflow with npm trusted publishing (OIDC); there
 are no long-lived npm tokens.
+
+## Licensing and contributions
+
+- CooL is licensed under the Business Source License 1.1 (`LICENSE`). By submitting a contribution you agree that it may be distributed under the license of the file or project it modifies, and you confirm that you have the right to submit it.
+- Only submit code you wrote or have the right to license. **Do not submit confidential, proprietary or third-party material** (including code copied from other projects, employers or clients) unless its license is compatible and is recorded.
+- Third-party code and dependencies **keep their own licenses and notices**. If you add or update a dependency, update `docs/THIRD_PARTY_LICENSES.md` and do not strip existing copyright or license headers.
+- New original source files should carry the header used across the repository (`Copyright (c) 2026 Northwind Cipher Pvt. Ltd.` and `SPDX-License-Identifier: BUSL-1.1`). Do not add that header to vendored or third-party files.
+- No contributor license agreement is currently defined by this repository. Northwind Cipher Pvt. Ltd. may require one before merging significant contributions; the maintainers will tell you.
+- Security reports must follow `SECURITY.md` and must not be filed as public issues.

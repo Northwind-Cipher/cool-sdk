@@ -15,3 +15,41 @@ scratch/
 examples/*/node_modules/
 examples/*/package-lock.json
 examples/**/evidence.json
+
+# --- IP / secrets hardening (never commit credentials or key material) ---
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+credentials
+credentials.*
+secrets/
+*.secret
+service-account*.json
+*-credentials.json
+.aws/
+.gcloud/
+.npmrc
+.pypirc
+.docker/config.json
+.phala/
+.phala-cli/
+
+# --- build / cache / local runtime state ---
+build/
+out/
+.cache/
+.next/
+.turbo/
+*.tsbuildinfo
+*.bak-*
+.cool/
+.vscode/
+.idea/
+Thumbs.db
+# Intentionally NOT ignored: artifacts/ (the V1 validation evidence package).

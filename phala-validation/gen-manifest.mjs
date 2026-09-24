@@ -1,3 +1,12 @@
+/**
+ * CooL
+ * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
+ * SPDX-License-Identifier: BUSL-1.1
+ *
+ * Use of this software is governed by the Business Source License 1.1 in the
+ * LICENSE file at the root of this repository.
+ */
+
 // Regenerates artifacts/evidence-manifest.json: SHA-256 of every file under
 // artifacts/ (except the manifest itself) plus the reproduction guide and the
 // validation workload files. Run from the repository root.

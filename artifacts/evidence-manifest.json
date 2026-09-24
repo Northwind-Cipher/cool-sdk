@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-24T02:35:43.865Z",
+  "generated_at_utc": "2026-09-24T03:20:34.806Z",
   "note": "Unsigned integrity index; detects change, does not authenticate the author. Files outside the repository (e.g. the audit DOCX) are not listed.",
   "file_count": 102,
   "files": [
@@ -425,8 +425,8 @@
     },
     {
       "path": "phala-validation/closure-verify.mjs",
-      "sha256": "ff45d361fade66e14b4ee7a16f5882af3e0a5a3e75e638017566e62769a49dc0",
-      "size_bytes": 31474
+      "sha256": "e718523bcb6fde9a53aac4409b0fdbe7b2096d790b335ae8c3e0066283061796",
+      "size_bytes": 31706
     },
     {
       "path": "phala-validation/docker-compose.deployment-a.yaml",
@@ -445,23 +445,23 @@
     },
     {
       "path": "phala-validation/external-verify.mjs",
-      "sha256": "ebcd54ecdc90a96dd4ff0b04cd6d9fffe00d09953e3dfd29147499010706f0fd",
-      "size_bytes": 1638
+      "sha256": "95ec5493efbb5121b0739c45e4c889bf2194eaccfe6aa08bf4d9dd15b2ca686a",
+      "size_bytes": 1870
     },
     {
       "path": "phala-validation/final-verify.mjs",
-      "sha256": "15d1605a31428979296773dffccb9469882c381c157f68cadeda40e5dbaf482f",
-      "size_bytes": 22201
+      "sha256": "fd86f2c0117971d1f2d868dbd29a8dff052ee595cfe1f957c55fe25a4e7eb42c",
+      "size_bytes": 22433
     },
     {
       "path": "phala-validation/gen-manifest.mjs",
-      "sha256": "bb5db7e969681e154674636e7f40e45b73e80fc3d217595672412e9eb4038166",
-      "size_bytes": 1588
+      "sha256": "40f9f714f6a26b6eb3ef76646f7301d05d9529119b169ab414af8f82bb37ee36",
+      "size_bytes": 1820
     },
     {
       "path": "phala-validation/offline-dcap-verify.mjs",
-      "sha256": "f3919bfca2391ac88826cbc2be8f0618b52cc22570825fa188e75638d8f2db0e",
-      "size_bytes": 2930
+      "sha256": "f31dcd407a96302a55c19a6cac815eac4b7d49ade01f7de324d677a6b97e0922",
+      "size_bytes": 3162
     },
     {
       "path": "phala-validation/package.json",
@@ -480,38 +480,38 @@
     },
     {
       "path": "src/phala/consistency.ts",
-      "sha256": "0754ebed5add210805cdce6033c5298d82f23992fe791566c87d5e3992ec471e",
-      "size_bytes": 6007
+      "sha256": "91165a79911020374653eb62d398deb907c08f06a8a03ba9851221eaaf6c838f",
+      "size_bytes": 6239
     },
     {
       "path": "src/phala/runtime.ts",
-      "sha256": "8d5d1394fb4635ca12bd79928fa26f472f49c2dd6e89988c12dfeab5ebf71b36",
-      "size_bytes": 5739
+      "sha256": "1e37e2cca980dc461b2dc1e4827c0ef87196d7ac1d847dbde2f7f53b729048fb",
+      "size_bytes": 5971
     },
     {
       "path": "src/phala/verify.ts",
-      "sha256": "83def37c49dfbb4a2d2b62654ddc2b0a51ec26f03a263270ee9b2908c7d227ba",
-      "size_bytes": 18825
+      "sha256": "2df079b25aa06b3f7ff5649a102995f41d6741c0698b32cbbbb4105aab6fb064",
+      "size_bytes": 19057
     },
     {
       "path": "src/phala/witness.ts",
-      "sha256": "c0f660840a4e0f230382cd76487d618401d7bbcd49b96e6f404d4dffbd6be88d",
-      "size_bytes": 10772
+      "sha256": "18676a738f4b115c758898de58c7a99a437bb8530708c855aac6955de0229936",
+      "size_bytes": 11004
     },
     {
       "path": "tests/real-tee-validation.test.ts",
-      "sha256": "889a3c9f38d6c52efd62160043a3548a21daca7f5fc3aa51255d85254d552aa7",
-      "size_bytes": 12453
+      "sha256": "12c8c2c855259a69a4022dd5f325ab0aee1a0aa2d93efe243142620b11ea9b20",
+      "size_bytes": 12685
     },
     {
       "path": "tests/runtime-status.test.ts",
-      "sha256": "b2d05d7cd6bac55bf04632f59e9900f7142a6b2da9fa9d2192dd8d94418eb634",
-      "size_bytes": 16285
+      "sha256": "5addedc72047e1cb4fc97bc3602856e763e01a2c5e884bba39bdb04bbcd9785e",
+      "size_bytes": 16517
     },
     {
       "path": "tests/witness-consistency.test.ts",
-      "sha256": "91654a604e9ed4c69c669933446c649fb99eda44492f88a6ae26ce24c5f11074",
-      "size_bytes": 9544
+      "sha256": "6978946e48750ab95c04dca30eb293be86a80fdf09232e07a9c5fee928646d5d",
+      "size_bytes": 9776
     }
   ]
 }

@@ -2,7 +2,7 @@
   "name": "cool-nwc",
   "version": "3.0.0",
   "description": "Cryptographic Observability & On-chain Ledger — tamper-evident, offline-verifiable execution evidence for AI and enterprise workloads. Hybrid post-quantum signatures (ML-DSA-65 + Ed25519), an RFC 6962 transparency log, measurement-sealed keys via Phala dstack, and a verifier that trusts nothing but the bytes.",
-  "license": "Apache-2.0",
+  "license": "BUSL-1.1",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -36,7 +36,9 @@
     "src",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "NOTICE.txt",
+    "LICENSES"
   ],
   "keywords": [
     "cryptographic-evidence",

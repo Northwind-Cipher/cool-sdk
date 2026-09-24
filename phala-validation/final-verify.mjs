@@ -1,3 +1,12 @@
+/**
+ * CooL
+ * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
+ * SPDX-License-Identifier: BUSL-1.1
+ *
+ * Use of this software is governed by the Business Source License 1.1 in the
+ * LICENSE file at the root of this repository.
+ */
+
 // SUPERSEDED by closure-verify.mjs (this script generates its own witness key, so it cannot show witness separation). Kept to reproduce the earlier evidence.
 /**
  * Final external verification, run OUTSIDE the Phala CVM.
