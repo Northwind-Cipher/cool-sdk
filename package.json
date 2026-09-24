@@ -81,7 +81,7 @@
   "devDependencies": {
     "@types/node": "^26.4.1",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^7.0.2"
   },
   "scripts": {
     "build": "node scripts/build.mjs",
