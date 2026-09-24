@@ -74,7 +74,7 @@
   "dependencies": {
     "@noble/curves": "^1.9.1",
     "@noble/hashes": "^1.8.0",
-    "@noble/post-quantum": "^0.4.1",
+    "@noble/post-quantum": "^0.7.1",
     "cbor2": "^1.12.0",
     "ulid": "^2.3.0"
   },
