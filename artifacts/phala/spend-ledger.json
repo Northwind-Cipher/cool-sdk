@@ -124,5 +124,28 @@
       "hourly_usd": 0.06078,
       "note": "Accrues about $0.06/hour until deleted: phala cvms delete --cvm-id 45cd7bc9-a468-44c3-ae5d-aa5786234df1 --force"
     }
+  },
+  "closure_run": {
+    "primary_cvm": {
+      "vm_uuid": "45cd7bc9-a468-44c3-ae5d-aa5786234df1",
+      "created_at_utc": "2026-09-23T15:36:46Z",
+      "status_on_2026_09_24": "running (kept at the operator request)"
+    },
+    "witness_cvm": {
+      "vm_uuid": "dbd1bc32-a83f-401e-b3c2-e5a5209b4eab",
+      "created_at_utc": "2026-09-23T15:53:02Z",
+      "status_on_2026_09_24": "stopped (not deleted)"
+    },
+    "images": [
+      {
+        "tag": "closure2-a",
+        "digest": "sha256:9030c0b6833c75460b771443be43ca91dc06842927ad5c081a43ebaaf02e3b27"
+      },
+      {
+        "tag": "closure2-b",
+        "digest": "sha256:91bd07cf20960f53c0f0e9202f1f4369b38987566d89af21ec77529328d91c31"
+      }
+    ],
+    "note": "The primary CVM bills about $0.06/hour while running; delete with: phala cvms delete --cvm-id 45cd7bc9-a468-44c3-ae5d-aa5786234df1 --force. The witness CVM was stopped after evidence capture; delete it too when no longer needed. Exact billing is authoritative on the Phala dashboard."
   }
 }

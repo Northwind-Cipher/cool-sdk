@@ -1,3 +1,4 @@
+// SUPERSEDED by closure-verify.mjs (this script generates its own witness key, so it cannot show witness separation). Kept to reproduce the earlier evidence.
 /**
  * Final external verification, run OUTSIDE the Phala CVM.
  *

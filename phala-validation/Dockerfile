@@ -14,7 +14,7 @@ RUN npm ci && npm run build
 FROM node:22-slim
 WORKDIR /app
 COPY --from=build /sdk /sdk
-COPY phala-validation/package.json phala-validation/server.mjs ./
+COPY phala-validation/package.json phala-validation/server.mjs phala-validation/witness.mjs ./
 RUN npm pkg set dependencies.cool-nwc=file:/sdk && npm install --no-audit --no-fund
 ENV NODE_ENV=production
 ENV COOL_DSTACK_ENDPOINT=/var/run/dstack.sock

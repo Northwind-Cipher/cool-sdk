@@ -190,6 +190,17 @@ export async function verifyReceiptV2(
     );
   }
 
+  // A verifier that asks for witnesses must not accept a receipt without them.
+  // (The default threshold of 0 keeps the historic behaviour: absent is reported,
+  // not fatal.)
+  const requiredWitnesses = options.witnessThreshold ?? 0;
+  if (requiredWitnesses > 0 && witnesses.status !== "pass") {
+    ok = false;
+    reasons.push(
+      `policy: witnessThreshold is ${requiredWitnesses} and the receipt does not carry that many verified independent witnesses (${witnesses.detail})`,
+    );
+  }
+
   // The record's own `mode` says which client class produced it. Only a
   // verified quote earns the word "hardware" here.
   const verifiedHardware = r.record.runtime.mode === "hardware" && attestation.status === "pass";

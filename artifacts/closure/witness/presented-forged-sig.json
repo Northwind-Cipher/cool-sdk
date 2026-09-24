@@ -1,0 +1,14 @@
+{
+  "at": "2026-09-23T16:03:45.347Z",
+  "kind": "presented",
+  "request": {
+    "tree_size": 8,
+    "root_hash": "mh:sha256:4dc43ac76913c598dc5aba89cfc44a549537cba1f8896e2b2412adeaa1bbec61"
+  },
+  "ok": false,
+  "reasons": [
+    "the presented tree head is not the head the log actually signed"
+  ],
+  "checks": null,
+  "statement": null
+}

@@ -1,0 +1,19 @@
+# INDEPENDENT WITNESS: a separate CVM (own app_id, own enclave-sealed key at path cool/witness/v1).
+# PRIMARY_URL and PRIMARY_MEASUREMENT describe the log workload this witness verifies and pins;
+# replace them with your own primary's endpoint and measured registers when reproducing.
+services:
+  witness:
+    image: pranauvshrinaath/cool-phala-validation:closure2-a
+    command: ["node", "witness.mjs"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/dstack.sock:/var/run/dstack.sock
+    environment:
+      - COOL_DSTACK_ENDPOINT=/var/run/dstack.sock
+      - COOL_IMAGE_DIGEST=sha256:9030c0b6833c75460b771443be43ca91dc06842927ad5c081a43ebaaf02e3b27
+      - PRIMARY_URL=https://774f4f4493d59bdc5faf921dbfe28a1f92428f44-8080.dstack-pha-prod5.phala.network
+      - 'PRIMARY_MEASUREMENT={"mrtd":"hex:f06dfda6dce1cf904d4e2bab1dc370634cf95cefa2ceb2de2eee127c9382698090d7a4a13e14c536ec6c9c3c8fa87077","rtmr0":"hex:68102e7b524af310f7b7d426ce75481e36c40f5d513a9009c046e9d37e31551f0134d954b496a3357fd61d03f07ffe96","rtmr1":"hex:07e6f51aa763abfe75c3ddfbf4f425fe3f0ceff66d807a75e049303dce9addf68e7218729bd419638af63a370f65878c","rtmr2":"hex:a2a58c9a959a4fa44bd6da0c97a2270c051faf12084cfe91ae900e4fdff6cdd4f69a82005e04ee920f231497894d677f","rtmr3":"hex:c15d0c44b1df839c46436fa2d178ecc1b151288979cbfd4681549418ece4836afffb53b2cfb52b50b61af3c3cb2e2d30"}'
+      - PORT=8080
+      - NO_COLOR=1
+    restart: unless-stopped

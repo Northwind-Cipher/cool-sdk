@@ -96,6 +96,11 @@ export { validateReceiptV2Shape } from "./structure";
 export type { ShapeResult } from "./structure";
 
 export { domainOrder, verifyReceiptV2, withTrustedKeys } from "./verify";
+export { verifyLogConsistency } from "./consistency";
+export type { ConsistencyHead, ConsistencyOptions, ConsistencyPair, ConsistencyResult } from "./consistency";
+export { consistencyProof, leafHash, merkleRoot, verifyConsistency, verifyInclusion } from "../merkle";
+export { multihashDigest } from "../multihash";
+export { sthCore, sthSigningMessage } from "../record";
 export type { VerifyArgsV2 } from "./verify";
 
 export { gpuRefFromReport, PHALA_GPUS, PHALA_MODELS, simulatedGpu } from "./gpu";
@@ -136,8 +141,8 @@ export {
   CALENDARS,
 } from "./anchor";
 export type { AnchorCheck, BlockHeaderSource, Timestamp as AnchorTimestamp } from "./anchor";
-export { attachWitness, cosign, countWitnesses } from "./witness";
-export type { WitnessStatement } from "./witness";
+export { attachWitness, cosign, countWitnesses, Witness } from "./witness";
+export type { WitnessChecks, WitnessDecision, WitnessOptions, WitnessStatement } from "./witness";
 
 export { OBLIGATIONS, coverage, gaps } from "./compliance";
 export type { Coverage, Obligation } from "./compliance";

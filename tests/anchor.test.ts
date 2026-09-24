@@ -3,13 +3,15 @@
  *
  * The format tests use a fixed proof rather than the network, so they fail when
  * the serialiser drifts rather than when a calendar is down. The one test that
- * does talk to the calendars is opt-in — `COOL_TEST_NETWORK=1` — because a test
- * suite that fails on a train is a test suite people stop running.
+ * exercises the calendar wire contract runs against local calendar servers, so
+ * the suite is deterministic and never depends on the network.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import { join } from "node:path";
 import {
   anchorHead,
@@ -159,19 +161,70 @@ test("a receipt with no anchor says so plainly", async () => {
   assert.equal(verdict.ok, true, "an unanchored receipt is still a valid receipt");
 });
 
-test(
-  "the public calendars accept a real head",
-  { skip: process.env["COOL_TEST_NETWORK"] !== "1" },
-  async () => {
+/**
+ * A local stand-in for an OpenTimestamps calendar, implementing the wire
+ * contract `submit()` speaks: `POST /digest` with the raw 32-byte digest and
+ * `Accept: application/vnd.opentimestamps.v1`, answered with a serialised
+ * timestamp tree (here: a single "pending" attestation naming the calendar, which
+ * is what a real calendar returns before Bitcoin aggregation). The reply is built
+ * with the same serialiser the fixture round-trip test pins byte-for-byte.
+ */
+async function startCalendar(behaviour: "accept" | "refuse"): Promise<{ url: string; requests: { digest: string; accept: string | undefined; type: string | undefined }[]; close(): Promise<void> }> {
+  const requests: { digest: string; accept: string | undefined; type: string | undefined }[] = [];
+  let self = "";
+  const server = createServer((req, res) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk: Buffer) => chunks.push(chunk));
+    req.on("end", () => {
+      const body = Buffer.concat(chunks);
+      requests.push({ digest: body.toString("hex"), accept: req.headers["accept"], type: req.headers["content-type"] });
+      if (behaviour === "refuse" || req.method !== "POST" || req.url !== "/digest" || body.length !== 32) {
+        res.writeHead(behaviour === "refuse" ? 503 : 400).end();
+        return;
+      }
+      const digest = new Uint8Array(body);
+      const stamp = { msg: digest, attestations: [{ kind: "pending" as const, uri: self }], ops: [] };
+      // serialiseProof = 31-byte magic + version(1) + hash-op(1) + 32-byte digest + timestamp tree.
+      const reply = serialiseProof(digest, stamp).subarray(31 + 1 + 1 + 32);
+      res.writeHead(200, { "content-type": "application/vnd.opentimestamps.v1" }).end(Buffer.from(reply));
+    });
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", () => resolve()));
+  self = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  return { url: self, requests, close: () => new Promise<void>((resolve) => server.close(() => resolve())) };
+}
+
+test("calendars accept a head: submission, refusal handling and the resulting proof (local calendars, real wire contract)", async () => {
+  const good1 = await startCalendar("accept");
+  const good2 = await startCalendar("accept");
+  const down = await startCalendar("refuse");
+  try {
     const digest = new Uint8Array(
       createHash("sha256").update(`cool test ${process.hrtime.bigint()}`).digest(),
     );
-    const result = await submitToCalendars(digest);
-    assert.ok(result.accepted.length >= 2, "at least two independent calendars answered");
+    const calendars = [good1.url, good2.url, down.url];
+    const result = await submitToCalendars(digest, { calendars });
+    assert.equal(result.accepted.length, 2, "two independent calendars answered");
+    assert.equal(result.refused.length, 1, "the failing calendar is recorded, not thrown");
+    assert.match(result.refused[0]!.reason, /HTTP 503/);
+    for (const cal of [good1, good2]) {
+      assert.equal(cal.requests[0]?.digest, Buffer.from(digest).toString("hex"), "the calendar received exactly the digest");
+      assert.equal(cal.requests[0]?.accept, "application/vnd.opentimestamps.v1");
+    }
 
-    const proof = await anchorHead(`mh:sha256:${Buffer.from(digest).toString("hex")}`, 1);
+    const proof = await anchorHead(`mh:sha256:${Buffer.from(digest).toString("hex")}`, 1, { calendars });
     assert.equal(proof.chain, "bitcoin");
     assert.equal(proof.heights.length, 0, "nothing is confirmed the second it is submitted");
-    assert.doesNotThrow(() => parseProof(base64ToBytes(proof.proof)));
-  },
-);
+    assert.deepEqual([...proof.calendars].sort(), [good1.url, good2.url].sort());
+    const parsed = parseProof(base64ToBytes(proof.proof));
+    assert.equal(Buffer.from(parsed.digest).toString("hex"), Buffer.from(digest).toString("hex"));
+    const check = await verifyAnchor(parsed.digest, parsed.timestamp);
+    assert.equal(check.status, "submitted", "pending is never reported as confirmed");
+    assert.deepEqual([...check.calendars].sort(), [good1.url, good2.url].sort());
+
+    // Every calendar down: submission fails loudly rather than yielding an empty proof.
+    await assert.rejects(() => submitToCalendars(digest, { calendars: [down.url] }), /no calendar accepted/);
+  } finally {
+    await Promise.all([good1.close(), good2.close(), down.close()]);
+  }
+});

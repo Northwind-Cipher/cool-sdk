@@ -12,6 +12,16 @@ demonstrated. Consistency was verified as a mechanism on the real deployed log's
 verdict domain and was not exercised on the size-1 Run 1 receipt. Witness cryptography was demonstrated, but
 operational third-party witness independence was not.
 
+## Closure run (final; supersedes the witness and consistency findings below)
+
+All seven domains are verified with real evidence in `artifacts/closure-verification-matrix.md` (data in `artifacts/closure/`):
+a deployed 8-event log with heads 1..8 checked by the public `verifyLogConsistency` and an independent RFC 6962 implementation;
+a witness running in its own Phala CVM on a different node with an enclave-sealed, attested key that verifies the primary log
+before signing and refuses forged heads and a replaced log; the online Phala verification of both quotes with the raw responses
+archived plus a local dcap-qvl check of archived collateral; a fail-closed enclave and runtime status observed inside the CVM;
+an 11-row single-field tamper matrix; and the A/B workload-change test. The witness was deployed from the same Phala account as
+the primary, so a different operating organization is not demonstrated. Fixture tests: 119 pass, 0 fail, 0 skipped.
+
 ## System under test
 
 - Repository `Northwind-Cipher/cool-sdk`, `cool-nwc@3.0.0`. Run 1 baseline commit `0eaf98533a55dcea7829218f7701da48a56b8b5c`;

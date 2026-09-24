@@ -1,0 +1,15 @@
+{
+  "vm_uuid": "dbd1bc32-a83f-401e-b3c2-e5a5209b4eab",
+  "app_id": "21bbe8405dd597bce7390b0fbfcb30fedc96f311",
+  "name": "cool-phala-witness",
+  "instance_type": "tdx.small",
+  "vcpu": 1,
+  "memory_gb": 2,
+  "region": "US-WEST-1",
+  "node_name": "prod9",
+  "os": "dstack-dev-0.5.9",
+  "os_is_dev": true,
+  "compose_hash": "ff80d298fb7a968260e6b058938db9799e7c8dd89fca9836405fc0c1b071a26f",
+  "created_at": "2026-09-23T15:53:07.105188Z",
+  "hourly_total_usd": "0.060780"
+}

@@ -1,0 +1,15 @@
+{
+  "vm_uuid": "45cd7bc9-a468-44c3-ae5d-aa5786234df1",
+  "app_id": "774f4f4493d59bdc5faf921dbfe28a1f92428f44",
+  "name": "cool-phala-runtime-keep",
+  "instance_type": "tdx.small",
+  "vcpu": 1,
+  "memory_gb": 2,
+  "region": "US-WEST-1",
+  "node_name": "prod5",
+  "os": "dstack-dev-0.5.9",
+  "os_is_dev": true,
+  "compose_hash": "275c9ae3a7a5cf8682a5be4f36e642b13d6cb7ec7f0448830d5fec3354c00c10",
+  "created_at": "2026-09-23T15:36:51.202160Z",
+  "hourly_total_usd": "0.060780"
+}

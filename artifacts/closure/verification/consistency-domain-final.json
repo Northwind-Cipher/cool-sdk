@@ -1,0 +1,279 @@
+{
+  "domain": "consistency",
+  "checked_at": "2026-09-24T02:33:35.487Z",
+  "log": {
+    "events": 8,
+    "tree_sizes": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "source": "deployed primary log inside the TDX CVM; heads signed by its sealed log key"
+  },
+  "methods": [
+    "SDK verifyLogConsistency over the receipts (signatures, leaves, roots, equivocation, pairwise proofs)",
+    "independent RFC 6962/9162 implementation using node:crypto: proofs generated and verified for every (m, n) pair"
+  ],
+  "sdk_result": {
+    "ok": true,
+    "heads": 8,
+    "pairs": 7
+  },
+  "independent_pairs_checked": 36,
+  "independent_pairs_verified": 36,
+  "pairs": [
+    {
+      "from": 1,
+      "to": 1,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 1,
+      "to": 2,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 1,
+      "to": 3,
+      "proof_hashes": 2,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 1,
+      "to": 4,
+      "proof_hashes": 2,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 1,
+      "to": 5,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 1,
+      "to": 6,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 1,
+      "to": 7,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 1,
+      "to": 8,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 2,
+      "to": 2,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 2,
+      "to": 3,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 2,
+      "to": 4,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 2,
+      "to": 5,
+      "proof_hashes": 2,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 2,
+      "to": 6,
+      "proof_hashes": 2,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 2,
+      "to": 7,
+      "proof_hashes": 2,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 2,
+      "to": 8,
+      "proof_hashes": 2,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 3,
+      "to": 3,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 3,
+      "to": 4,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 3,
+      "to": 5,
+      "proof_hashes": 4,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 3,
+      "to": 6,
+      "proof_hashes": 4,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 3,
+      "to": 7,
+      "proof_hashes": 4,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 3,
+      "to": 8,
+      "proof_hashes": 4,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 4,
+      "to": 4,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 4,
+      "to": 5,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 4,
+      "to": 6,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 4,
+      "to": 7,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 4,
+      "to": 8,
+      "proof_hashes": 1,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 5,
+      "to": 5,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 5,
+      "to": 6,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 5,
+      "to": 7,
+      "proof_hashes": 4,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 5,
+      "to": 8,
+      "proof_hashes": 4,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 6,
+      "to": 6,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 6,
+      "to": 7,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 6,
+      "to": 8,
+      "proof_hashes": 3,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 7,
+      "to": 7,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 7,
+      "to": 8,
+      "proof_hashes": 4,
+      "verifies_against_enclave_signed_heads": true
+    },
+    {
+      "from": 8,
+      "to": 8,
+      "proof_hashes": 0,
+      "verifies_against_enclave_signed_heads": true
+    }
+  ],
+  "negative_controls": {
+    "independent_impl": {
+      "modified_old_root": 28,
+      "modified_new_root": 28,
+      "wrong_first_size": 28,
+      "truncated_proof": 28,
+      "attempted": 28
+    },
+    "sdk_modified_old_root_rejected": true,
+    "sdk_modified_new_root_rejected": true,
+    "sdk_wrong_tree_size_rejected": true,
+    "sdk_forked_history_rejected": true,
+    "sdk_reasons": {
+      "modified_old": [
+        "tree head 2: signature does not verify",
+        "tree head 2: root does not match the leaves it covers"
+      ],
+      "modified_new": [
+        "tree head 8: signature does not verify",
+        "tree head 8: root does not match the leaves it covers"
+      ],
+      "wrong_size": [
+        "leaf 8 is missing, so the history up to size 9 cannot be recomputed"
+      ],
+      "fork": [
+        "two different records claim leaf 3",
+        "equivocation: two different roots for tree size 4"
+      ]
+    }
+  },
+  "note": "The verifier derives the proofs from the receipts' leaf hashes; it does not accept a proof from the log. The primary also serves no proof endpoint.",
+  "result": "VERIFIED"
+}

@@ -1,8 +1,7 @@
 # CooL x Phala Cloud - Verification Matrix (corrected)
 
 This file supersedes an earlier version that reported "7 / 7 REAL". That wording was not supported by the
-evidence and has been withdrawn. The authoritative matrix for the final run is
-[`final-verification-matrix.md`](final-verification-matrix.md).
+evidence and has been withdrawn. The authoritative matrix is [`closure-verification-matrix.md`](closure-verification-matrix.md); [`final-verification-matrix.md`](final-verification-matrix.md) is the earlier run, superseded on witness and consistency.
 
 ## Run 1 (commit de7230b, original evidence)
 

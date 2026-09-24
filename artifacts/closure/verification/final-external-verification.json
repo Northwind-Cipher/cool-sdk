@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-09-24T02:33:46.794Z",
+  "run_outside_cvm": true,
+  "verifyReceiptV2_witnessed_final_receipt": {
+    "ok": true,
+    "checks": {
+      "binding": "pass",
+      "signature": "pass",
+      "inclusion": "pass",
+      "witnesses": "pass",
+      "attestation": "pass",
+      "enclave": "pass",
+      "anchor": "absent"
+    },
+    "reasons": []
+  },
+  "domains": {
+    "binding": true,
+    "signature": true,
+    "inclusion": true,
+    "consistency": true,
+    "witness": true,
+    "attestation": true,
+    "enclave": true
+  },
+  "witness_organizational_independence": "NOT DEMONSTRATED (same Phala account deployed primary and witness)",
+  "attestation_mode": "ONLINE (+ local dcap-qvl with archived collateral)",
+  "failures": []
+}

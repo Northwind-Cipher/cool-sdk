@@ -16,7 +16,7 @@ function walk(dir, out) {
 const files = [];
 walk("artifacts", files);
 walk("phala-validation", files);
-files.push("COOL_PHALA_REPRODUCTION.md", "tests/real-tee-validation.test.ts");
+files.push("COOL_PHALA_REPRODUCTION.md", "tests/real-tee-validation.test.ts", "tests/runtime-status.test.ts", "tests/witness-consistency.test.ts", "src/phala/consistency.ts", "src/phala/runtime.ts", "src/phala/witness.ts", "src/phala/verify.ts");
 
 const manifest = files
   .filter((f) => !f.endsWith("evidence-manifest.json"))

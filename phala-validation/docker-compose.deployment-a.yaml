@@ -1,14 +1,14 @@
-# PRIMARY VALIDATION IMAGE (Deployment A). Use this for a fresh reproduction.
+# PRIMARY VALIDATION IMAGE (Deployment A): the log workload. Use this for a fresh reproduction.
 services:
   app:
-    image: pranauvshrinaath/cool-phala-validation:runtime-a
+    image: pranauvshrinaath/cool-phala-validation:closure2-a
     ports:
       - "8080:8080"
     volumes:
       - /var/run/dstack.sock:/var/run/dstack.sock
     environment:
       - COOL_DSTACK_ENDPOINT=/var/run/dstack.sock
-      - COOL_IMAGE_DIGEST=sha256:a8a5f42c092771d65508e152a4cdffb5199ef1242622328a0fff083bd2f13633
+      - COOL_IMAGE_DIGEST=sha256:9030c0b6833c75460b771443be43ca91dc06842927ad5c081a43ebaaf02e3b27
       - WORKLOAD_MARKER=v1
       - PORT=8080
       - NO_COLOR=1

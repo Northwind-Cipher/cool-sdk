@@ -1,0 +1,86 @@
+{
+  "domain": "inclusion",
+  "checked_at": "2026-09-24T02:33:35.338Z",
+  "method": "each head's root is recomputed from the leaf hashes with an independent RFC 6962 implementation and matches the enclave-signed head; STH signatures verified directly",
+  "final_receipt": {
+    "leaf_index": 7,
+    "tree_size": 8,
+    "audit_path_length": 3
+  },
+  "results": [
+    {
+      "index": 0,
+      "leaf_index": 0,
+      "tree_size": 1,
+      "audit_path_length": 0,
+      "sth_signature_ok": true,
+      "root_recomputed_from_leaves": "mh:sha256:d8dd3a8196cad5e8900b04d315feb504456bb78f0a15520db548bddf3e90145d",
+      "root_matches": true
+    },
+    {
+      "index": 1,
+      "leaf_index": 1,
+      "tree_size": 2,
+      "audit_path_length": 1,
+      "sth_signature_ok": true,
+      "root_recomputed_from_leaves": "mh:sha256:c819796b3a11b04c07421161c568b8324f477663626a395644b41b0f6dd40a19",
+      "root_matches": true
+    },
+    {
+      "index": 2,
+      "leaf_index": 2,
+      "tree_size": 3,
+      "audit_path_length": 1,
+      "sth_signature_ok": true,
+      "root_recomputed_from_leaves": "mh:sha256:69eaf0709150e09847fba516632511a5aed64e1762ecd646987e157e902c8d89",
+      "root_matches": true
+    },
+    {
+      "index": 3,
+      "leaf_index": 3,
+      "tree_size": 4,
+      "audit_path_length": 2,
+      "sth_signature_ok": true,
+      "root_recomputed_from_leaves": "mh:sha256:eb4d6b183278066bcf82c837b5e64e550eb6ca4f28486259ea315542b317921f",
+      "root_matches": true
+    },
+    {
+      "index": 4,
+      "leaf_index": 4,
+      "tree_size": 5,
+      "audit_path_length": 1,
+      "sth_signature_ok": true,
+      "root_recomputed_from_leaves": "mh:sha256:9bf0183f335dca60c658ce984108f7a4cb89934bcd666d61befbd07fc3060543",
+      "root_matches": true
+    },
+    {
+      "index": 5,
+      "leaf_index": 5,
+      "tree_size": 6,
+      "audit_path_length": 2,
+      "sth_signature_ok": true,
+      "root_recomputed_from_leaves": "mh:sha256:3747faab4fc5775981e1c915287dd79d5dc487ecdc660e0e727bda6c272153be",
+      "root_matches": true
+    },
+    {
+      "index": 6,
+      "leaf_index": 6,
+      "tree_size": 7,
+      "audit_path_length": 2,
+      "sth_signature_ok": true,
+      "root_recomputed_from_leaves": "mh:sha256:21b8e9029ebaac5c2802f9615f85c93bc228ee904f4d96853dd0d28ff8491d89",
+      "root_matches": true
+    },
+    {
+      "index": 7,
+      "leaf_index": 7,
+      "tree_size": 8,
+      "audit_path_length": 3,
+      "sth_signature_ok": true,
+      "root_recomputed_from_leaves": "mh:sha256:4dc43ac76913c598dc5aba89cfc44a549537cba1f8896e2b2412adeaa1bbec61",
+      "root_matches": true
+    }
+  ],
+  "negative_control": "tamper-final.json: modified root / forged STH make inclusion fail",
+  "result": "VERIFIED"
+}

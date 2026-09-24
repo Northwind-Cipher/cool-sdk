@@ -110,3 +110,16 @@ CLI pins whatever the agent reports, which proves nothing about which workload i
 makes the CLI fail closed: no agent, no verifier, a failed attestation, a measurement mismatch or any status other than REAL is an
 error with a non-zero exit. Library equivalents: `policy.allowSimulated: false`, `policy.requireVerifiedRoot`, `verify(..., { requireHardware: true })`;
 `CoolTee.runtime` and `CooL.environment.runtime` expose the derived status.
+
+## Witnesses and consistency
+
+`verifyLogConsistency(receipts)` checks that receipts from one log describe a single append-only history: every tree head is
+signed, every head's root equals the root recomputed from the leaves it covers, no two roots share a size, and an RFC 6962
+consistency proof derived from the leaves verifies between consecutive signed roots. It is a receipt-set check, not a field of
+`verifyReceiptV2`.
+
+`Witness` observes before it signs: it verifies each receipt it is given (through your `verifyReceipt` callback), re-derives the
+history, and refuses any head that is not consistent with the last head it signed. Run it as a separate process with its own key.
+`verifyReceiptV2(receipt, { witnessThreshold: n })` returns `ok: false` unless n verified external witnesses (keys you supplied with
+`withTrustedKeys`) signed the head; with the default threshold of 0, absent witnesses are reported, not fatal. Key custody and
+process separation do not by themselves prove that a different organization operates the witness.

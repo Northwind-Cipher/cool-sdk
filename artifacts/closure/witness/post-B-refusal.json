@@ -1,0 +1,13 @@
+{
+  "at": "2026-09-23T16:05:48.089Z",
+  "kind": "observe",
+  "request": {
+    "size": 1
+  },
+  "ok": false,
+  "reasons": [
+    "receipt 0 does not verify: enclave: measurement does not match the pinned image"
+  ],
+  "checks": null,
+  "statement": null
+}

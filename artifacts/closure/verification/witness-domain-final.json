@@ -1,0 +1,238 @@
+{
+  "domain": "witness",
+  "checked_at": "2026-09-24T02:33:39.350Z",
+  "architecture": "The witness is a separate CVM with its own app_id running the pinned witness code. Its signing key is sealed by dstack to that app (path cool/witness/v1); the primary log workload cannot derive it. The witness pulls the primary's receipts itself, verifies each one (signature, inclusion, real TDX quote via Phala's service, the primary's pinned measurement), re-derives the history, checks consistency, and only then signs. It remembers the last head it signed and refuses a log that forks or rolls back.",
+  "witness_identity": {
+    "key_id": "cool-witness-f06dfda6dc",
+    "app_id": "21bbe8405dd597bce7390b0fbfcb30fedc96f311",
+    "instance_id": "c386869af2bbd175ee9f7fdfdef3b79304526d1d",
+    "measurement": {
+      "mrtd": "hex:f06dfda6dce1cf904d4e2bab1dc370634cf95cefa2ceb2de2eee127c9382698090d7a4a13e14c536ec6c9c3c8fa87077",
+      "rtmr0": "hex:68102e7b524af310f7b7d426ce75481e36c40f5d513a9009c046e9d37e31551f0134d954b496a3357fd61d03f07ffe96",
+      "rtmr1": "hex:07e6f51aa763abfe75c3ddfbf4f425fe3f0ceff66d807a75e049303dce9addf68e7218729bd419638af63a370f65878c",
+      "rtmr2": "hex:a2a58c9a959a4fa44bd6da0c97a2270c051faf12084cfe91ae900e4fdff6cdd4f69a82005e04ee920f231497894d677f",
+      "rtmr3": "hex:78631a50cea170d986e352803954f2c76cfe8e4f2e7486fda094636443f50525db3701df962b3629641edf2ccfa59b2f"
+    },
+    "image_digest": "sha256:9030c0b6833c75460b771443be43ca91dc06842927ad5c081a43ebaaf02e3b27",
+    "public_keys": {
+      "ml_dsa_pub": "base64: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",
+      "ed25519_pub": "base64:ly1v7RJYm4/ARnLYkEmwC1HJOD7q1AuEW85dhnTc9Wg="
+    },
+    "quote_verified_by_phala": true,
+    "quote_report_data_binds_witness_key": true,
+    "quote_sha256": "7167b1fc68f0549f44418335dcff4fc54d919ab16168b777dfd2a214ea22c083"
+  },
+  "primary_identity": {
+    "app_id": "774f4f4493d59bdc5faf921dbfe28a1f92428f44",
+    "instance_id": "19b3510e3541561773a4d6feccb1ff3ee74b5cb3",
+    "rtmr3": "hex:c15d0c44b1df839c46436fa2d178ecc1b151288979cbfd4681549418ece4836afffb53b2cfb52b50b61af3c3cb2e2d30"
+  },
+  "distinct_from_primary": {
+    "app_id_differs": true,
+    "instance_differs": true,
+    "rtmr3_differs": true,
+    "witness_registers_nonzero": true,
+    "record_key_differs": true,
+    "log_key_differs": true
+  },
+  "environment_separation": {
+    "primary_node": "prod5",
+    "witness_node": "prod9",
+    "different_physical_nodes": true
+  },
+  "statements": [
+    {
+      "tree_size": 1,
+      "decision_ok": true,
+      "signed_bytes_sha256": "599a7dfa3291659497dc63c488ed96b495655473c2ccfdaafe4890c0afe73dba",
+      "signature_verifies_over_primary_head": true,
+      "statement_matches_primary_head": true,
+      "witness_checked": {
+        "receipts_verified": 8,
+        "heads_verified": 8,
+        "consistency_pairs_verified": 7,
+        "previous_head": null,
+        "previous_head_still_in_history": null
+      },
+      "previous_head_size": null
+    },
+    {
+      "tree_size": 2,
+      "decision_ok": true,
+      "signed_bytes_sha256": "b1e30cff8a39297e6fdac2be663b3b7f178bd5aace6c91d084293f6d1ed9f0c8",
+      "signature_verifies_over_primary_head": true,
+      "statement_matches_primary_head": true,
+      "witness_checked": {
+        "receipts_verified": 8,
+        "heads_verified": 8,
+        "consistency_pairs_verified": 7,
+        "previous_head": {
+          "tree_size": 1,
+          "root_hash": "mh:sha256:d8dd3a8196cad5e8900b04d315feb504456bb78f0a15520db548bddf3e90145d"
+        },
+        "previous_head_still_in_history": true
+      },
+      "previous_head_size": 1
+    },
+    {
+      "tree_size": 3,
+      "decision_ok": true,
+      "signed_bytes_sha256": "19ffea2cc20ccfd3eef04c39a9f399ab4a51e2e31e239950dd81075d26a1c7b5",
+      "signature_verifies_over_primary_head": true,
+      "statement_matches_primary_head": true,
+      "witness_checked": {
+        "receipts_verified": 8,
+        "heads_verified": 8,
+        "consistency_pairs_verified": 7,
+        "previous_head": {
+          "tree_size": 2,
+          "root_hash": "mh:sha256:c819796b3a11b04c07421161c568b8324f477663626a395644b41b0f6dd40a19"
+        },
+        "previous_head_still_in_history": true
+      },
+      "previous_head_size": 2
+    },
+    {
+      "tree_size": 4,
+      "decision_ok": true,
+      "signed_bytes_sha256": "f2cbbd8b3205370b64c34c299b1493bb025a026b9c93bc15cda0587e268c6afc",
+      "signature_verifies_over_primary_head": true,
+      "statement_matches_primary_head": true,
+      "witness_checked": {
+        "receipts_verified": 8,
+        "heads_verified": 8,
+        "consistency_pairs_verified": 7,
+        "previous_head": {
+          "tree_size": 3,
+          "root_hash": "mh:sha256:69eaf0709150e09847fba516632511a5aed64e1762ecd646987e157e902c8d89"
+        },
+        "previous_head_still_in_history": true
+      },
+      "previous_head_size": 3
+    },
+    {
+      "tree_size": 5,
+      "decision_ok": true,
+      "signed_bytes_sha256": "964e99cbbfce0631a62766a87b4fabe71ae37ee1be001f2ea3f04e8bd6c28e6a",
+      "signature_verifies_over_primary_head": true,
+      "statement_matches_primary_head": true,
+      "witness_checked": {
+        "receipts_verified": 8,
+        "heads_verified": 8,
+        "consistency_pairs_verified": 7,
+        "previous_head": {
+          "tree_size": 4,
+          "root_hash": "mh:sha256:eb4d6b183278066bcf82c837b5e64e550eb6ca4f28486259ea315542b317921f"
+        },
+        "previous_head_still_in_history": true
+      },
+      "previous_head_size": 4
+    },
+    {
+      "tree_size": 6,
+      "decision_ok": true,
+      "signed_bytes_sha256": "edfe2376fd0e6708b06a0a05f6525cb261fb4335c9e7c52a05ec7586104bc2fa",
+      "signature_verifies_over_primary_head": true,
+      "statement_matches_primary_head": true,
+      "witness_checked": {
+        "receipts_verified": 8,
+        "heads_verified": 8,
+        "consistency_pairs_verified": 7,
+        "previous_head": {
+          "tree_size": 5,
+          "root_hash": "mh:sha256:9bf0183f335dca60c658ce984108f7a4cb89934bcd666d61befbd07fc3060543"
+        },
+        "previous_head_still_in_history": true
+      },
+      "previous_head_size": 5
+    },
+    {
+      "tree_size": 7,
+      "decision_ok": true,
+      "signed_bytes_sha256": "c6218a54284464fd104af11a6d70d604c09aee1285074b8fcea2eae9f3d7c1c9",
+      "signature_verifies_over_primary_head": true,
+      "statement_matches_primary_head": true,
+      "witness_checked": {
+        "receipts_verified": 8,
+        "heads_verified": 8,
+        "consistency_pairs_verified": 7,
+        "previous_head": {
+          "tree_size": 6,
+          "root_hash": "mh:sha256:3747faab4fc5775981e1c915287dd79d5dc487ecdc660e0e727bda6c272153be"
+        },
+        "previous_head_still_in_history": true
+      },
+      "previous_head_size": 6
+    },
+    {
+      "tree_size": 8,
+      "decision_ok": true,
+      "signed_bytes_sha256": "0a5b03ad812eb6b076c01f73290138d8e9aae902ad7f087eaf20c4b047c09335",
+      "signature_verifies_over_primary_head": true,
+      "statement_matches_primary_head": true,
+      "witness_checked": {
+        "receipts_verified": 8,
+        "heads_verified": 8,
+        "consistency_pairs_verified": 7,
+        "previous_head": {
+          "tree_size": 7,
+          "root_hash": "mh:sha256:21b8e9029ebaac5c2802f9615f85c93bc228ee904f4d96853dd0d28ff8491d89"
+        },
+        "previous_head_still_in_history": true
+      },
+      "previous_head_size": 7
+    }
+  ],
+  "witness_verified_the_primary_head": "each statement's checks show 8 receipts verified (incl. real quotes), 8 heads, 7 consistency pairs, and (after the first) that the previously signed head is still in the history",
+  "verifier_requires_witness": {
+    "with_witness_key_attested": {
+      "ok": true,
+      "witnesses": "pass"
+    },
+    "without_any_witness_statement": {
+      "witnesses": "absent"
+    },
+    "witness_key_replaced_by_primary_key": {
+      "witnesses": "absent"
+    }
+  },
+  "negative_controls": {
+    "forged_heads_presented_to_witness_refused": {
+      "forged-root": {
+        "signed": false,
+        "reasons": [
+          "the presented tree head is not the head the log actually signed"
+        ]
+      },
+      "forged-time": {
+        "signed": false,
+        "reasons": [
+          "the presented tree head is not the head the log actually signed"
+        ]
+      },
+      "forged-size": {
+        "signed": false,
+        "reasons": [
+          "no head of size 9 exists in the log"
+        ]
+      },
+      "forged-sig": {
+        "signed": false,
+        "reasons": [
+          "the presented tree head is not the head the log actually signed"
+        ]
+      }
+    },
+    "genuine_head_presented_is_signed": true,
+    "forged_witness_signature": "absent",
+    "altered_head_with_genuine_witness_signature": "absent",
+    "witness_after_primary_log_replaced": {
+      "signed": false,
+      "reasons": [
+        "receipt 0 does not verify: enclave: measurement does not match the pinned image"
+      ]
+    }
+  },
+  "operator_note": "Both CVMs were deployed from one Phala account. Key custody, process, node and measured code are separate; organizational independence (a different company operating the witness) was NOT demonstrated.",
+  "result": "VERIFIED"
+}

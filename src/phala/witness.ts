@@ -19,10 +19,11 @@
  * that `pass` is now reachable by doing the real thing rather than unreachable
  * by construction.
  */
-import type { DirectoryEntry, KeyDirectory, KeyPair, STH, Witness } from "../types";
+import type { DirectoryEntry, KeyDirectory, KeyPair, STH, Witness as WitnessSig } from "../types";
 import { hybridSign, hybridVerify } from "../sign";
 import { sthCore, sthSigningMessage } from "../record";
 import type { ReceiptV2 } from "./types";
+import { verifyLogConsistency } from "./consistency";
 
 /** What a witness publishes about a tree head it has seen. */
 export interface WitnessStatement {
@@ -31,7 +32,7 @@ export interface WitnessStatement {
   readonly tree_size: number;
   readonly root_hash: string;
   readonly observed_at: string;
-  readonly witness: Witness;
+  readonly witness: WitnessSig;
   /** The witness's public keys, so a verifier needs nothing else. */
   readonly directory_entry: DirectoryEntry;
 }
@@ -130,4 +131,154 @@ export function countWitnesses(receipt: ReceiptV2): {
     else invalid++;
   }
   return { external, self, invalid };
+}
+
+/* ── an observing witness ─────────────────────────────────────────────── */
+
+/** What a witness checked before it agreed to sign. */
+export interface WitnessChecks {
+  readonly receipts_verified: number;
+  readonly heads_verified: number;
+  readonly consistency_pairs_verified: number;
+  readonly previous_head: { readonly tree_size: number; readonly root_hash: string } | null;
+  readonly previous_head_still_in_history: boolean | null;
+}
+
+export interface WitnessDecision {
+  readonly ok: boolean;
+  readonly statement: WitnessStatement | null;
+  readonly reasons: readonly string[];
+  readonly checks: WitnessChecks | null;
+}
+
+export interface WitnessOptions {
+  /**
+   * Check one receipt the way this witness's operator requires (for hardware
+   * logs: a verified quote and a pinned measurement). A receipt that fails is
+   * never counted, and nothing is signed.
+   */
+  readonly verifyReceipt: (receipt: ReceiptV2) => Promise<{ ok: boolean; reasons: readonly string[] }>;
+  /** Trusted keys for tree-head signatures; override what the receipts carry. */
+  readonly trustedKeys?: KeyDirectory;
+}
+
+/**
+ * A witness that OBSERVES a log before it signs.
+ *
+ * It never signs a head it was handed. It is given the receipts, verifies each
+ * one, re-derives the whole history, checks every signed head and every
+ * consistency step, and — the property that makes a witness worth having —
+ * remembers the last head it signed, refusing any later head whose history does
+ * not contain it. A log that forks or rolls back after being witnessed cannot
+ * obtain a new signature.
+ *
+ * Its key is generated or sealed by whoever runs the witness, not by the log.
+ */
+export class Witness {
+  private last: { tree_size: number; root_hash: string } | null = null;
+
+  constructor(
+    private readonly key: KeyPair,
+    private readonly options: WitnessOptions,
+  ) {}
+
+  get keyId(): string {
+    return this.key.keyId;
+  }
+
+  get directoryEntry(): DirectoryEntry {
+    return this.key.directoryEntry;
+  }
+
+  get lastWitnessed(): { tree_size: number; root_hash: string } | null {
+    return this.last;
+  }
+
+  /** Verify the log, then co-sign its head at `treeSize`. */
+  async observe(receipts: readonly ReceiptV2[], treeSize: number): Promise<WitnessDecision> {
+    const refuse = (reasons: string[], checks: WitnessChecks | null = null): WitnessDecision => ({
+      ok: false,
+      statement: null,
+      reasons,
+      checks,
+    });
+
+    for (const [i, r] of receipts.entries()) {
+      const verdict = await this.options.verifyReceipt(r);
+      if (!verdict.ok) return refuse([`receipt ${i} does not verify: ${verdict.reasons.join("; ")}`]);
+    }
+
+    const consistency = verifyLogConsistency(
+      receipts,
+      this.options.trustedKeys ? { trustedKeys: this.options.trustedKeys } : {},
+    );
+    if (!consistency.ok) return refuse(["the log's history is not consistent", ...consistency.reasons]);
+
+    const target = receipts.find((r) => r.sth?.tree_size === treeSize);
+    if (!target?.sth) return refuse([`no tree head of size ${treeSize} among the receipts`]);
+
+    const previous = this.last ? { ...this.last } : null;
+    let stillInHistory: boolean | null = null;
+    if (this.last) {
+      if (treeSize < this.last.tree_size) {
+        return refuse([`refusing a head of size ${treeSize}: this witness already signed size ${this.last.tree_size}`]);
+      }
+      const earlier = consistency.heads.find((h) => h.tree_size === this.last!.tree_size);
+      stillInHistory = earlier !== undefined && earlier.root_hash === this.last.root_hash;
+      if (!stillInHistory) {
+        return refuse(
+          [`the log's history no longer contains the head this witness signed (size ${this.last.tree_size}) — fork or rollback`],
+          {
+            receipts_verified: receipts.length,
+            heads_verified: consistency.heads.length,
+            consistency_pairs_verified: consistency.pairs.length,
+            previous_head: this.last,
+            previous_head_still_in_history: false,
+          },
+        );
+      }
+    }
+
+    const statement = cosign(target.sth, this.key);
+    this.last = { tree_size: target.sth.tree_size, root_hash: target.sth.root_hash };
+    return {
+      ok: true,
+      statement,
+      reasons: [],
+      checks: {
+        receipts_verified: receipts.length,
+        heads_verified: consistency.heads.length,
+        consistency_pairs_verified: consistency.pairs.length,
+        previous_head: previous,
+        previous_head_still_in_history: stillInHistory,
+      },
+    };
+  }
+
+  /**
+   * A head somebody PRESENTS for signing. It is signed only if it is exactly the
+   * head this witness derived from the log itself; a forged or altered head is
+   * refused, and the reason names the difference.
+   */
+  async cosignPresented(presented: STH, receipts: readonly ReceiptV2[]): Promise<WitnessDecision> {
+    const genuine = receipts.find((r) => r.sth?.tree_size === presented.tree_size)?.sth;
+    if (!genuine) {
+      return { ok: false, statement: null, reasons: [`no head of size ${presented.tree_size} exists in the log`], checks: null };
+    }
+    const same =
+      genuine.log_id === presented.log_id &&
+      genuine.root_hash === presented.root_hash &&
+      genuine.timestamp === presented.timestamp &&
+      genuine.signature.ml_dsa === presented.signature.ml_dsa &&
+      genuine.signature.ed25519 === presented.signature.ed25519;
+    if (!same) {
+      return {
+        ok: false,
+        statement: null,
+        reasons: ["the presented tree head is not the head the log actually signed"],
+        checks: null,
+      };
+    }
+    return this.observe(receipts, presented.tree_size);
+  }
 }

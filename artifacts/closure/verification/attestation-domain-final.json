@@ -1,0 +1,62 @@
+{
+  "domain": "attestation",
+  "verification_mode": "ONLINE via Phala Cloud's attestation service; plus a local dcap-qvl check with archived collateral (offline at verify time only; collateral obtained online)",
+  "endpoint": "https://cloud-api.phala.com/api/v1/attestations/verify",
+  "request_started_at": "2026-09-24T02:33:35.488Z",
+  "response_received_at": "2026-09-24T02:33:36.444Z",
+  "http_status": 200,
+  "request_body_sha256": "d480cf754db97c858c68c55a311ae0284fed8105cef0bbed2ce16b59fdaf1773",
+  "response_archived_as": "phala-attestation-response-primary.json",
+  "raw_quote": {
+    "format": "dstack.tdx.v4",
+    "root_label": "intel-dcap",
+    "size_bytes": 5010,
+    "quote_version": 4,
+    "tee_type": "0x81",
+    "quote_sha256": "d02f6bc12eaf3a91f0416478c7aa1d0b33d210a891b6b189ea40a5ead2eb218f",
+    "mrtd": "f06dfda6dce1cf904d4e2bab1dc370634cf95cefa2ceb2de2eee127c9382698090d7a4a13e14c536ec6c9c3c8fa87077",
+    "rtmr0": "68102e7b524af310f7b7d426ce75481e36c40f5d513a9009c046e9d37e31551f0134d954b496a3357fd61d03f07ffe96",
+    "rtmr1": "07e6f51aa763abfe75c3ddfbf4f425fe3f0ceff66d807a75e049303dce9addf68e7218729bd419638af63a370f65878c",
+    "rtmr2": "a2a58c9a959a4fa44bd6da0c97a2270c051faf12084cfe91ae900e4fdff6cdd4f69a82005e04ee920f231497894d677f",
+    "rtmr3": "c15d0c44b1df839c46436fa2d178ecc1b151288979cbfd4681549418ece4836afffb53b2cfb52b50b61af3c3cb2e2d30",
+    "report_data_first32": "0e9caa346e718ad64045675997ba45a4d5c560443af587ec1e6a4067b0098aa4"
+  },
+  "registers_match_receipt": {
+    "mrtd": true,
+    "rtmr": true
+  },
+  "report_data_binds_cool_signing_key": true,
+  "signing_key_id": "cool-enclave-f06dfda6dc",
+  "vendor_response_verified": true,
+  "local_offline_check": {
+    "library": "@phala/dcap-qvl",
+    "mode": "OFFLINE at verify time (archived collateral from the Phala response; the collateral itself was obtained online)",
+    "result": "PASS",
+    "tcb_status": "UpToDate",
+    "advisory_ids": [],
+    "tee_type": "td10",
+    "negative_control": {
+      "description": "one byte of MRTD in the quote body flipped",
+      "rejected": true,
+      "error": "ISV enclave report signature is invalid"
+    }
+  },
+  "negative_controls": {
+    "one_flipped_quote_byte": {
+      "ok": false,
+      "attestation": "fail",
+      "enclave": "fail",
+      "reasons": [
+        "attestation: Phala Cloud's attestation service did not verify the quote: {\"id\":\"d9ab36d66f835c7059c5d2f9f5816544a2f7516a42a32b074ceed13418274d13\",\"success\":true,\"proof_of_cloud\":true,\"quote\":{\"header\":{\"version\":4,\"ak_type\":\"ECDSA_P256\",\"tee_type\":\"TEE_TDX\",\"qe_vendor\":\"0x939a7233f79c4ca9940a0db3957f0607\",\"user_data\":\"0x228b1b2533416561505b6d6ef4236c7900000000\"},\"cert_data\":\"-----BEGIN CERTIFICATE-----\\nMIIE8jCCBJigAwIBAgIVANZBMBrquT3WUUUb45BlOcz3c6iBMAoGCCqGSM49BAMC\\nMHAxIjAgBgNVBAMMGUludGVsIFNHWCBQQ0sgUGxhdGZvcm0gQ0ExGjAYBgNVBAoM\\nEUludGVsIENvcnBvcmF0aW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkGA1UE\\nCAwCQ0ExCzAJBgNVBAYTAlVTMB4XDTI2MDEyOTA1MzIwNloXDTMzMDEyOTA1MzIw\\nNlowcDEiMCAGA1UEAwwZSW50ZWwgU0dYIFBDSyBDZXJ0aWZpY2F0ZTEaMBgGA1UE\\nCgwRSW50ZWwgQ29ycG9yYXRpb24xFDASBgNVBAcMC1NhbnRhIENsYXJhMQswCQYD\\nVQQIDAJDQTELMAkGA1UEBhMCVVMwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAR9\\nF0EQuUX+CtfwQjarjkBpCoNdcatfBP1hDN/wfw9pByxQXKBFLtinnlXczxVaiHTL\\nrO/cRvOt7UcuvMy21w/Xo4IDDTCCAwkwHwYDVR0jBBgwFoAUlW9dzb0b4elAScnU\\n9DPOAVcL3lQwawYDVR0fBGQwYjBgoF6gXIZaaHR0cHM6Ly9hcGkudHJ1c3RlZHNl\\ncnZpY2VzLmludGVsLmNvbS9zZ3gvY2VydGlmaWNhdGlvbi92NC9wY2tjcmw/Y2E9\\ncGxhdGZvcm0mZW5jb2Rpbmc9ZGVyMB0GA1UdDgQWBBRTztMSA5Cv9LgTg1L7C16T\\nKPyU0DAOBgNVHQ8BAf8EBAMCBsAwDAYDVR0TAQH/BAIwADCCAjoGCSqGSIb4TQEN\\nAQSCAiswggInMB4GCiqGSIb4TQENAQEEED4wbhM7f9qnu3n2djTLUgwwggFkBgoq\\nhkiG+E0BDQECMIIBVDAQBgsqhkiG+E0BDQECAQIBBTAQBgsqhkiG+E0BDQECAgIB\\nBTAQBgsqhkiG+E0BDQECAwIBAjAQBgsqhkiG+E0BDQECBAIBAjAQBgsqhkiG+E0B\\nDQECBQIBBTARBgsqhkiG+E0BDQECBgICAP8wEAYLKoZIhvhNAQ0BAgcCAQAwEAYL\\nKoZIhvhNAQ0BAggCAQIwEAYLKoZIhvhNAQ0BAgkCAQAwEAYLKoZIhvhNAQ0BAgoC\\nAQAwEAYLKoZIhvhNAQ0BAgsCAQAwEAYLKoZIhvhNAQ0BAgwCAQAwEAYLKoZIhvhN\\nAQ0BAg0CAQAwEAYLKoZIhvhNAQ0BAg4CAQAwEAYLKoZIhvhNAQ0BAg8CAQAwEAYL\\nKoZIhvhNAQ0BAhACAQAwEAYLKoZIhvhNAQ0BAhECAQ0wHwYLKoZIhvhNAQ0BAhIE\\nEAUFAgIF/wACAAAAAAAAAAAwEAYKKoZIhvhNAQ0BAwQCAAAwFAYKKoZIhvhNAQ0B\\nBAQGIKBvAAAAMA8GCiqGSIb4TQENAQUKAQEwHgYKKoZIhvhNAQ0BBgQQpEHc/e5M\\nxKCDV60fQty2fjBEBgoqhkiG+E0BDQEHMDYwEAYLKoZIhvhNAQ0BBwEBAf8wEAYL\\nKoZIhvhNAQ0BBwIBAf8wEAYLKoZIhvhNAQ0BBwMBAf8wCgYIKoZIzj0EAwIDSAAw\\nRQIgQQG1NWuzUduf1zKQeaV/Vam/CXvWPgRTOzsb2iA6lGgCIQDR51FpcourTzNW\\nxW+bVo48+zkz12eW9S+K/QGdMTvR3Q==\\n-----END CERTIFICATE-----\\n-----BEGIN CERTIFICATE-----\\nMIICljCCAj2gAwIBAgIVAJVvXc29G+HpQEnJ1PQzzgFXC95UMAoGCCqGSM49BAMC\\nMGgxGjAYBgNVBAMMEUludGVsIFNHWCBSb290IENBMRowGAYDVQQKDBFJbnRlbCBD\\nb3Jwb3JhdGlvbjEUMBIGA1UEBwwLU2FudGEgQ2xhcmExCzAJBgNVBAgMAkNBMQsw\\nCQYDVQQGEwJVUzAeFw0xODA1MjExMDUwMTBaFw0zMzA1MjExMDUwMTBaMHAxIjAg\\nBgNVBAMMGUludGVsIFNHWCBQQ0sgUGxhdGZvcm0gQ0ExGjAYBgNVBAoMEUludGVs\\nIENvcnBvcmF0aW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkGA1UECAwCQ0Ex\\nCzAJBgNVBAYTAlVTMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAENSB/7t21lXSO\\n2Cuzpxw74eJB72EyDGgW5rXCtx2tVTLq6hKk6z+UiRZCnqR7psOvgqFeSxlmTlJl\\neTmi2WYz3qOBuzCBuDAfBgNVHSMEGDAWgBQiZQzWWp00ifODtJVSv1AbOScGrDBS\\nBgNVHR8ESzBJMEegRaBDhkFodHRwczovL2NlcnRpZmljYXRlcy50cnVzdGVkc2Vy\\ndmljZXMuaW50ZWwuY29tL0ludGVsU0dYUm9vdENBLmRlcjAdBgNVHQ4EFgQUlW9d\\nzb0b4elAScnU9DPOAVcL3lQwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYB\\nAf8CAQAwCgYIKoZIzj0EAwIDRwAwRAIgXsVki0w+i6VYGW3UF/22uaXe0YJDj1Ue\\nnA+TjD1ai5cCICYb1SAmD5xkfTVpvo4UoyiSYxrDWLmUR4CI9NKyfPN+\\n-----END CERTIFICATE-----\\n-----BEGIN CERTIFICATE-----\\nMIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw\\naDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv\\ncnBvcmF0aW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkGA1UECAwCQ0ExCzAJ\\nBgNVBAYTAlVTMB4XDTE4MDUyMTEwNDUxMFoXDTQ5MTIzMTIzNTk1OVowaDEaMBgG\\nA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENvcnBvcmF0\\naW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkGA1UECAwCQ0ExCzAJBgNVBAYT\\nAlVTMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEC6nEwMDIYZOj/iPWsCzaEKi7\\n1OiOSLRFhWGjbnBVJfVnkY4u3IjkDYYL0MxO4mqsyYjlBalTVYxFP2sJBK5zlKOB\\nuzCBuDAfBgNVHSMEGDAWgBQiZQzWWp00ifODtJVSv1AbOScGrDBSBgNVHR8ESzBJ\\nMEegRaBDhkFodHRwczovL2NlcnRpZmljYXRlcy50cnVzdGVkc2VydmljZXMuaW50\\nZWwuY29tL0ludGVsU0dYUm9vdENBLmRlcjAdBgNVHQ4EFgQUImUM1lqdNInzg7SV\\nUr9QGzknBqwwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwCgYI\\nKoZIzj0EAwIDSQAwRgIhAOW/5QkR+S9CiSDcNoowLuPRLsWGf/Yi7GSX94BgwTwg\\nAiEA4J0lrHoMs+Xo5o/sX6O9QWxHRAvZUGOdRQ7cvqRXaqI=\\n-----END CERTIFICATE-----\\n\",\"body\":{\"tee_tcb_svn\":\"0b010500000000000000000000000000\",\"mrseam\":\"0x7bf063280e94fb051f5dd7b1fc59ce9aac42bb961df8d44b709c9b0ff87a7b4df648657ba6d1189589feab1d5a3c9a9d\",\"mrsignerseam\":\"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"seamattributes\":\"0x0000000000000000\",\"tdattributes\":\"0x0000001000000000\",\"xfam\":\"0x0702000000000000\",\"mrtd\":\"0xf06dfda7dce1cf904d4e2bab1dc370634cf95cefa2ceb2de2eee127c9382698090d7a4a13e14c536ec6c9c3c8fa87077\",\"mr_config_id\":\"0x011f82280226dc1f4c66456e9e173ad800b792677925309e25369424d09e42d926000000000000000000000000000000\",\"mrowner\":\"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"mrownerconfig\":\"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"rtmr0\":\"0x68102e7b524af310f7b7d426ce75481e36c40f5d513a9009c046e9d37e31551f0134d954b496a3357fd61d03f07ffe96\",\"rtmr1\":\"0x07e6f51aa763abfe75c3ddfbf4f425fe3f0ceff66d807a75e049303dce9addf68e7218729bd419638af63a370f65878c\",\"rtmr2\":\"0xa2a58c9a959a4fa44bd6da0c97a2270c051faf12084cfe91ae900e4fdff6cdd4f69a82005e04ee920f231497894d677f\",\"rtmr3\":\"0xc15d0c44b1df839c46436fa2d178ecc1b151288979cbfd4681549418ece4836afffb53b2cfb52b50b61af3c3cb2e2d30\",\"reportdata\":\"0x0e9caa346e718ad64045675997ba45a4d5c560443af587ec1e6a4067b0098aa40000000000000000000000000000000000000000000000000000000000000000\",\"mrconfig\":\"0x011f82280226dc1f4c66456e9e173ad800b792677925309e25369424d09e42d926000000000000000000000000000000\"},\"verified\":false},\"checksum\":\"d9ab36d66f835c7059c5d2f9f5816544a2f7516a42a32b074ceed13418274d13\",\"can_download\":null,\"uploaded_at\":null,\"verified_at\":\"2026-09-23T16:06:27+00:00\",\"quote_collateral\":null,\"node_provider\":{\"proof_of_cloud\":true,\"provider\":\"phala\",\"ppid\":\"3e306e133b7fdaa7bb79f67634cb520c\"}}",
+        "enclave: the attached quote is not the one the record signed over",
+        "policy: requireHardware is set and this receipt is not backed by a verified hardware quote"
+      ]
+    }
+  },
+  "limitations": [
+    "Primary verification is online and delegated to Phala's service.",
+    "CooL records tcb_status as 'Unknown'; TCB status comes from the local dcap-qvl check.",
+    "No quote freshness/nonce check."
+  ],
+  "result": "VERIFIED"
+}

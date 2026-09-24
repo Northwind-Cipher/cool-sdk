@@ -1,0 +1,66 @@
+{
+  "domain": "enclave",
+  "checked_at": "2026-09-24T02:33:40.709Z",
+  "measurement": {
+    "mrtd": "hex:f06dfda6dce1cf904d4e2bab1dc370634cf95cefa2ceb2de2eee127c9382698090d7a4a13e14c536ec6c9c3c8fa87077",
+    "rtmr0": "hex:68102e7b524af310f7b7d426ce75481e36c40f5d513a9009c046e9d37e31551f0134d954b496a3357fd61d03f07ffe96",
+    "rtmr1": "hex:07e6f51aa763abfe75c3ddfbf4f425fe3f0ceff66d807a75e049303dce9addf68e7218729bd419638af63a370f65878c",
+    "rtmr2": "hex:a2a58c9a959a4fa44bd6da0c97a2270c051faf12084cfe91ae900e4fdff6cdd4f69a82005e04ee920f231497894d677f",
+    "rtmr3": "hex:c15d0c44b1df839c46436fa2d178ecc1b151288979cbfd4681549418ece4836afffb53b2cfb52b50b61af3c3cb2e2d30"
+  },
+  "all_registers_nonzero": true,
+  "registers_equal_raw_quote": {
+    "mrtd": true,
+    "rtmr": true
+  },
+  "agent_identity": {
+    "app_id": "774f4f4493d59bdc5faf921dbfe28a1f92428f44",
+    "instance_id": "19b3510e3541561773a4d6feccb1ff3ee74b5cb3"
+  },
+  "docker_image_digest_in_record": "mh:sha256:9030c0b6833c75460b771443be43ca91dc06842927ad5c081a43ebaaf02e3b27",
+  "note": "The Docker image digest is a different identifier from the TDX measurement.",
+  "report_data_binds_signing_key": true,
+  "policy_tests": {
+    "valid_pin_with_verifier": {
+      "ok": true,
+      "enclave": "pass"
+    },
+    "wrong_pin": {
+      "ok": false,
+      "enclave": "fail",
+      "detail": "FAILED — running image differs from the approved one in rtmr3"
+    },
+    "zero_measurement_pin": {
+      "ok": false,
+      "enclave": "fail"
+    },
+    "requireHardware_without_verifier": {
+      "ok": false,
+      "attestation": "absent",
+      "enclave": "fail"
+    }
+  },
+  "runtime_status_in_cvm": {
+    "sdk_runtime": {
+      "state": "real",
+      "label": "REAL",
+      "display": "intel-tdx · REAL",
+      "reason": "dstack evidence complete; quote verified against a vendor root",
+      "findings": [],
+      "vendor": "intel-tdx"
+    },
+    "cli_hardware_required_with_verifier": {
+      "exit": 0,
+      "runtime_line": "runtime      intel-tdx · REAL"
+    },
+    "cli_no_verifier": {
+      "exit": 0,
+      "runtime_line": "runtime      intel-tdx · UNVERIFIED"
+    },
+    "cli_wrong_pin_hardware_required": {
+      "exit": 1,
+      "output": "cool: hardware is required but the runtime is intel-tdx · MEASUREMENT MISMATCH: measurement pin: MISMATCH in rtmr3 — the endpoint is not running the approved image; channel: CLOSED — no data will be sent"
+    }
+  },
+  "result": "VERIFIED"
+}

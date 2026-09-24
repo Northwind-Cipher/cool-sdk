@@ -1,0 +1,66 @@
+{
+  "domain": "signature",
+  "checked_at": "2026-09-24T02:33:35.303Z",
+  "scheme": "hybrid ML-DSA-65 + Ed25519, both required",
+  "method": "@noble/post-quantum and @noble/curves called directly over canonicalCBOR(core) || binding digest",
+  "receipts": 8,
+  "results": [
+    {
+      "index": 0,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "25017efd114b553aac02916f9fa6d25d05de2f6aefba01958e66406855569ea8",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 1,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "107996b510605cd2544e9c92bdea935a252cbb87adb2458e76aa5cfba4e0dfd7",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 2,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "23818009c230907d6af66572d98ecabb4d182fd3746a58e2fb4059d85c64cd6a",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 3,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "57a48b48ed9267a6ee6af1123074212deead27276a466c7c1e1a4a9eabf6bf7a",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 4,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "fe06c146f50cf1298aa3ee924329962d10a3180717db77cf9290bebb1121f0d9",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 5,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "f5e560ee6b0abb9699d7502c25efc704ef4429f00010b1f96175dc48755f66f3",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 6,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "d96762b476bffb3f9a674f8e1656b98b8e0ef200285d8247d6dd555a82c75ca2",
+      "ml_dsa_65": true,
+      "ed25519": true
+    },
+    {
+      "index": 7,
+      "key_id": "cool-enclave-f06dfda6dc",
+      "signed_bytes_sha256": "acd86cdb648d7aaf1ae00dc54d9c3dee8c8f02daba562f28211bf441a6b2a28e",
+      "ml_dsa_65": true,
+      "ed25519": true
+    }
+  ],
+  "result": "VERIFIED"
+}

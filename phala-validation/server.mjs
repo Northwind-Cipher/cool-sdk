@@ -90,11 +90,11 @@ async function init() {
       },
     });
 
-    // Six synthetic events so the transparency log reaches tree size 6 and the
+    // Eight synthetic events so the transparency log reaches tree size 8 and the
     // final receipt carries a non-trivial inclusion path; heads at sizes 1..6 are
     // all served so consistency can be checked between signed heads.
     const receipts = [];
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
       receipts.push(
         await tee.record({
           type: "model.execution",

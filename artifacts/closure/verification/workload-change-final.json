@@ -1,0 +1,45 @@
+{
+  "checked_at": "2026-09-24T02:33:42.399Z",
+  "image_digest_A": "mh:sha256:9030c0b6833c75460b771443be43ca91dc06842927ad5c081a43ebaaf02e3b27",
+  "image_digest_B": "mh:sha256:91bd07cf20960f53c0f0e9202f1f4369b38987566d89af21ec77529328d91c31",
+  "register_comparison": {
+    "mrtd": "SAME",
+    "rtmr0": "SAME",
+    "rtmr1": "SAME",
+    "rtmr2": "SAME",
+    "rtmr3": "DIFFERENT"
+  },
+  "rtmr3_A": "hex:c15d0c44b1df839c46436fa2d178ecc1b151288979cbfd4681549418ece4836afffb53b2cfb52b50b61af3c3cb2e2d30",
+  "rtmr3_B": "hex:e833df44947e8027d2ccc10cfdbc8eb01ebff207dbed17739b78e07f0c478cceddab2b3ea0de73d2b2e6be11dcdde010",
+  "B_against_A_pin": {
+    "ok": false,
+    "enclave": {
+      "status": "fail",
+      "detail": "FAILED — running image differs from the approved one in rtmr3"
+    },
+    "expected": "FAIL"
+  },
+  "B_against_B_pin": {
+    "ok": true,
+    "enclave": {
+      "status": "pass",
+      "detail": "quote is inside the signature; measurement f06dfda6dce1… holds the signing key; matches the pinned image f06dfda6dce1…"
+    },
+    "expected": "PASS"
+  },
+  "historical_A_witnessed_receipt_after_B_deployed": {
+    "ok": true,
+    "checks": {
+      "binding": "pass",
+      "signature": "pass",
+      "inclusion": "pass",
+      "witnesses": "pass",
+      "attestation": "pass",
+      "enclave": "pass",
+      "anchor": "absent"
+    },
+    "expected": "PASS",
+    "note": "A's receipt and its witness statement were verified again after B was deployed; both quotes were re-checked online."
+  },
+  "result": "VERIFIED"
+}

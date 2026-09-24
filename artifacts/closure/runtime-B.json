@@ -1,0 +1,36 @@
+{
+  "runtime": {
+    "state": "real",
+    "label": "REAL",
+    "display": "intel-tdx · REAL",
+    "reason": "dstack evidence complete; quote verified against a vendor root",
+    "findings": [],
+    "vendor": "intel-tdx"
+  },
+  "cli": [
+    {
+      "args": [
+        "status"
+      ],
+      "code": 0,
+      "stdout": "╭─ enclave ────────────────────────────────────────────────────────────────────╮\n│ vendor       intel-tdx                                                       │\n│ runtime      intel-tdx · REAL                                                │\n│ why          dstack evidence complete; quote verified against a vendor root  │\n│ endpoint     DSTACK_ENDPOINT                                                 │\n│ hardware req  yes (fail-closed)                                              │\n│ app id       774f4f4493d59bdc5faf921dbfe28a1f92428f44                        │\n│ instance     19b3510e3541561773a4d6feccb1ff3ee74b5cb3                        │\n│ mrtd         f06dfda6dce1cf904d4e2bab1dc370634cf95cef…                       │\n│ rtmr3        e833df44947e8027d2ccc10cfdbc8eb01ebff207…                       │\n│ signing key  cool-enclave-f06dfda6dc (derived from the measurement)          │\n│ log          0 entries                                                       │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n  RA-TLS handshake\n  ✓ enclave info      · app 774f4f4493d5 · instance 19b3510e3541\n  ✓ quote fetched    dstack.tdx.v4 · TCB Unknown\n  ✓ hardware evidence complete non-zero MRTD/RTMR0-3 and agent identity\n  ✓ quote structure  well-formed\n  ✓ root of trust    quote verified by Phala Cloud's attestation service (online)\n  ✓ vendor           intel-tdx permitted\n  ✓ measurement pin  matches the pinned image (f06dfda6dce1…)\n  ✓ key binding      quote report_data commits to the endpoint's signing key\n  ✓ channel          open — events may be transmitted\n\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "status"
+      ],
+      "code": 0,
+      "stdout": "╭─ enclave ────────────────────────────────────────────────────────────────────╮\n│ vendor       intel-tdx                                                       │\n│ runtime      intel-tdx · UNVERIFIED                                          │\n│ why          a dstack agent answered with a complete measurement, but no ve… │\n│ endpoint     DSTACK_ENDPOINT                                                 │\n│ hardware req  no (development mode allowed)                                  │\n│ app id       774f4f4493d59bdc5faf921dbfe28a1f92428f44                        │\n│ instance     19b3510e3541561773a4d6feccb1ff3ee74b5cb3                        │\n│ mrtd         f06dfda6dce1cf904d4e2bab1dc370634cf95cef…                       │\n│ rtmr3        e833df44947e8027d2ccc10cfdbc8eb01ebff207…                       │\n│ signing key  cool-enclave-f06dfda6dc (derived from the measurement)          │\n│ log          0 entries                                                       │\n╰──────────────────────────────────────────────────────────────────────────────╯\n\n  RA-TLS handshake\n  ✓ enclave info      · app 774f4f4493d5 · instance 19b3510e3541\n  ✓ quote fetched    dstack.tdx.v4 · TCB Unknown\n  ✓ hardware evidence complete non-zero MRTD/RTMR0-3 and agent identity\n  ✓ quote structure  well-formed\n  ✓ root of trust    root 'intel-dcap' REPORTED, NOT VERIFIED (policy.requireVerifiedRoot = false)\n  ✓ measurement pin  matches the pinned image (f06dfda6dce1…)\n  ✓ key binding      quote report_data commits to the endpoint's signing key\n  ✓ channel          open — events may be transmitted\n\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "status"
+      ],
+      "code": 1,
+      "stdout": "  cool: hardware is required but the runtime is intel-tdx · MEASUREMENT MISMATCH: measurement pin: MISMATCH in rtmr3 — the endpoint is not running the approved image; channel: CLOSED — no data will be sent\n  fix the reported finding, or unset COOL_REQUIRE_HARDWARE / --require-hardware for development\n",
+      "stderr": ""
+    }
+  ]
+}

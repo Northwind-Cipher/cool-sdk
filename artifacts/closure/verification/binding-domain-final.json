@@ -1,0 +1,58 @@
+{
+  "domain": "binding",
+  "checked_at": "2026-09-24T02:33:35.213Z",
+  "method": "canonical CBOR (cbor2 CDE) of the record core, SHA-256 by node:crypto, compared with the stored binding_hash; run outside the SDK verifier",
+  "receipts": 8,
+  "results": [
+    {
+      "index": 0,
+      "stored": "mh:sha256:6d9bde5f9794806ebaa03d49398251d818253a5f27e48a4b91b8cb8d0617461b",
+      "recomputed": "mh:sha256:6d9bde5f9794806ebaa03d49398251d818253a5f27e48a4b91b8cb8d0617461b",
+      "match": true
+    },
+    {
+      "index": 1,
+      "stored": "mh:sha256:be675029be213dad320b433e610f2ff0e7abcf588dce38961187d6e4cbac44ce",
+      "recomputed": "mh:sha256:be675029be213dad320b433e610f2ff0e7abcf588dce38961187d6e4cbac44ce",
+      "match": true
+    },
+    {
+      "index": 2,
+      "stored": "mh:sha256:419bae8fa8d332eb9041147b38e2b0851992fd1beacd24027bd09e1c92e758a4",
+      "recomputed": "mh:sha256:419bae8fa8d332eb9041147b38e2b0851992fd1beacd24027bd09e1c92e758a4",
+      "match": true
+    },
+    {
+      "index": 3,
+      "stored": "mh:sha256:357219b1865c9c1016fdd0f35dfc72b43c5bbb398582c9cb5b974e0e8d618495",
+      "recomputed": "mh:sha256:357219b1865c9c1016fdd0f35dfc72b43c5bbb398582c9cb5b974e0e8d618495",
+      "match": true
+    },
+    {
+      "index": 4,
+      "stored": "mh:sha256:e548cbe1931eea52d73866e67160028d15598820bd9c2882ec07218058cd53f0",
+      "recomputed": "mh:sha256:e548cbe1931eea52d73866e67160028d15598820bd9c2882ec07218058cd53f0",
+      "match": true
+    },
+    {
+      "index": 5,
+      "stored": "mh:sha256:c857342de69d80afab8e388d793328b969bccd92de1c5483f4ab8c993cbc8dd2",
+      "recomputed": "mh:sha256:c857342de69d80afab8e388d793328b969bccd92de1c5483f4ab8c993cbc8dd2",
+      "match": true
+    },
+    {
+      "index": 6,
+      "stored": "mh:sha256:cda7b5c891f39a2b10511d3657612e281bb74dfec366bf35b47626918708f543",
+      "recomputed": "mh:sha256:cda7b5c891f39a2b10511d3657612e281bb74dfec366bf35b47626918708f543",
+      "match": true
+    },
+    {
+      "index": 7,
+      "stored": "mh:sha256:25d1363378ab0ba58528a6bdc353b9653117f51100473f0577ee66164d79424a",
+      "recomputed": "mh:sha256:25d1363378ab0ba58528a6bdc353b9653117f51100473f0577ee66164d79424a",
+      "match": true
+    }
+  ],
+  "negative_control": "see tamper-final.json: flipping binding_hash or a field inside the record makes binding fail",
+  "result": "VERIFIED"
+}

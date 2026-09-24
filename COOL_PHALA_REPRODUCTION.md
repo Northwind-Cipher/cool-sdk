@@ -87,3 +87,13 @@ the verifier obtains their public key out of band and passes it with `withTruste
 - Measurement pins in the tests are taken from the receipts under test. Approval is procedural.
 - The workload exposes only `/health`, `/receipt`, `/receipts`, `/verdict`, `/handshake`, `/environment`; Phala's default public gateway makes them internet-reachable while the CVM runs.
 - The CVM used a dev OS image (`is_dev: true`). Not a production configuration.
+
+## 9. Closure run (witness in its own CVM, consistency, tamper matrix)
+
+1. Deploy the primary: `phala deploy --cvm-id <primary> --compose phala-validation/docker-compose.deployment-a.yaml --wait`; pull `/receipts` (8 receipts) and `/runtime`.
+2. Edit `phala-validation/docker-compose.witness.yaml`: set `PRIMARY_URL` and `PRIMARY_MEASUREMENT` (the primary's five registers from the last receipt) and your image; `phala deploy --name <witness> --compose ... --instance-type tdx.small --wait`. Read `/identity`.
+3. `GET <witness>/cosign?size=N` for N = 1..8 in order; `POST <witness>/cosign-presented` with forged heads (expect HTTP 409) and the genuine head (HTTP 200); save `/decisions`.
+4. `phala deploy --cvm-id <primary> --compose phala-validation/docker-compose.deployment-b.yaml --wait`; pull B's `/receipts`; `GET <witness>/cosign?size=1` (expect a refusal).
+5. Arrange the files as described in the header of `phala-validation/closure-verify.mjs` and run `npm i --no-save @phala/dcap-qvl && node phala-validation/closure-verify.mjs <dir>`. Exit 0 means every check held.
+
+The old `final-verify.mjs` (self-generated witness key) is superseded and kept only to reproduce the earlier evidence.
