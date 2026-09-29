@@ -1,37 +1,30 @@
 <div align="center">
 
-<table width="100%" cellpadding="0" cellspacing="0" border="1" bordercolor="#3d444d">
-<tr>
-<td width="58%" align="center" valign="middle" bgcolor="#151b23">
-
-<pre>
-  ######    #####    #####    ##
- ##        ##   ##  ##   ##   ##
-##        ##     ####     ##  ##
-##        ##     ####     ##  ##
- ##        ##   ##  ##   ##   ##
-  ######    #####    #####    #######
-</pre>
-
-</td>
-<td width="8%" align="center" valign="middle" bgcolor="#0d1117">
-
-<strong style="color:#cdfa50; font-size:20px;">×</strong>
-
-</td>
-<td width="34%" align="center" valign="middle" bgcolor="#151b23">
-
-<a href="https://phala.com/">
-<img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="300">
-</a>
-
-<br>
-
-<strong style="color:#f0f6fc;">Phala</strong>
-
-</td>
-</tr>
+<!-- GitHub strips inline CSS and does not reliably align ASCII art beside images.
+     Use actual logo images, identical cell sizing, and native GitHub-safe HTML. -->
+<table align="center">
+  <tr>
+    <td align="center" valign="middle" width="390">
+      <a href="https://github.com/Northwind-Cipher/cool-sdk">
+        <img src="https://raw.githubusercontent.com/Northwind-Cipher/cool-sdk/main/assets/hero.svg" alt="CooL" width="350" />
+      </a>
+    </td>
+    <td align="center" valign="middle" width="42">
+      <strong>×</strong>
+    </td>
+    <td align="center" valign="middle" width="390">
+      <a href="https://phala.com/">
+        <img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="350" />
+      </a>
+    </td>
+  </tr>
 </table>
+
+<!-- Matching lime/charcoal GitHub-safe branding, rendered as an image instead of
+     inline HTML colors (which GitHub removes). -->
+<a href="https://phala.com/">
+  <img src="https://img.shields.io/badge/POWERED%20BY-PHALA-CDFA50?style=for-the-badge&labelColor=151B23&color=CDFA50" alt="Powered by Phala" />
+</a>
 
 # CooL × Phala
 
@@ -39,25 +32,19 @@
 
 **Every AI change can be automatically captured, cryptographically recorded, and independently verified.**
 
-<br>
-
-<table cellpadding="10" cellspacing="0" border="0">
-<tr>
-<td bgcolor="#cdfa50"><strong style="color:#0d1117;">POWERED BY PHALA</strong></td>
-</tr>
-</table>
+[![POWERED BY PHALA](https://img.shields.io/badge/POWERED%20BY-PHALA-CDFA50?style=for-the-badge&labelColor=151B23&color=CDFA50)](https://phala.com/)
 
 <sub>CONFIDENTIAL EXECUTION · HARDWARE-BACKED ATTESTATION · VERIFIABLE RUNTIME</sub>
 
-<br><br>
+<br/><br/>
 
-[![CI](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/Northwind-Cipher/cool-sdk)
-[![License](https://img.shields.io/badge/license-BUSL--1.1-blue.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%E2%89%A5%2020-brightgreen.svg)](https://nodejs.org)
-[![TEE](https://img.shields.io/badge/TEE-Intel%20TDX-111111?style=flat-square&labelColor=cdfa50)](https://phala.com/confidential-vm)
-[![Powered by Phala](https://img.shields.io/badge/POWERED%20BY-PHALA-111111?style=flat-square&labelColor=cdfa50)](https://phala.com/)
+[![CI](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-BUSL--1.1-151B23.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%E2%89%A5%2020-CDFA50.svg)](https://nodejs.org)
+[![TEE](https://img.shields.io/badge/TEE-Intel%20TDX-CDFA50?style=flat-square&labelColor=151B23)](https://phala.com/)
 
 </div>
+
 
 ---
 
@@ -99,21 +86,9 @@ Sensitive values are committed as salted hashes and discarded; receipts never ca
 
 ---
 
-# CooL × Phala
+## CooL × Phala: how it works
 
 <div align="center">
-
-```text
-CooL  ×  Phala
-
-CRYPTOGRAPHIC OBSERVABILITY  ×  CONFIDENTIAL COMPUTING
-```
-
-<a href="https://phala.com/">
-<img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="260">
-</a>
-
-### **POWERED BY PHALA**
 
 ```text
              CooL
