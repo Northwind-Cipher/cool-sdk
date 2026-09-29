@@ -1,42 +1,39 @@
 <div align="center">
 
-<table>
+<table width="100%" cellpadding="0" cellspacing="0" border="1" bordercolor="#3d444d">
 <tr>
-<td align="center" valign="middle">
+<td width="58%" align="center" valign="middle" bgcolor="#151b23">
 
 <pre>
-     :*###**:          :*####*:.        .:*####*.       **
-  :###:::::*###:    .*##*:::::*##:   .*##*::.::*##*.    #@.
- *@*          :#   *@*.         :@#:*@#:         .#@:   #@.
-*@:               :@#            .@@#*             #@.  #@.
-#@                #@:             .@#              :@:  #@.
-*@:               :@*            ...@#             #@.  #@
- *@*          :*   *@*          :@* .@@:         .#@:   #@.
-  :###:....:*@#:    .###:....:*##:    *##*:...::#@*.    :@#::::::::.
-    .:#####*:.        .:*####**.        .*#####*:         :*########*.
+  ######    #####    #####    ##
+ ##        ##   ##  ##   ##   ##
+##        ##     ####     ##  ##
+##        ##     ####     ##  ##
+ ##        ##   ##  ##   ##   ##
+  ######    #####    #####    #######
 </pre>
 
-<strong>CooL</strong>
+</td>
+<td width="8%" align="center" valign="middle" bgcolor="#0d1117">
+
+<strong style="color:#cdfa50; font-size:20px;">×</strong>
 
 </td>
-<td align="center" valign="middle">
-
-<strong>X</strong>
-
-</td>
-<td align="center" valign="middle">
+<td width="34%" align="center" valign="middle" bgcolor="#151b23">
 
 <a href="https://phala.com/">
-<img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="260">
+<img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="300">
 </a>
 
-<strong>Phala</strong>
+<br>
+
+<strong style="color:#f0f6fc;">Phala</strong>
 
 </td>
 </tr>
 </table>
 
-# CooL X Phala
+# CooL × Phala
 
 ### The Black Box for AI · Confidential Execution
 
@@ -44,13 +41,17 @@
 
 <br>
 
-### POWERED BY PHALA
+<table cellpadding="10" cellspacing="0" border="0">
+<tr>
+<td bgcolor="#cdfa50"><strong style="color:#0d1117;">POWERED BY PHALA</strong></td>
+</tr>
+</table>
 
-`CONFIDENTIAL EXECUTION · HARDWARE-BACKED ATTESTATION · VERIFIABLE RUNTIME`
+<sub>CONFIDENTIAL EXECUTION · HARDWARE-BACKED ATTESTATION · VERIFIABLE RUNTIME</sub>
 
-<br>
+<br><br>
 
-[![CI](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml)
+[![CI](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/Northwind-Cipher/cool-sdk)
 [![License](https://img.shields.io/badge/license-BUSL--1.1-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A5%2020-brightgreen.svg)](https://nodejs.org)
 [![TEE](https://img.shields.io/badge/TEE-Intel%20TDX-111111?style=flat-square&labelColor=cdfa50)](https://phala.com/confidential-vm)
