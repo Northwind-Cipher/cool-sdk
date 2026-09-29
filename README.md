@@ -1,18 +1,46 @@
 <div align="center">
 
-<img src="assets/hero.svg" alt="CooL" width="880">
+<table>
+<tr>
+<td align="center" valign="middle">
 
-# CooL
+<pre>
+     :*###**:          :*####*:.        .:*####*.       **
+  :###:::::*###:    .*##*:::::*##:   .*##*::.::*##*.    #@.
+ *@*          :#   *@*.         :@#:*@#:         .#@:   #@.
+*@:               :@#            .@@#*             #@.  #@.
+#@                #@:             .@#              :@:  #@.
+*@:               :@*            ...@#             #@.  #@
+ *@*          :*   *@*          :@* .@@:         .#@:   #@.
+  :###:....:*@#:    .###:....:*##:    *##*:...::#@*.    :@#::::::::.
+    .:#####*:.        .:*####**.        .*#####*:         :*########*.
+</pre>
 
-### The Black Box for AI.
+<strong>CooL</strong>
 
-**Every AI change can be automatically captured, cryptographically recorded, and independently verified.**
+</td>
+<td align="center" valign="middle">
 
-<br>
+<strong>X</strong>
+
+</td>
+<td align="center" valign="middle">
 
 <a href="https://phala.com/">
-<img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="360">
+<img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="260">
 </a>
+
+<strong>Phala</strong>
+
+</td>
+</tr>
+</table>
+
+# CooL X Phala
+
+### The Black Box for AI · Confidential Execution
+
+**Every AI change can be automatically captured, cryptographically recorded, and independently verified.**
 
 <br>
 
@@ -74,7 +102,15 @@ Sensitive values are committed as salted hashes and discarded; receipts never ca
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="300">
+```text
+CooL  ×  Phala
+
+CRYPTOGRAPHIC OBSERVABILITY  ×  CONFIDENTIAL COMPUTING
+```
+
+<a href="https://phala.com/">
+<img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="260">
+</a>
 
 ### **POWERED BY PHALA**
 
