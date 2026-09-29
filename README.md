@@ -1,58 +1,32 @@
 <div align="center">
 
-<table>
-<tr>
-<td align="center" bgcolor="#0D1117">
+<img src="assets/hero.svg" alt="CooL" width="880">
+
+# CooL
+
+### The Black Box for AI.
+
+**Every AI change can be automatically captured, cryptographically recorded, and independently verified.**
 
 <br>
 
-<font color="#CDFA50" size="6"><b>C O O L</b></font>
-
-<br><br>
-
-<font color="#FFFFFF" size="7"><b>THE BLACK BOX FOR AI.</b></font>
+<a href="https://phala.com/">
+<img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="360">
+</a>
 
 <br>
 
-<font color="#A7B0BA" size="4">
-Cryptographic observability for AI execution.
-</font>
+### POWERED BY PHALA
 
-<br><br>
-
-<table>
-<tr>
-<td bgcolor="#CDFA50" width="74" height="74" align="center" valign="middle">
-<font color="#0D1117" size="6"><b>▰<br>▐<br>▰</b></font>
-</td>
-<td bgcolor="#0D1117" width="18"></td>
-<td bgcolor="#0D1117">
-<font color="#FFFFFF" size="6"><b>PHALA</b></font>
-<br>
-<font color="#8B949E" size="2">CONFIDENTIAL COMPUTING</font>
-</td>
-</tr>
-</table>
-
-<br>
-
-<font color="#CDFA50"><b>POWERED BY PHALA</b></font>
-<br>
-<font color="#8B949E">TEE ATTESTATION · HARDWARE-BACKED EXECUTION · VERIFIABLE RUNTIME</font>
-
-<br><br>
-
-</td>
-</tr>
-</table>
+`CONFIDENTIAL EXECUTION · HARDWARE-BACKED ATTESTATION · VERIFIABLE RUNTIME`
 
 <br>
 
 [![CI](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-BUSL--1.1-111111?style=flat-square&labelColor=cdfa50&color=111111)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%E2%89%A5%2020-111111?style=flat-square&labelColor=cdfa50&color=111111)](https://nodejs.org)
-[![Intel TDX](https://img.shields.io/badge/TEE-Intel%20TDX-111111?style=flat-square&labelColor=cdfa50&color=111111)](https://phala.com/confidential-vm)
-[![Phala](https://img.shields.io/badge/POWERED%20BY-PHALA-111111?style=flat-square&labelColor=cdfa50&color=111111)](https://phala.com/)
+[![License](https://img.shields.io/badge/license-BUSL--1.1-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%E2%89%A5%2020-brightgreen.svg)](https://nodejs.org)
+[![TEE](https://img.shields.io/badge/TEE-Intel%20TDX-111111?style=flat-square&labelColor=cdfa50)](https://phala.com/confidential-vm)
+[![Powered by Phala](https://img.shields.io/badge/POWERED%20BY-PHALA-111111?style=flat-square&labelColor=cdfa50)](https://phala.com/)
 
 </div>
 
@@ -60,113 +34,81 @@ Cryptographic observability for AI execution.
 
 <div align="center">
 
-### `evidence > claims`
+```text
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║                    CRYPTOGRAPHIC OBSERVABILITY                           ║
+║                              FOR AI                                     ║
+║                                                                          ║
+║       EVIDENCE ── SIGN ── LOG ── WITNESS ── ATTEST ── VERIFY            ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+```
 
-**Every AI execution should leave behind evidence that another party can verify.**
+**Evidence over claims.**
 
 </div>
 
 ---
 
-## ◼ What is CooL?
+## What CooL is
 
-CooL is a developer SDK and CLI for producing **independently verifiable evidence about what software did**.
+CooL is a developer SDK and command line for producing **independently verifiable evidence about what software did**.
 
-An application records an event. CooL turns that event into a self-contained receipt that can be checked later without an account and without trusting the CooL process that created it.
+Your application records an event; CooL returns a self-contained receipt that anyone can check later, with no account and no trust in CooL, proving:
 
-```text
-╔══════════════════════════════════════════════════════════════════════╗
-║                         AI APPLICATION                              ║
-║                                                                      ║
-║     model ───── input ───── output ───── metadata ───── event      ║
-╚══════════════════════════════════╤═══════════════════════════════════╝
-                                   │
-                                   ▼
-                    ┌──────────────────────────┐
-                    │          CooL            │
-                    │                          │
-                    │  CANONICALIZE            │
-                    │       ↓                  │
-                    │  COMMIT                  │
-                    │       ↓                  │
-                    │  SIGN                    │
-                    │       ↓                  │
-                    │  LOG                     │
-                    │       ↓                  │
-                    │  ATTEST                  │
-                    └────────────┬─────────────┘
-                                 │
-                                 ▼
-          ╔══════════════════════════════════════════════════╗
-          ║                 CooL RECEIPT                     ║
-          ║                                                  ║
-          ║  binding hash        hybrid signature            ║
-          ║  Merkle proof        witness evidence            ║
-          ║  TEE measurement    attestation evidence        ║
-          ╚══════════════════════╤═══════════════════════════╝
-                                 │
-                                 ▼
-                    ┌──────────────────────────┐
-                    │  INDEPENDENT VERIFIER    │
-                    │                          │
-                    │  "Does the evidence     │
-                    │   actually check out?"   │
-                    └──────────────────────────┘
-```
+- **which software** ran, including name, version and content digest,
+- **which event** happened,
+- that the record has not been altered through a deterministic cryptographic commitment,
+- authenticity through a hybrid **ML-DSA-65 + Ed25519** signature,
+- that it sits in an **append-only RFC 6962 Merkle log**,
+- and, through the Phala-backed Intel TDX path, **where it ran** through hardware measurements and attestation evidence.
 
-CooL records **what happened**.
+Sensitive values are committed as salted hashes and discarded; receipts never carry plaintext.
 
-It does not decide whether what happened was correct, fair, safe, or desirable.
+> **CooL records what happened. It does not judge whether it was correct, fair or safe.**
 
 ---
 
-# ◼ CooL × Phala
+# CooL × Phala
 
 <div align="center">
 
-```text
-┌───────────────────────────────────────────────────────────────────┐
-│                           C O O L                                 │
-│                                                                   │
-│   CRYPTOGRAPHIC OBSERVABILITY                                    │
-│                                                                   │
-│   Evidence        Commitments        Signatures        Receipts   │
-│       │                │                  │               │       │
-└───────┼────────────────┼──────────────────┼───────────────┼───────┘
-        │                │                  │               │
-        └────────────────┴──────────────────┴───────────────┘
-                               │
-                               ▼
-╔═══════════════════════════════════════════════════════════════════╗
-║                           PHALA                                   ║
-║                                                                   ║
-║   CONFIDENTIAL EXECUTION                                          ║
-║                                                                   ║
-║   dstack            Workload Identity        Key Sealing          ║
-║       │                    │                      │               ║
-║       └────────────────────┴──────────────────────┘               ║
-║                              │                                    ║
-║                              ▼                                    ║
-║                         INTEL TDX                                 ║
-║                              │                                    ║
-║                              ▼                                    ║
-║                       HARDWARE QUOTE                              ║
-╚══════════════════════════════╤════════════════════════════════════╝
-                               │
-                               ▼
-                    ┌───────────────────────┐
-                    │ INDEPENDENT VERIFIER  │
-                    └───────────────────────┘
-```
+<img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="300">
 
-### `CooL` provides the evidence layer.
-### `Phala` provides the confidential execution and attestation substrate.
+### **POWERED BY PHALA**
+
+```text
+             CooL
+      CRYPTOGRAPHIC EVIDENCE
+               │
+               ▼
+        PHALA / DSTACK
+      CONFIDENTIAL RUNTIME
+               │
+               ▼
+          INTEL TDX
+      HARDWARE MEASUREMENT
+               │
+               ▼
+       HARDWARE QUOTE
+               │
+               ▼
+    INDEPENDENT VERIFIER
+```
 
 </div>
 
-CooL's hardware-backed execution path integrates with **Phala / dstack** and **Intel TDX** to bind cryptographic evidence to a measured confidential runtime.
+CooL's hardware-backed execution and attestation path is integrated with **Phala / dstack** and **Intel TDX**.
 
-Phala resources:
+| Layer | Responsibility |
+|---|---|
+| **CooL** | Evidence records, commitments, signatures, transparency, witnesses and verification |
+| **Phala / dstack** | Confidential runtime, workload identity, measurements, key sealing and attestation |
+| **Intel TDX** | Hardware-backed confidential execution and measurement |
+| **Verifier** | Independent evaluation of the evidence |
+
+**Phala resources**
 
 - [Phala](https://phala.com/)
 - [dstack](https://phala.com/dstack)
@@ -175,122 +117,115 @@ Phala resources:
 
 ---
 
-# ◼ The evidence stack
+# The CooL Evidence Matrix
+
+<div align="center">
 
 ```text
-                    ┌────────────────────────────┐
-                    │       APPLICATION          │
-                    │       AI / MODEL           │
-                    └─────────────┬──────────────┘
-                                  │
-                                  ▼
-                    ┌────────────────────────────┐
-                    │       COOL EVIDENCE        │
-                    │                            │
-                    │  canonical CBOR            │
-                    │  deterministic record       │
-                    │  salted commitments        │
-                    └─────────────┬──────────────┘
-                                  │
-                                  ▼
-                    ┌────────────────────────────┐
-                    │       CRYPTOGRAPHY         │
-                    │                            │
-                    │  ML-DSA-65 + Ed25519       │
-                    │  SHA-256 binding            │
-                    └─────────────┬──────────────┘
-                                  │
-                                  ▼
-                    ┌────────────────────────────┐
-                    │       TRANSPARENCY         │
-                    │                            │
-                    │  RFC 6962 Merkle tree      │
-                    │  signed tree heads         │
-                    │  inclusion proofs          │
-                    └─────────────┬──────────────┘
-                                  │
-                         ┌────────┴────────┐
-                         ▼                 ▼
-              ┌─────────────────┐  ┌──────────────────┐
-              │    WITNESS      │  │  PHALA / DSTACK  │
-              │                 │  │                  │
-              │ independent     │  │ confidential     │
-              │ observation     │  │ execution        │
-              └────────┬────────┘  └─────────┬────────┘
-                       │                     │
-                       └──────────┬──────────┘
-                                  ▼
-                    ┌────────────────────────────┐
-                    │       VERIFICATION         │
-                    │                            │
-                    │ binding                    │
-                    │ signature                  │
-                    │ inclusion                  │
-                    │ witness                    │
-                    │ attestation                │
-                    └────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────┐
+│                           C O O L   M A T R I X                            │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  SOFTWARE                 CRYPTOGRAPHY             TRANSPARENCY            │
+│  ────────                 ───────────             ────────────            │
+│  name                     ML-DSA-65               RFC 6962                 │
+│  version                  Ed25519                 Merkle tree              │
+│  digest                   SHA-256                 signed tree head         │
+│  model                    canonical CBOR          inclusion proof          │
+│                                                                            │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  EXECUTION               WITNESS                  CONFIDENTIALITY         │
+│  ─────────               ───────                  ───────────────         │
+│  event                   separate process         Intel TDX                │
+│  input commitment        independent key          Phala / dstack          │
+│  output commitment       fork detection           measurement              │
+│  timestamp               rollback detection       quote                    │
+│                                                                            │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│                       INDEPENDENT VERIFICATION                             │
+│                                                                            │
+│       BINDING → SIGNATURE → INCLUSION → WITNESS → ATTESTATION             │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+</div>
+
+The matrix separates the properties being established so that a verifier can see **which evidence supports which claim**.
+
+---
+
+# Capabilities
+
+| Capability | What it does | Notes |
+|---|---|---|
+| **SDK** | `CooL` and `CoolTee` | TypeScript, ESM, Node >= 20 |
+| **Receipts** | `cool.receipt.v2` with signed `cool.evidence.v1` | Canonical CBOR, salted commitments |
+| **Cryptographic verification** | Binding, signature, inclusion, witnesses, attestation | Structured verdict per domain |
+| **Append-only log** | RFC 6962 Merkle tree | File-backed and in-memory logs |
+| **Consistency** | `verifyLogConsistency` | Detects forks and altered heads |
+| **Witness** | Independent log observer | Refuses forks and rollbacks |
+| **Intel TDX** | Hardware-backed execution | Phala / dstack integration |
+| **Attestation** | Quote verification | Configured verifier |
+| **Runtime status** | Evidence-derived status | `REAL`, `UNVERIFIED`, `SIMULATED`, `UNAVAILABLE`, or failure |
+| **CLI** | `status`, `seal`, `verify`, `records`, `wire`, `ui` | `COOL_REQUIRE_HARDWARE=1` |
+| **Production enforcement** | Fail closed | Rejects non-real hardware states |
+
+---
+
+# Verification architecture
+
+```text
+                              RECEIPT
+                                 │
+              ┌──────────────────┼──────────────────┐
+              │                  │                  │
+              ▼                  ▼                  ▼
+           BINDING            SIGNATURE          INCLUSION
+              │                  │                  │
+              │              ML-DSA-65             │
+              │              + Ed25519          RFC 6962
+              │                  │                  │
+              └──────────────────┼──────────────────┘
+                                 │
+                                 ▼
+                              WITNESS
+                                 │
+                                 ▼
+                           ATTESTATION
+                                 │
+                          Phala / dstack
+                                 │
+                            Intel TDX
+                                 │
+                                 ▼
+                    STRUCTURED VERDICT
+```
+
+CooL deliberately does not collapse every security property into a single unexplained boolean.
+
+Example:
+
+```text
+binding      PASS
+signature    PASS
+inclusion    PASS
+consistency  PASS
+witness      PASS
+attestation  PASS
 ```
 
 ---
 
-# ◼ Capabilities
-
-| Capability | What it does |
-|---|---|
-| **SDK** | `CooL` for simple use, `CoolTee` for advanced policy and hardware control |
-| **Receipts** | `cool.receipt.v2` containing signed `cool.evidence.v1` |
-| **Canonical evidence** | Deterministic CBOR serialization |
-| **Sensitive-data protection** | Salted commitments instead of plaintext values |
-| **Hybrid signatures** | ML-DSA-65 + Ed25519 |
-| **Append-only log** | RFC 6962 Merkle tree with signed tree heads |
-| **Inclusion proofs** | Proves a receipt belongs to the log |
-| **Consistency verification** | Detects forks, rollbacks and altered histories |
-| **Witnesses** | Independent process observes, verifies and signs log state |
-| **Phala integration** | Phala / dstack confidential execution |
-| **Intel TDX** | Hardware-backed execution measurement and quote binding |
-| **Attestation** | Configured quote verification |
-| **Runtime status** | Evidence-derived hardware state |
-| **CLI** | `status`, `seal`, `verify`, `records`, `wire`, `ui` |
-| **Fail closed** | `COOL_REQUIRE_HARDWARE=1` |
-
----
-
-# ◼ Verification is not a boolean
-
-CooL deliberately does **not** collapse every security property into:
-
-```text
-true
-```
-
-Instead:
-
-```text
-┌────────────────────────────────────────────────────┐
-│                 VERIFICATION                       │
-├───────────────────┬────────────────────────────────┤
-│ Binding           │ PASS                           │
-│ Signature         │ PASS                           │
-│ Inclusion         │ PASS                           │
-│ Consistency       │ PASS                           │
-│ Witness           │ PASS                           │
-│ Attestation       │ PASS                           │
-└───────────────────┴────────────────────────────────┘
-```
-
-Each evidence domain can be evaluated independently.
-
-That distinction matters when a verifier needs to know **which claim is supported by which evidence**.
-
----
-
-# ◼ Quick start
+# Quick start
 
 ```bash
 npm install cool-nwc
 ```
 
-**Node.js >= 20**
+Requires **Node.js >= 20**.
 
 ```ts
 import { CooL, verifyEvidence } from "cool-nwc";
@@ -301,12 +236,10 @@ const cool = new CooL({
 
 const { evidence } = await cool.record({
   type: "model.execution",
-
   metadata: {
     model: "my-model",
     version: "1.0.0",
   },
-
   payloads: {
     input: "the request",
     output: "the response",
@@ -320,7 +253,7 @@ console.log(verdict.ok);
 
 ---
 
-# ◼ What is actually inside a receipt?
+# Receipt anatomy
 
 ```text
 cool.receipt.v2
@@ -354,153 +287,150 @@ cool.receipt.v2
     └── verifier result
 ```
 
-Sensitive values are committed as salted hashes and discarded.
-
-Receipts do not carry plaintext payloads.
+Sensitive values are represented through salted commitments.
 
 ---
 
-# ◼ Cryptographic model
+# Cryptographic model
 
-### `01` Canonicalization
+### 01 · Canonicalization
 
 ```text
-EVENT
+event
   │
   ▼
-CANONICAL CBOR
+canonical CBOR
   │
   ▼
-DETERMINISTIC BYTES
+deterministic bytes
 ```
 
-### `02` Binding
+### 02 · Binding
 
 ```text
 software identity ──┐
 model identity ─────┤
 input commitment ───┤
-output commitment ──┤──► EVIDENCE ──► BINDING HASH
+output commitment ──┤──► evidence ──► binding hash
 timestamp ──────────┤
 metadata ───────────┘
 ```
 
-### `03` Hybrid signature
+### 03 · Hybrid signature
 
 ```text
-                         BINDING HASH
-                              │
-                    ┌─────────┴─────────┐
-                    ▼                   ▼
-                ML-DSA-65           Ed25519
-                    │                   │
-                    └─────────┬─────────┘
-                              ▼
-                       SIGNED EVIDENCE
+                 binding hash
+                      │
+             ┌────────┴────────┐
+             ▼                 ▼
+        ML-DSA-65          Ed25519
+             │                 │
+             └────────┬────────┘
+                      ▼
+               signed evidence
 ```
 
-### `04` Transparency
+### 04 · Transparency
 
 ```text
-RECEIPT
+receipt
    │
    ▼
-MERKLE LEAF
+Merkle leaf
    │
    ▼
-RFC 6962 TREE
+RFC 6962 tree
    │
    ▼
-SIGNED TREE HEAD
+signed tree head
    │
    ▼
-INCLUSION PROOF
-```
-
----
-
-# ◼ Confidential execution
-
-The hardware path is backed by **Phala / dstack + Intel TDX**.
-
-```text
-┌─────────────────────────────────────┐
-│              CooL SDK               │
-│                                     │
-│  evidence · signing · transparency  │
-└──────────────────┬──────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────┐
-│             PHALA / DSTACK          │
-│                                     │
-│  workload identity                  │
-│  measurements                       │
-│  key sealing                        │
-│  quote retrieval                    │
-└──────────────────┬──────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────┐
-│              INTEL TDX              │
-│                                     │
-│  confidential VM                    │
-│  hardware-backed isolation          │
-└──────────────────┬──────────────────┘
-                   │
-                   ▼
-             HARDWARE QUOTE
-                   │
-                   ▼
-┌─────────────────────────────────────┐
-│         INDEPENDENT VERIFIER        │
-│                                     │
-│ quote · measurement · identity      │
-│ policy · evidence                   │
-└─────────────────────────────────────┘
+inclusion proof
 ```
 
 ---
 
-# ◼ Hardware status
+# Confidential execution
+
+```text
+┌────────────────────────────────────┐
+│              CooL SDK              │
+│                                    │
+│ evidence · signing · transparency  │
+└──────────────────┬─────────────────┘
+                   │
+                   ▼
+┌────────────────────────────────────┐
+│            PHALA / DSTACK          │
+│                                    │
+│ workload identity                  │
+│ measurement                        │
+│ key sealing                        │
+│ quote retrieval                    │
+└──────────────────┬─────────────────┘
+                   │
+                   ▼
+┌────────────────────────────────────┐
+│             INTEL TDX              │
+│                                    │
+│ confidential VM                    │
+│ hardware-backed isolation          │
+└──────────────────┬─────────────────┘
+                   │
+                   ▼
+              hardware quote
+                   │
+                   ▼
+┌────────────────────────────────────┐
+│         INDEPENDENT VERIFIER       │
+│                                    │
+│ quote · measurement · identity     │
+│ policy · evidence                  │
+└────────────────────────────────────┘
+```
+
+---
+
+# Hardware validation
 
 The current validation path uses **real Phala-backed Intel TDX execution**.
 
-Production can be configured to fail closed:
+The production path is intended to fail closed rather than silently downgrade to simulation.
+
+```text
+COOL WORKLOAD
+      │
+      ▼
+PHALA / DSTACK
+      │
+      ▼
+INTEL TDX
+      │
+      ▼
+MEASUREMENT
+      │
+      ▼
+HARDWARE QUOTE
+      │
+      ▼
+CONFIGURED VERIFIER
+      │
+      ▼
+MEASUREMENT POLICY
+      │
+      ▼
+REAL
+```
+
+Production enforcement:
 
 ```bash
 COOL_REQUIRE_HARDWARE=1
 ```
 
-The expected chain is:
-
-```text
-COOL WORKLOAD
-     │
-     ▼
-PHALA / DSTACK
-     │
-     ▼
-INTEL TDX
-     │
-     ▼
-MEASUREMENT
-     │
-     ▼
-HARDWARE QUOTE
-     │
-     ▼
-VERIFIER
-     │
-     ▼
-REAL
-```
-
-A reachable endpoint is not treated as proof of hardware.
-
 ---
 
-# ◼ Deployment
+# Deployment
 
 ## Development
 
@@ -539,7 +469,7 @@ COOL_REQUIRE_HARDWARE=1
 
 ---
 
-# ◼ CLI
+# CLI
 
 ```bash
 cool status
@@ -552,21 +482,11 @@ cool ui
 
 ---
 
-# ◼ Validation evidence
+# Validation evidence
 
-The repository contains recorded validation material under:
+`artifacts/` contains the recorded validation evidence generated through the documented Phala Cloud Intel TDX path.
 
-```text
-artifacts/
-```
-
-Start with:
-
-```text
-artifacts/closure-verification-matrix.md
-```
-
-The evidence set includes:
+It includes:
 
 ```text
 receipts
@@ -578,84 +498,80 @@ witness execution
 evidence manifests
 ```
 
-These artifacts are historical records of specific validation runs.
+Start with:
 
-They are not a third-party certification or a blanket security guarantee for every deployment.
+```text
+artifacts/closure-verification-matrix.md
+```
+
+These artifacts are historical records of specific validation runs, not a certification or third-party audit.
 
 ---
 
-# ◼ Standards & primitives
+# Verification limitations
+
+- Binding, signature and inclusion can be verified offline.
+- Hardware quote verification uses the configured verifier unless local collateral is supplied.
+- CooL records TCB status as `Unknown`; it does not independently evaluate TCB quality or quote freshness.
+- Measurement pins are only as trustworthy as the process approving them.
+- A witness demonstrates separation of key custody and process, not organizational independence.
+- The documented validation uses Intel TDX CPU instances. No GPU or confidential-GPU attestation is claimed.
+- No third-party certification or security audit is claimed.
+
+---
+
+# Standards & primitives
 
 | Standard / primitive | Role |
 |---|---|
-| **FIPS 204 / ML-DSA-65** | Post-quantum signatures |
-| **Ed25519** | Classical signatures |
+| **FIPS 204 / ML-DSA-65** | Post-quantum digital signatures |
+| **Ed25519** | Classical digital signatures |
 | **FIPS 203 / ML-KEM-1024** | Post-quantum key encapsulation where used |
 | **X25519** | Classical key agreement |
 | **ChaCha20-Poly1305** | AEAD channel encryption |
-| **SHA-256** | Hashing and commitments |
-| **CBOR** | Canonical serialization |
-| **RFC 6962** | Merkle transparency log construction |
+| **SHA-256** | Cryptographic commitments and hashing |
+| **CBOR** | Canonical evidence serialization |
+| **RFC 6962** | Merkle transparency log |
 | **RFC 3161** | Timestamping integration |
 | **Intel TDX** | Confidential CPU execution and attestation |
-| **Phala / dstack** | Confidential runtime and attestation infrastructure |
+| **Phala / dstack** | Confidential runtime and attestation |
 
 ---
 
-# ◼ Threat model
+# Threat model
 
-CooL is designed for environments where the verifier should not have to blindly trust the application operator or storage layer.
+CooL is designed for environments where the verifier should not have to blindly trust:
+
+- the application operator,
+- the application process,
+- the log storage layer,
+- or a cloud operator's assertion about what ran.
 
 ```text
-                         APPLICATION
-                              │
-                              ▼
-                     CRYPTOGRAPHIC BINDING
-                              │
-                              ▼
-                       HYBRID SIGNATURE
-                              │
-                              ▼
-                       TRANSPARENCY LOG
-                              │
-                              ▼
-                           WITNESS
-                              │
-                              ▼
-                       PHALA / DSTACK
-                              │
-                              ▼
-                         INTEL TDX
-                              │
-                              ▼
-                     INDEPENDENT VERIFIER
+APPLICATION
+    │
+    ├── cryptographic binding
+    │
+    ├── hybrid signature
+    │
+    ├── append-only transparency log
+    │
+    ├── independent witness
+    │
+    └── Phala / dstack TEE
+             │
+             ▼
+        Intel TDX quote
+             │
+             ▼
+      independent verifier
 ```
-
-The objective is not to make every component magically trustworthy.
 
 The objective is to make important claims **independently checkable**.
 
 ---
 
-# ◼ Security boundaries
-
-CooL proves specific properties about execution evidence.
-
-It does **not** by itself prove:
-
-- model correctness
-- output quality
-- fairness
-- legal compliance
-- policy compliance
-- safety
-- desirability
-
-A valid cryptographic receipt is evidence about **execution**, not a certificate that the result was good.
-
----
-
-# ◼ Repository
+# Repository structure
 
 ```text
 cool-sdk/
@@ -672,6 +588,11 @@ cool-sdk/
 ├── examples/
 ├── artifacts/
 ├── docs/
+│   ├── architecture/
+│   ├── evidence/
+│   ├── attestation/
+│   └── threat-model/
+│
 ├── SECURITY.md
 ├── CONTRIBUTING.md
 ├── NOTICE.txt
@@ -681,7 +602,7 @@ cool-sdk/
 
 ---
 
-# ◼ Security
+# Security
 
 For vulnerability reporting:
 
@@ -693,7 +614,7 @@ Please do not disclose exploitable vulnerabilities through public GitHub issues.
 
 ---
 
-# ◼ Contributing
+# Contributing
 
 ```bash
 npm install
@@ -702,19 +623,15 @@ npm run build
 npm test
 ```
 
-See:
-
-```text
-CONTRIBUTING.md
-```
+See `CONTRIBUTING.md`.
 
 ---
 
-# ◼ License
+# License
 
 CooL is licensed under the **Business Source License 1.1 (BUSL-1.1)**.
 
-BUSL-1.1 is a source-available license, not an open-source license.
+BUSL-1.1 is a source-available license and is **not an open-source license**.
 
 ### Production threshold
 
@@ -722,9 +639,9 @@ BUSL-1.1 is a source-available license, not an open-source license.
 $1,000,000 USD ARR
 ```
 
-Production use is permitted when you and your affiliates, taken together, have annual recurring revenue below this threshold.
+Production use is permitted if you and your affiliates, taken together, have annual recurring revenue below this threshold.
 
-At or above the threshold, production use requires a separate commercial license from **Northwind Cipher Pvt. Ltd.**
+At or above that threshold, production use requires a separate commercial license from **Northwind Cipher Pvt. Ltd.**
 
 ### Change date
 
@@ -732,11 +649,7 @@ At or above the threshold, production use requires a separate commercial license
 January 1, 2030
 ```
 
-On the change date, or the fourth anniversary of first public distribution of a given version, whichever comes first, that version becomes available under:
-
-```text
-Apache License 2.0
-```
+On that date, or the fourth anniversary of the first public distribution of a given version, whichever comes first, that version becomes available under the **Apache License 2.0**.
 
 Versions released before this license change, including `cool-nwc@3.0.0`, were published under Apache-2.0 and remain available under that license.
 
@@ -754,30 +667,24 @@ for complete licensing information.
 
 <div align="center">
 
-<table>
-<tr>
-<td bgcolor="#0D1117" align="center">
+<a href="https://phala.com/">
+<img src="https://raw.githubusercontent.com/Phala-Network/phala-docs/main/images/phala-dark.png" alt="Phala" width="360">
+</a>
 
-<font color="#CDFA50" size="6"><b>C O O L</b></font>
+### POWERED BY PHALA
 
-<br><br>
-
-<font color="#FFFFFF" size="5"><b>THE BLACK BOX FOR AI.</b></font>
-
-<br><br>
-
-<font color="#CDFA50"><b>POWERED BY PHALA</b></font>
+**Confidential execution · Hardware-backed attestation · Verifiable runtime**
 
 <br>
 
-<font color="#8B949E">CONFIDENTIAL EXECUTION · HARDWARE-BACKED ATTESTATION · VERIFIABLE RUNTIME</font>
+**CooL × Phala**
+
+<br>
+
+[Phala](https://phala.com/) · [dstack](https://phala.com/dstack) · [Phala Cloud](https://cloud.phala.com/)
 
 <br><br>
 
-**© 2026 Northwind Cipher Pvt. Ltd.**
-
-</td>
-</tr>
-</table>
+© 2026 Northwind Cipher Pvt. Ltd.
 
 </div>
