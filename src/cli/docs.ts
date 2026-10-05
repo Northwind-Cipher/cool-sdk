@@ -113,9 +113,18 @@ export const COMMANDS: readonly CommandDoc[] = [
       { run: "cool verify last", does: "the most recent record in this project" },
       { run: "cool verify all", does: "every record; exit 1 if any fails" },
       { run: "cool verify ./receipt.json --require-hardware", does: "refuse anything not backed by real silicon" },
+      {
+        run: "cool verify ./receipt.json --coordinator-root verify/coordinator-root-ca.pem --manifest manifest.json",
+        does: "check a Contrast-bound receipt against the deployment you attested",
+      },
     ],
     flags: [
       { flag: "--require-hardware", does: "a simulated attestation is no longer acceptable" },
+      {
+        flag: "--coordinator-root <pem>",
+        does: "pin an Edgeless Contrast Coordinator root CA, from 'contrast verify'",
+      },
+      { flag: "--manifest <json>", does: "pin the Contrast manifest the deployment approved" },
       { flag: "--json", does: "the verdict as JSON" },
     ],
     seeAlso: ["receipts", "attestation", "pack"],

@@ -39,7 +39,7 @@ import type { PolicyOutcome, PolicySet } from "./policy";
 import { mhSha256 } from "../multihash";
 import { hybridSign } from "../sign";
 import { ulid } from "./ulid";
-import type { DstackClient, EnclaveInfo } from "./dstack";
+import type { AttestationSource, EnclaveInfo } from "./dstack";
 import { sealedKeyset, type SealedKeyset } from "./kms";
 import { enclaveReportData, quoteDigest } from "./quote";
 import { bindingHashV2, recordLeafDataV2, recordSigningMessageV2, signedRecordV2 } from "./record";
@@ -59,7 +59,34 @@ import type {
   ReceiptV2,
   RuntimeBlockV2,
   SoftwareIdentity,
+  WorkloadBinding,
 } from "./types";
+
+/**
+ * One line a human reads before anything else, so it has to be exact about
+ * which of the two attestation routes actually backs this receipt — and about
+ * the case where neither does.
+ */
+function attestationNote(
+  info: EnclaveInfo,
+  quote: QuoteEnvelope | null,
+  workload: WorkloadBinding | undefined,
+): string {
+  if (workload) {
+    const name = workload.identity.workload_name ?? "workload";
+    if (workload.identity.tee === "insecure") {
+      return `Contrast credential for '${name}' issued on an INSECURE (non-CC) platform — no measurements, NOT hardware evidence`;
+    }
+    return `Contrast ${workload.identity.tee} credential for '${name}'; CooL key sealed to the Contrast workload secret and bound by the Coordinator-issued mesh certificate. Verify against a Coordinator root CA obtained with 'contrast verify'.`;
+  }
+  if (!quote) {
+    return "MOCK — no attestation path at all; this receipt proves integrity, not where it ran";
+  }
+  if (info.mode === "hardware") {
+    return `${info.vendor} quote via dstack; keys sealed to the enclave measurement`;
+  }
+  return "SIMULATED — structurally complete quote under a CooL-held root, NOT hardware evidence";
+}
 
 /* ── events crossing the attested channel ─────────────────────────────── */
 
@@ -116,7 +143,12 @@ export type CaptureEvent = EvidenceEvent | ChangeEvent;
 
 /** Options for {@link EvidencePlane.start}. */
 export interface EvidencePlaneOptions {
-  readonly client: DstackClient;
+  /**
+   * The confidential runtime to seal evidence in. A dstack client, Contrast's
+   * `ContrastWorkload`, the built-in simulator, or a test double — see
+   * {@link AttestationSource}.
+   */
+  readonly client: AttestationSource;
   /** Stable transparency-log id recorded in every STH. Default `cool-nwc`. */
   readonly logId?: string;
   /** The measurement this deployment approved, recorded in every receipt. */
@@ -149,11 +181,12 @@ export class EvidencePlane {
 
   private constructor(
     readonly info: EnclaveInfo,
-    readonly quote: QuoteEnvelope,
+    readonly quote: QuoteEnvelope | null,
     readonly keys: SealedKeyset,
     readonly attestation: AttestationV2,
     options: EvidencePlaneOptions,
     extraDirectory: KeyDirectory,
+    readonly workload: WorkloadBinding | undefined,
   ) {
     this.clock = options.clock ?? (() => new Date().toISOString());
     this.newId = options.newId ?? (() => ulid());
@@ -167,14 +200,25 @@ export class EvidencePlane {
       tee_vendor: info.vendor,
       mode: info.mode,
       enclave_measurement: info.measurement,
-      tee_quote: quoteDigest(quote),
+      tee_quote: quote ? quoteDigest(quote) : null,
       gpu: null,
+      // Spread rather than assigned, so the key is ABSENT from the canonical
+      // CBOR when there is no credential. A `workload: null` would change the
+      // binding hash of every non-Contrast receipt ever issued.
+      ...(workload ? { workload: workload.identity } : {}),
     };
   }
 
   /**
-   * Boot the plane: read the TCB, derive sealed keys, and take one quote that
-   * binds those keys to this measurement. Everything after this is pure.
+   * Boot the plane: read the TCB, derive sealed keys, and bind those keys to
+   * this workload. Everything after this is pure.
+   *
+   * Two binding routes, and a platform supplies whichever it has. dstack gives
+   * a quote whose `report_data` commits to the sealed key. Contrast gives a
+   * Coordinator-issued credential whose mesh key signs a commitment to the same
+   * sealed key. Both are fetched once, before any caller data exists, and both
+   * end up inside the signed core — so neither can be swapped onto a record it
+   * did not attest.
    */
   static async start(options: EvidencePlaneOptions): Promise<EvidencePlane> {
     const info = await options.client.info();
@@ -182,15 +226,17 @@ export class EvidencePlane {
     const reportData = enclaveReportData(keys.record.directoryEntry);
     const quote = await options.client.getQuote(reportData);
 
+    const workload = options.client.attestWorkload
+      ? await options.client.attestWorkload(keys.record.keyId, keys.record.directoryEntry)
+      : undefined;
+
     const attestation: AttestationV2 = {
       mode: info.mode,
-      note:
-        info.mode === "hardware"
-          ? `${info.vendor} quote via dstack; keys sealed to the enclave measurement`
-          : "SIMULATED — structurally complete quote under a CooL-held root, NOT hardware evidence",
+      note: attestationNote(info, quote, workload),
       quote,
       expected_measurement: options.expectedMeasurement ?? null,
       key_binding: reportData,
+      ...(workload ? { workload: workload.attestation } : {}),
     };
 
     return new EvidencePlane(
@@ -200,6 +246,7 @@ export class EvidencePlane {
       attestation,
       options,
       options.client.directory(),
+      workload,
     );
   }
 

@@ -178,10 +178,12 @@ export async function boot(): Promise<Verdict> {
     `import { CoolTee } from "cool-nwc/phala";
 import { verifyEvidence } from "cool-nwc/verify";
 import { FileLog } from "cool-nwc/node";
+import { ContrastWorkload, parseCertificates } from "cool-nwc/contrast";
 console.log(JSON.stringify({
   phala: typeof CoolTee === "function",
   verify: typeof verifyEvidence === "function",
   node: typeof FileLog === "function",
+  contrast: typeof ContrastWorkload === "function" && typeof parseCertificates === "function",
 }));
 `,
   );
@@ -189,6 +191,7 @@ console.log(JSON.stringify({
   check("'/phala' entry point resolves", subpaths.phala === true);
   check("'/verify' entry point resolves", subpaths.verify === true);
   check("'/node' entry point resolves", subpaths.node === true);
+  check("'/contrast' entry point resolves", subpaths.contrast === true);
 
   /* 6 · the `cool` command a global install puts on PATH */
   console.log("\nthe cool command:");

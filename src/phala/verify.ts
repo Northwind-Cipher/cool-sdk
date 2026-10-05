@@ -32,7 +32,19 @@
  *                 `report_data` commits to the very key that signed. This is the
  *                 domain v1 could not have, and the one that makes a quote mean
  *                 something about THIS record rather than about some record.
+ *   workload    — the same question where attestation is issued by an
+ *                 orchestrator rather than read from silicon: Contrast's
+ *                 Coordinator. `pass` ONLY against a Coordinator root CA the
+ *                 reader pinned. See `../contrast/verify.ts`.
  *   anchor      — absent. Not implemented. Never a pass.
+ *
+ * Note the one import that crosses out of `phala/`: the workload domain lives in
+ * `../contrast/`. It is pulled in here on purpose. A verifier that quietly
+ * ignored a credential it did not understand would accept a forged pairing, so
+ * the check has to be in the DEFAULT path rather than opt-in. The code it pulls
+ * in is pure, browser-safe DER and ECDSA with no new dependency; the Node-only
+ * half of the Contrast integration (reading `/contrast/...`) is not reachable
+ * from here.
  */
 import type { DirectoryEntry, KeyDirectory } from "../types";
 import { multihashDigest } from "../multihash";
@@ -55,6 +67,7 @@ import {
   simulatedQuoteVerifier,
 } from "./quote";
 import type { QuoteVerifier } from "./quote";
+import { verifyWorkloadDomain } from "../contrast/verify";
 import { base64ToBytes, bytesToHex, parseProof, verifyAnchor } from "./anchor";
 import type { BlockHeaderSource, Timestamp as AnchorTimestamp } from "./anchor";
 import { validateReceiptV2Shape } from "./structure";
@@ -109,6 +122,7 @@ export async function verifyReceiptV2(
         witnesses: absent,
         attestation: absent,
         enclave: absent,
+        workload: absent,
         anchor: absent,
       },
       reasons: shape.errors,
@@ -171,6 +185,9 @@ export async function verifyReceiptV2(
   /* ── enclave binding ── */
   const enclave = verifyEnclaveDomain(r, signingEntry, options, reasons, attestation.status);
 
+  /* ── workload binding (orchestrator-issued attestation) ── */
+  const workload = verifyWorkloadDomain(r, options, reasons);
+
   /* ── anchor ── */
   const anchor = await verifyAnchorDomain(r, options, reasons);
 
@@ -181,6 +198,7 @@ export async function verifyReceiptV2(
     witnesses,
     attestation,
     enclave,
+    workload,
     anchor,
   };
 
@@ -190,12 +208,21 @@ export async function verifyReceiptV2(
     signature.status === "pass" &&
     inclusionAcceptable &&
     enclave.status !== "fail" &&
+    workload.status !== "fail" &&
     attestation.status !== "fail";
 
-  if (options.requireHardware && attestation.status !== "pass") {
+  // Two routes satisfy a hardware requirement, and they are not the same claim.
+  // A verified vendor quote is checked arithmetic against Intel/AMD/NVIDIA. A
+  // passing Contrast workload domain means an authority the reader attested
+  // separately — the Coordinator, pinned by its root CA — vouched for the
+  // hardware. Both are hardware-rooted; one is transitive. The verdict records
+  // which, so the distinction reaches the audit trail instead of dying here.
+  if (options.requireHardware && attestation.status !== "pass" && workload.status !== "pass") {
     ok = false;
     reasons.push(
-      "policy: requireHardware is set and this receipt is not backed by a verified hardware quote",
+      workload.status === "absent" && r.attestation.workload
+        ? "policy: requireHardware is set and the Contrast workload credential was not checked against a pinned Coordinator root CA (pass coordinatorRootCA)"
+        : "policy: requireHardware is set and this receipt is backed by neither a verified hardware quote nor a pinned Contrast workload credential",
     );
   }
 
@@ -210,15 +237,41 @@ export async function verifyReceiptV2(
     );
   }
 
-  // The record's own `mode` says which client class produced it. Only a
-  // verified quote earns the word "hardware" here.
-  const verifiedHardware = r.record.runtime.mode === "hardware" && attestation.status === "pass";
-  const tee =
-    r.record.runtime.mode === "hardware" && !verifiedHardware
-      ? `${r.record.runtime.tee_vendor} · hardware quote NOT verified (attestation ${attestation.status})`
-      : subject.tee;
+  // The record's own `mode` says which client class produced it. Only verified
+  // evidence earns the word "hardware" here -- and which KIND of evidence
+  // differs by platform, so the label has to follow the route the record
+  // actually took rather than assuming there was a quote.
+  const tee = teeLabel(r, subject.tee, attestation.status, workload.status);
 
   return { ok, schema: "cool.receipt.v2", subject: { ...subject, tee }, checks, reasons };
+}
+
+/**
+ * How to describe the runtime in one phrase, honestly.
+ *
+ * Three routes reach `mode: "hardware"` and they must not be conflated:
+ * a vendor quote chained to Intel/AMD, an orchestrator credential chained to a
+ * pinned Coordinator root, or neither -- in which case the label says so rather
+ * than letting the record's own `mode` field speak for itself.
+ */
+function teeLabel(
+  r: ReceiptV2,
+  fallback: string,
+  attestationStatus: DomainCheckV2["status"],
+  workloadStatus: DomainCheckV2["status"],
+): string {
+  if (r.record.runtime.mode !== "hardware") return fallback;
+
+  if (r.record.runtime.workload) {
+    const platform = r.record.runtime.workload.platform;
+    if (workloadStatus === "pass") {
+      return `${r.record.runtime.tee_vendor} · ${platform} workload credential verified`;
+    }
+    return `${r.record.runtime.tee_vendor} · ${platform} credential NOT verified (workload ${workloadStatus})`;
+  }
+
+  if (attestationStatus === "pass") return fallback;
+  return `${r.record.runtime.tee_vendor} · hardware quote NOT verified (attestation ${attestationStatus})`;
 }
 
 /* ── domains ──────────────────────────────────────────────────────────── */
@@ -417,7 +470,16 @@ function verifyEnclaveDomain(
   const quote = r.attestation.quote;
 
   if (!quote || !runtime.tee_quote) {
-    return { status: "absent", detail: "no quote to bind — record was not produced in a TEE" };
+    // Two very different situations reach here and saying the same thing about
+    // both would be wrong. Under Contrast the record WAS produced in a TEE —
+    // there is simply no vendor quote to bind, because the Coordinator consumed
+    // it and issued a certificate. That evidence is the `workload` domain's.
+    return runtime.workload
+      ? {
+          status: "absent",
+          detail: `no vendor quote to bind — this record is attested by a ${runtime.workload.platform} workload credential instead; see the 'workload' domain`,
+        }
+      : { status: "absent", detail: "no quote to bind — record was not produced in a TEE" };
   }
 
   // 1. The quote is inside the signature: its digest is a field of the signed core.
@@ -483,9 +545,18 @@ function verifyEnclaveDomain(
     : { status: "pass", detail };
 }
 
-/** Convenience: the seven domains in display order. */
+/** Convenience: the eight domains in display order. */
 export function domainOrder(): (keyof VerdictChecksV2)[] {
-  return ["binding", "signature", "inclusion", "witnesses", "attestation", "enclave", "anchor"];
+  return [
+    "binding",
+    "signature",
+    "inclusion",
+    "witnesses",
+    "attestation",
+    "enclave",
+    "workload",
+    "anchor",
+  ];
 }
 
 /** Merge a verifier's own trusted key directory over a receipt's embedded one. */

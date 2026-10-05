@@ -98,7 +98,16 @@ export function unavailableRuntime(vendor: string, reason: string): RuntimeStatu
 export function assessRuntime(info: EnclaveInfo, handshake: AttestationHandshake | null): RuntimeStatus {
   const vendor = info.vendor;
 
-  if (info.mode === "simulated" || handshake?.quote.root === "cool-sim-root") {
+  // Contrast first: its evidence is a Coordinator-issued credential, not a
+  // quote, so none of the quote-shaped checks below apply. Running them anyway
+  // would report a healthy Contrast workload as EVIDENCE INCOMPLETE (SNP has no
+  // RTMRs to be non-zero) or send the reader to set QUOTE_VERIFIER_URL for a
+  // quote that does not exist.
+  if (handshake?.workload) {
+    return assessWorkloadRuntime(vendor, handshake);
+  }
+
+  if (info.mode === "simulated" || handshake?.quote?.root === "cool-sim-root") {
     return status(
       "simulated",
       "SIMULATED",
@@ -142,6 +151,58 @@ export function assessRuntime(info: EnclaveInfo, handshake: AttestationHandshake
   }
 
   return status("real", "REAL", vendor, "dstack evidence complete; quote verified against a vendor root", []);
+}
+
+/**
+ * Status for a runtime attested by an orchestrator-issued credential.
+ *
+ * The ceiling from inside the pod is deliberate. A pod cannot establish its own
+ * Coordinator: the root CA it holds arrived with the credential, so checking one
+ * against the other proves coherence, not provenance. Only a root the operator
+ * pinned independently — from their own `contrast verify` — earns REAL, and the
+ * reason always names which of the two happened.
+ */
+function assessWorkloadRuntime(vendor: string, handshake: AttestationHandshake): RuntimeStatus {
+  const identity = handshake.workload!.identity;
+  const platform = identity.platform;
+
+  if (identity.tee === "insecure") {
+    return status(
+      "simulated",
+      "SIMULATED",
+      vendor,
+      `${platform} issued this credential on an INSECURE (non-CC) platform — it carries no measurements and is not hardware evidence`,
+      ["the orchestrator reports no confidential-computing hardware"],
+    );
+  }
+
+  if (!handshake.ok) {
+    return status(
+      "failed",
+      "ATTESTATION FAILED",
+      vendor,
+      handshake.reasons.join("; ") || `the ${platform} workload credential did not check out`,
+      [...handshake.reasons],
+    );
+  }
+
+  if (!handshake.workloadRootPinned) {
+    return status(
+      "unverified",
+      "UNVERIFIED",
+      vendor,
+      `a ${platform} Coordinator certified this workload, but the credential was only checked against the root CA the pod itself was given — pin a root from 'contrast verify' to make this independent`,
+      ["Coordinator root CA not pinned by the operator"],
+    );
+  }
+
+  return status(
+    "real",
+    "REAL",
+    vendor,
+    `${platform} credential for '${identity.workload_name ?? "workload"}' verified against a pinned Coordinator root; measurements and policy hash are inside the signed record`,
+    [],
+  );
 }
 
 /** One line for a terminal: the display, plus the reason unless the state is real. */

@@ -1,0 +1,89 @@
+# A normal Kubernetes Deployment, plus the three lines Contrast needs.
+#
+# This is the file you write. It is deliberately NOT the file you apply:
+# `contrast generate` reads it and injects the Contrast plumbing — the
+# `contrast-initializer` init container, the `contrast-service-mesh` sidecar,
+# the shared `contrast-secrets` volume mounted at /contrast, and the
+# platform-suffixed RuntimeClass. Hand-writing those would duplicate the
+# generator and drift from it on the next Contrast release.
+#
+# The three lines that matter:
+#
+#   runtimeClassName: contrast-cc
+#       marks the pod as a Contrast pod. `contrast generate` only touches pods
+#       that carry this, and replaces the bare name with the platform-specific
+#       handler for your cluster.
+#
+#   contrast.edgeless.systems/workload-secret-id
+#       tells the Coordinator to release a workload secret to this pod. CooL
+#       derives its signing key from that secret, so WITHOUT this annotation
+#       there is nothing for CooL to seal a key to and it will refuse to start
+#       with that exact message. The value also lands in the pod's mesh
+#       certificate as extension 1.3.9901.3.1, so it is part of the identity a
+#       verifier checks.
+#
+#   COOL_CONTRAST_ROOT=/contrast
+#       tells CooL to use the Contrast credential. One environment variable is
+#       the whole adoption step; no code change, no endpoint, no sidecar.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-service
+spec:
+  selector:
+    app: ai-service
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-service
+  template:
+    metadata:
+      labels:
+        app: ai-service
+      annotations:
+        # Stable across restarts and manifest updates, which is what keeps CooL's
+        # signing identity continuous across pod churn.
+        contrast.edgeless.systems/workload-secret-id: default/ai-service
+    spec:
+      runtimeClassName: contrast-cc
+      containers:
+        - name: ai-service
+          image: ghcr.io/northwind-cipher/cool-contrast-example:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            # Use the Contrast credential the initializer mounted.
+            - name: COOL_CONTRAST_ROOT
+              value: /contrast
+            # Seal the manifest's digest into every receipt, so each record
+            # states which manifest governed it. Mounted below from a ConfigMap
+            # created with: kubectl create configmap contrast-manifest
+            #   --from-file=manifest.json=manifest.json
+            - name: COOL_CONTRAST_MANIFEST
+              value: /etc/cool/manifest.json
+          volumeMounts:
+            - name: contrast-manifest
+              mountPath: /etc/cool
+              readOnly: true
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 256Mi
+      volumes:
+        - name: contrast-manifest
+          configMap:
+            name: contrast-manifest
+            optional: true

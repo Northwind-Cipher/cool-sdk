@@ -25,9 +25,29 @@ const MULTIHASH = /^mh:sha256:[0-9a-f]{64}$/;
 const HEX_FIELD = /^hex:[0-9a-f]+$/;
 const B64_FIELD = /^base64:[A-Za-z0-9+/]*={0,2}$/;
 const ULID = /^[0-9A-HJKMNP-TV-Z]{26}$/;
+const OID = /^[0-9]+(\.[0-9]+)+$/;
+const PEM_BEGIN = "-----BEGIN CERTIFICATE-----";
+const PEM_END = "-----END CERTIFICATE-----";
+
+/**
+ * Does this look like a PEM certificate chain at all?
+ *
+ * Substring checks rather than a regular expression: the obvious pattern
+ * (`/-----BEGIN CERTIFICATE-----[\s\S]+-----END CERTIFICATE-----/`) backtracks
+ * polynomially, and this runs on receipt bytes an attacker chose. Real parsing
+ * happens in the verifier; all this has to decide is whether the field is
+ * shaped like a chain.
+ */
+function looksLikePemChain(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  const begin = value.indexOf(PEM_BEGIN);
+  return begin !== -1 && value.indexOf(PEM_END, begin + PEM_BEGIN.length) !== -1;
+}
 
 const TEE_VENDORS = ["none", "intel-tdx", "amd-sev-snp", "nvidia-cc"];
 const MODES = ["mock", "simulated", "hardware"];
+const WORKLOAD_PLATFORMS = ["contrast"];
+const WORKLOAD_TEES = ["intel-tdx", "amd-sev-snp", "insecure"];
 const CHANGE_KINDS = ["prompt", "model", "params", "policy", "dataset", "agent-permission", "tool"];
 
 type Bag = Record<string, unknown>;
@@ -105,9 +125,56 @@ class Checker {
         this.oneOf(`${path}.gpu.verdict`, g["verdict"], ["verified", "unverified", "simulated"]);
       }
     }
-    // A record may not claim hardware without carrying the quote that backs it.
-    if (r["mode"] === "hardware" && r["tee_quote"] === null) {
-      this.errors.push(`${path}: mode 'hardware' requires a tee_quote digest`);
+    if (r["workload"] !== undefined) this.workloadIdentity(`${path}.workload`, r["workload"]);
+
+    // A record may not claim hardware without carrying something that backs it:
+    // either a vendor quote, or an orchestrator-issued workload credential.
+    // Contrast is the second case — its Coordinator consumes the workload's
+    // quote and issues a certificate instead, so there is no quote digest to
+    // require and demanding one would make every Contrast receipt malformed.
+    if (r["mode"] === "hardware" && r["tee_quote"] === null && r["workload"] === undefined) {
+      this.errors.push(
+        `${path}: mode 'hardware' requires either a tee_quote digest or a workload identity`,
+      );
+    }
+  }
+
+  /** `cool.workload.v1` — the orchestrator-issued identity inside the core. */
+  workloadIdentity(path: string, value: unknown): void {
+    const w = this.obj(path, value);
+    if (!w) return;
+    if (w["schema"] !== "cool.workload.v1") {
+      this.errors.push(`${path}.schema: expected 'cool.workload.v1'`);
+    }
+    this.oneOf(`${path}.platform`, w["platform"], WORKLOAD_PLATFORMS);
+    this.oneOf(`${path}.tee`, w["tee"], WORKLOAD_TEES);
+    if (w["policy_hash"] !== null) this.str(`${path}.policy_hash`, w["policy_hash"], HEX_FIELD);
+    if (w["workload_secret_id"] !== null) this.str(`${path}.workload_secret_id`, w["workload_secret_id"]);
+    if (w["workload_name"] !== null) this.str(`${path}.workload_name`, w["workload_name"]);
+    if (!Array.isArray(w["sans"])) this.errors.push(`${path}.sans: expected an array`);
+    else w["sans"].forEach((san, i) => this.str(`${path}.sans[${i}]`, san));
+
+    const registers = this.obj(`${path}.registers`, w["registers"]);
+    if (registers) {
+      for (const name of Object.keys(registers)) {
+        this.str(`${path}.registers.${name}`, registers[name], HEX_FIELD);
+      }
+    }
+    this.str(`${path}.registers_digest`, w["registers_digest"], MULTIHASH);
+    if (w["coordinator_root"] !== null) {
+      this.str(`${path}.coordinator_root`, w["coordinator_root"], MULTIHASH);
+    }
+    if (w["manifest_digest"] !== null) {
+      this.str(`${path}.manifest_digest`, w["manifest_digest"], MULTIHASH);
+    }
+
+    // A credential with no attestation claims cannot carry measurements, and a
+    // record that says otherwise is internally inconsistent -- which is exactly
+    // the shape a "relabel the insecure deployment as TDX" edit would take.
+    if (w["tee"] === "insecure" && registers && Object.keys(registers).length > 0) {
+      this.errors.push(
+        `${path}: tee 'insecure' cannot carry attestation registers (Contrast issues no claims on a non-CC platform)`,
+      );
     }
   }
 }
@@ -256,6 +323,25 @@ export function validateReceiptV2Shape(value: unknown): ShapeResult {
     }
     if (attestation["expected_measurement"] !== null) {
       c.measurement("attestation.expected_measurement", attestation["expected_measurement"]);
+    }
+    if (attestation["workload"] !== undefined) {
+      const w = c.obj("attestation.workload", attestation["workload"]);
+      if (w) {
+        if (w["schema"] !== "cool.workload.attestation.v1") {
+          c.errors.push("attestation.workload.schema: expected 'cool.workload.attestation.v1'");
+        }
+        c.oneOf("attestation.workload.platform", w["platform"], WORKLOAD_PLATFORMS);
+        if (!looksLikePemChain(w["cert_chain"])) {
+          c.errors.push(
+            "attestation.workload.cert_chain: expected at least one PEM CERTIFICATE block",
+          );
+        }
+        c.str("attestation.workload.key_binding", w["key_binding"], MULTIHASH);
+        c.str("attestation.workload.bound_key_id", w["bound_key_id"]);
+        c.str("attestation.workload.binding_signature", w["binding_signature"], B64_FIELD);
+        c.str("attestation.workload.binding_alg", w["binding_alg"], OID);
+        c.str("attestation.workload.issued_at", w["issued_at"]);
+      }
     }
     const quote = attestation["quote"];
     if (quote !== null) {

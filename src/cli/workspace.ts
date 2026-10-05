@@ -261,16 +261,40 @@ export function readReceipt(path: string): ReceiptV2 {
   return JSON.parse(readFileSync(resolve(path), "utf8")) as ReceiptV2;
 }
 
+/** What a caller can add to a verification from the command line. */
+export interface VerifyFlags {
+  readonly requireHardware?: boolean;
+  readonly pin?: boolean;
+  /**
+   * Coordinator root CA, PEM. Without it a Contrast workload credential is
+   * reported and never passed, so `cool verify --require-hardware` on a
+   * Contrast receipt needs this file -- which is the correct friction: the root
+   * has to come from the reader's own `contrast verify`, not from the receipt.
+   */
+  readonly coordinatorRootCA?: string;
+  /** The Contrast `manifest.json` bytes to pin against. */
+  readonly manifest?: Uint8Array;
+}
+
 /** Verify with whatever this environment can honestly check. */
 export async function verify(
   receipt: ReceiptV2,
   workspace: Workspace | null,
-  options: { requireHardware?: boolean; pin?: boolean } = {},
+  options: VerifyFlags = {},
 ): Promise<VerdictV2> {
   return verifyReceiptV2(receipt, {
     ...(workspace?.verifier ? { quoteVerifier: workspace.verifier } : {}),
     ...(options.requireHardware ? { requireHardware: true } : {}),
-    ...(options.pin && workspace ? { expectedMeasurement: workspace.info.measurement } : {}),
+    // A measurement pin only means anything where there is a quote to pin it
+    // against; under Contrast the equivalent pin is the manifest plus the
+    // Coordinator root, both of which arrive as explicit flags.
+    ...(options.pin && workspace && receipt.attestation.quote
+      ? { expectedMeasurement: workspace.info.measurement }
+      : {}),
+    ...(options.coordinatorRootCA === undefined
+      ? {}
+      : { coordinatorRootCA: options.coordinatorRootCA }),
+    ...(options.manifest === undefined ? {} : { expectedManifest: options.manifest }),
   });
 }
 
