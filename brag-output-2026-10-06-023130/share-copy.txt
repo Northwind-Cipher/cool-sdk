@@ -1,0 +1,5 @@
+CooL × Edgeless Systems Contrast: an AI-change receipt that proves which confidential workload produced it.
+
+Four AI changes sealed inside an attested Kubernetes pod — then four forgeries, including a stolen credential and a Coordinator nobody attested, rejected on camera.
+
+npm run demo:contrast
