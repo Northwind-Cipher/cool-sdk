@@ -551,7 +551,17 @@ npm run demo:contrast
 
 End to end in about ninety seconds, with no cluster: the workload's Contrast identity, four AI changes sealed inside it, an independent verdict, then four forgeries that must fail.
 
-Architecture, the exact binding, trust model, security review, deployment and limitations: [`docs/contrast.md`](docs/contrast.md).
+## Documents and demo video
+
+| | |
+|---|---|
+| **Demo video** (43s, 1080p) | [`assets/video/cool-contrast-demo.mp4`](assets/video/cool-contrast-demo.mp4) — a replay of a real `npm run demo:contrast`, not a reconstruction |
+| **Technical documentation** | [PDF](docs/reports/CooL-x-Contrast-Technical-Documentation.pdf) · [Word](docs/reports/CooL-x-Contrast-Technical-Documentation.docx) — architecture, the exact binding, receipt format, verifier, trust model, threat table, full test matrix, source citations |
+| **Intersections** | [PDF](docs/reports/CooL-x-Contrast-Intersections.pdf) · [Word](docs/reports/CooL-x-Contrast-Intersections.docx) — where the two systems meet, what each side gains, honest boundaries, proposed next steps |
+| **In-repo reference** | [`docs/contrast.md`](docs/contrast.md) |
+
+Both documents are generated from one content source so the PDF and Word copies cannot drift; the video is encoded from captured output of an actual run. See [`tools/docs-build/`](tools/docs-build) to rebuild either.
+
 
 ---
 
