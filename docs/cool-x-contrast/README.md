@@ -6,6 +6,10 @@ PDF and Word, and the demo video.
 > Contrast protects the AI workload while it runs. CooL produces independently
 > verifiable evidence of what changed inside it, bound to that workload.
 
+CooL's evidence model is validated on **real Intel TDX hardware** (Phala Cloud,
+vendor-verified quotes). The Contrast adapter is implemented and tested, but has
+not yet run on a Contrast cluster. The documents keep those two apart throughout.
+
 | File | What it is |
 | --- | --- |
 | [`CooL-x-Contrast-Technical-Documentation.pdf`](CooL-x-Contrast-Technical-Documentation.pdf) · [`.docx`](CooL-x-Contrast-Technical-Documentation.docx) | **21 pages.** Architecture, the key finding that Contrast attests by credential rather than by quote, the two-sided cryptographic binding, receipt format and backward compatibility, the eight verdict domains and their honesty rules, integration surface, deployment, trust model and threat table, the full test matrix, and a line-by-line citation of every Contrast behaviour relied on. |
@@ -39,15 +43,24 @@ from the same composition by restoring the music automation lane.
 Stated on the cover of each document and on the video's closing card, because a
 verifier that will not round its own evidence up is the whole product:
 
-- **No hardware run.** Nothing described has executed on Intel TDX or AMD
-  SEV-SNP. The conformance fixtures carry a TDX quote constructed in software.
+- **The Contrast adapter has not run on hardware.** CooL's evidence model *has* —
+  on real Intel TDX via Phala Cloud, with quotes verified by a vendor attestation
+  service and the verifier returning `attestation: pass` and `enclave: pass`
+  (technical documentation §10). What has not run is the Contrast adapter
+  specifically: its conformance fixtures carry a TDX quote constructed in
+  software, and no Coordinator has ever verified real silicon for it.
 - **The Kubernetes manifests are unvalidated.** They are written against
   Contrast's current generator and have not been applied to a cluster.
-- **CooL does not verify the hardware quote.** It verifies that the credential
-  chains to a Coordinator root the reader pinned. A compromised Coordinator
-  could certify an arbitrary workload — Contrast's own trust assumption, which
-  CooL inherits and narrows by requiring the reader to attest the Coordinator
-  independently.
+- **On the Contrast path, CooL does not verify the hardware quote.** It verifies
+  that the credential chains to a Coordinator root the reader pinned. A
+  compromised Coordinator could certify an arbitrary workload — Contrast's own
+  trust assumption, which CooL inherits and narrows by requiring the reader to
+  attest the Coordinator independently. On the dstack path CooL *does* verify the
+  quote, and has, against real silicon.
+- **The hardware campaign has its own stated limits.** CPU Intel TDX only, a
+  development OS image, attestation verified online through Phala, no quote
+  freshness check, and a witness that ran in its own CVM on its own node but from
+  the same Phala account.
 - **No endorsement is implied.** Contrast is a product of Edgeless Systems GmbH,
   which has not reviewed this work. Every Contrast behaviour described is cited
   to public source and documentation.

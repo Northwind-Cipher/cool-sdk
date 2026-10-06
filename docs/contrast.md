@@ -276,11 +276,14 @@ verifier's own network connection (verification is fully offline).
 
 ### Known limitations
 
-1. **CooL does not re-verify the TDX/SNP quote.** It trusts the Coordinator's
-   verdict as expressed in the certificate. The extensions actually contain
-   enough to reconstruct the quote — including the PCK certificate chain at
-   `1.3.9901.2.2.46` — so independent DCAP verification is possible. It is **not
-   implemented**, and is the single highest-value next step (§9).
+1. **On the Contrast path, CooL does not re-verify the TDX/SNP quote.** It trusts
+   the Coordinator's verdict as expressed in the certificate. The extensions
+   contain enough to reconstruct the quote — including the PCK certificate chain
+   at `1.3.9901.2.2.46` — so independent DCAP verification is possible. It is
+   **not implemented**, and is the single highest-value next step (§9). Note the
+   asymmetry: on the **dstack** path CooL already does full DCAP verification and
+   has done so against real silicon, so this is a missing adapter rather than a
+   missing capability.
 2. **Stale measurements** and **binding replay**, as above.
 3. **No confidential-GPU path yet.** CooL's `GpuAttestationRef` exists and
    Contrast supports confidential GPUs; the two are not joined.
@@ -352,11 +355,45 @@ Two things the pipeline caught that review had not:
 - **The secret-scanning gate** rejected the original fixture layout, which
   committed `key.pem` files. Hence the JSON bundle above.
 
-### Not tested, because it needs hardware
+### Already validated on real hardware — but on dstack, not Contrast
 
-- A real Intel TDX or AMD SEV-SNP machine.
-- A real Coordinator CVM, a real aTLS handshake, real DCAP/KDS collateral.
-- `contrast generate` / `set` / `verify` against a live cluster.
+CooL's confidential-compute tier is no longer simulation-only. It has been
+exercised end to end on **real Intel TDX** on Phala Cloud: two `tdx.small`
+confidential VMs on separate physical nodes, real TDX v4 quotes verified both
+online by Phala's attestation service and locally against archived Intel
+collateral, an 8-entry transparency log with an attested witness in its own CVM,
+36/36 consistency pairs, and an 11-row tamper matrix in which every row fails as
+required. Run outside the CVM, the verifier returned:
+
+```
+ok: true   binding pass · signature pass · inclusion pass
+           witnesses pass · attestation pass · enclave pass · anchor absent
+```
+
+`attestation: pass` cannot be produced by software — the domain passes only when
+a configured verifier chains real vendor quote bytes to a vendor root. Evidence:
+`artifacts/` (102 files), report `artifacts/cool-phala-validation-report.md`,
+matrix `artifacts/closure-verification-matrix.md`.
+
+That campaign also found a defect simulation could not have: the live dstack
+agent returns `tcb_info` as a JSON-encoded string, and CooL read fields off it as
+an object — silently producing an all-zero measurement. Fixed in
+`src/phala/dstack.ts` (`parseTcbInfo`), with a regression test and a recorded
+negative control.
+
+**This says nothing about the Contrast adapter.** It establishes that the
+evidence model, the quote handling and the verifier behave correctly against real
+silicon — which is the half of the chain Contrast does not supply.
+
+### Not tested, because the Contrast adapter needs a Contrast cluster
+
+- **A Contrast cluster**: Kubernetes with the node-installer and runtime class,
+  on bare-metal Intel TDX or AMD SEV-SNP, or AKS with Confidential Containers.
+- **A real Coordinator CVM**, a real aTLS handshake, and a mesh certificate
+  issued from a report the Coordinator actually verified. Every certificate CooL
+  has parsed so far came from Contrast's own CA code driven by a software-built
+  quote.
+- `contrast generate` / `set` / `verify` against that live cluster.
 - The Kubernetes manifests in `examples/contrast/k8s/` have **not** been applied
   to a cluster. They are written against Contrast's current generator
   (`internal/kuberesource`) — `runtimeClassName: contrast-cc` is the marker

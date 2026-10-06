@@ -15,7 +15,7 @@ import { renderPdf } from "./render-pdf.mjs";
 import { renderDocx } from "./render-docx.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const out = join(here, "..", "..", "docs", "reports");
+const out = join(here, "..", "..", "docs", "cool-x-contrast");
 mkdirSync(out, { recursive: true });
 
 const DOCS = [
@@ -30,4 +30,4 @@ for (const [module, base] of DOCS) {
   console.log(`  ${base}.pdf + .docx`);
 }
 
-console.log(`\nwrote ${DOCS.length * 2} files to docs/reports/`);
+console.log(`\nwrote ${DOCS.length * 2} files to docs/cool-x-contrast/`);

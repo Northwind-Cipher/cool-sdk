@@ -44,12 +44,16 @@ verifier is for, and it earns the next twenty seconds without a single adjective
 
 ## Outro / punchline
 
-The honest card. `152 tests passing`, then the line most products would cut:
+Two beats. First the proof that was missing until now — **Verified on real Intel
+TDX**, with the actual verdict underneath (`attestation pass · enclave pass ·
+witnesses pass`) and where it ran (Phala Cloud, two CVMs, quotes verified against
+`intel-dcap`). Then the line most products would cut:
 
-> Not claimed: that any hardware was involved.
+> Not claimed: that the Contrast adapter has run on hardware.
 
-A system that will not round its own evidence up is one whose `pass` means
-something. That is the brag.
+The boundary is deliberately precise rather than modest: the evidence model IS
+proven on silicon; the Contrast adapter is not. A system that will not round its
+own evidence up is one whose `pass` means something. That is the brag.
 
 ## User flow worth showing
 

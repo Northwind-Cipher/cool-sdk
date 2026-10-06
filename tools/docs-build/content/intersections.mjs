@@ -44,7 +44,7 @@ export const blocks = [
       ["Date", "6 October 2026"],
     ],
     status:
-      "This document makes a commercial and architectural case; it does not overstate the engineering. The integration described is implemented and tested — 152 automated tests, 33 specific to it, against certificates produced by Contrast's own code — but it has not run on confidential hardware, and CooL does not yet independently verify the hardware quote. Section 8 lists every boundary. Nothing here implies that Edgeless Systems has reviewed, endorsed or agreed to anything.",
+      "This document makes a commercial and architectural case without overstating the engineering, and the two halves carry different evidence. CooL's confidential-compute tier is no longer a design on paper: it has been validated on real Intel TDX hardware on Phala Cloud, with quotes verified by a vendor attestation service and the verifier reporting attestation and enclave as pass. The Contrast adapter is implemented and tested against certificates produced by Contrast's own code, but has not yet run on a Contrast cluster. Section 8 lists every boundary. Nothing here implies that Edgeless Systems or Phala has reviewed, endorsed or agreed to anything.",
     foot:
       "Contrast is a product of Edgeless Systems GmbH. CooL is a product of Northwind Cipher Pvt. Ltd. The two are independently licensed and no code of either is redistributed by the other.",
   }),
@@ -56,6 +56,9 @@ export const blocks = [
   ),
   p(
     "The integration described here binds a CooL evidence record to a specific Contrast workload cryptographically, so that one artefact answers both. It took no new dependency on either side, no change to Contrast, and no new trusted third party. It is built and tested today.",
+  ),
+  p(
+    "And the half of it that can be proven on hardware, has been. CooL's confidential-compute tier has run end to end on **real Intel TDX silicon** — two confidential VMs on Phala Cloud, real quotes verified by a vendor attestation service, an attested witness on a separate physical node, and a verifier returning `attestation: pass` and `enclave: pass`, a status no software-only path can produce. What has not yet run on hardware is specifically the **Contrast adapter**, and that is a deployment we have not done rather than a question we cannot answer.",
   ),
   callout(
     "The joint claim, in the form an auditor would accept",
@@ -220,13 +223,22 @@ export const blocks = [
 
   /* ───────────────────────────── 5 ───────────────────────────── */
   h1("5 · What CooL gains"),
-  h2("5.1 A hardware root it does not have to build"),
+  h2("5.1 Reach, not a rescue"),
   p(
-    "CooL's existing confidential-compute path is Phala dstack on Intel TDX. Contrast adds **AMD SEV-SNP**, bare-metal and AKS deployment models, and Kubernetes-native operation — through one integration, with no second attestation stack to maintain. The evidence plane, capture queue, transparency log and verifier are entirely unchanged; only the attestation source differs.",
+    "It would be convenient to say CooL gains a hardware root it could not otherwise get. That is not true any more, and overstating it would be the wrong way to start a partnership conversation. CooL's dstack path on Intel TDX is **already validated on real hardware** — quotes verified against Intel collateral, `attestation: pass` observed outside the CVM, the whole campaign archived in 102 evidence files.",
   ),
-  h2("5.2 Manifest-based policy it can pin"),
   p(
-    "On its own, CooL can pin a measurement an operator gave it, which is only as trustworthy as the process that produced it. Contrast supplies something better: a signed manifest listing every pod allowed to run and the reference values their hardware must satisfy. CooL pins that manifest by digest and checks the credential's policy hash against it, so a receipt states which reviewed manifest governed it.",
+    "What Contrast adds is reach and shape, which is a better reason to integrate than need:",
+  ),
+  bullets([
+    "**AMD SEV-SNP**, a silicon vendor CooL has no other path to.",
+    "**Kubernetes-native operation** — bare metal and AKS Confidential Containers — rather than a single CVM per deployment.",
+    "**A signed manifest to pin against.** On dstack CooL pins a measurement an operator handed it, which is only as good as that operator's process. Contrast supplies something strictly better: a manifest listing every pod allowed to run and the reference values their hardware must satisfy, which CooL pins by digest and checks the credential's policy hash against.",
+    "**A second, independent topology** for the same evidence model — which is itself a durability argument for anyone buying CooL: the receipts outlive any decision about whose silicon they ran on.",
+  ]),
+  h2("5.2 A shorter path to verifying Contrast's own hardware"),
+  p(
+    "CooL already verifies real TDX quotes against Intel collateral and has done so on silicon. Contrast's mesh certificate carries the complete quote in its extensions — body, signature, attestation key and PCK chain. Joining those two facts is a focused piece of work rather than a research project, and it is the step that would let a CooL × Contrast receipt be verified **to silicon without trusting the Coordinator** (section 9.1).",
   ),
   h2("5.3 The key-management problem removed"),
   p(
@@ -235,6 +247,9 @@ export const blocks = [
   h2("5.4 Credibility by construction"),
   p(
     "CooL's conformance tests run against certificates produced by **Contrast's own Go packages**, so they assert agreement between two independent implementations rather than self-consistency. That is a materially stronger claim than a test suite can usually make, and it is only available because Contrast's relevant code is readable.",
+  ),
+  p(
+    "The hardware campaign adds the other half of that credibility, and it is the half partners usually ask for. It found and fixed a real defect that simulation could never have surfaced: the live dstack agent returns `tcb_info` as a JSON-encoded string rather than an object, and CooL was reading fields off it as an object — silently producing an **all-zero measurement** on a receipt that otherwise looked perfect. A team that ships that fix with a regression test and a negative control, and publishes the finding in its own validation report, is a team worth integrating with.",
   ),
 
   /* ───────────────────────────── 6 ───────────────────────────── */
@@ -289,8 +304,9 @@ export const blocks = [
       ["Kubernetes manifest, Dockerfile, deploy script", "**Written**, not yet applied to a live cluster"],
       ["End-to-end demonstration", "**Done** — runs in ~90 seconds with no cluster"],
       ["Independent verifier an auditor can run", "**Done** — CLI and a 70-line script"],
-      ["Validation on real TDX / SEV-SNP hardware", "**Not done** — needs a cluster"],
-      ["Independent quote verification against DCAP", "**Not done** — the highest-value next step"],
+      ["Validation of the evidence model on real Intel TDX", "**Done** — two Phala Cloud CVMs, vendor-verified quotes, 102 archived evidence files"],
+      ["Validation of the **Contrast adapter** on hardware", "**Not done** — needs a Contrast cluster; the one remaining gap"],
+      ["Independent quote verification against DCAP", "**Done on dstack**, not yet wired to Contrast's certificate extensions — the highest-value next step"],
       ["Confidential-GPU attestation joined to the evidence", "**Not done** — both sides have the pieces"],
     ],
     [3.3, 1.7],
@@ -302,9 +318,10 @@ export const blocks = [
     "Every claim in this document is bounded by the following. They are stated here rather than in a footnote because a partnership conversation that starts with an overstatement is worse than one that starts slowly.",
   ),
   numbers([
-    "**No hardware run.** Nothing described has executed on Intel TDX or AMD SEV-SNP. The conformance fixtures carry a TDX quote constructed in software. What is proven is that CooL binds to, parses and enforces Contrast's credential format correctly — not that any hardware was involved.",
+    "**The Contrast adapter has not run on hardware.** CooL's evidence model has (on Intel TDX via Phala Cloud), but no part of this integration has executed on a Contrast cluster. The conformance fixtures carry a TDX quote constructed in software. What is proven on the Contrast side is that CooL binds to, parses and enforces the credential format correctly — not that a Coordinator ever verified real silicon for it.",
     "**The Kubernetes manifests are unvalidated.** They are written against Contrast's current generator and have not been applied to a cluster. The Dockerfile has a placeholder base-image digest.",
-    "**CooL does not verify the hardware quote.** It verifies that the credential chains to a Coordinator root the reader pinned. A compromised Coordinator could certify an arbitrary workload. This is Contrast's own trust assumption, which CooL inherits and narrows by requiring the reader to attest the Coordinator independently — and the verdict says `workload: pass`, never `attestation: pass`, so the distinction reaches the audit trail.",
+    "**On the Contrast path, CooL does not verify the hardware quote.** It verifies that the credential chains to a Coordinator root the reader pinned. A compromised Coordinator could certify an arbitrary workload. This is Contrast's own trust assumption, which CooL inherits and narrows by requiring the reader to attest the Coordinator independently — and the verdict says `workload: pass`, never `attestation: pass`, so the distinction reaches the audit trail. On the dstack path CooL does verify the quote, and has.",
+    "**The hardware campaign has its own limits, stated in its own report.** CPU Intel TDX only, no GPU. A development OS image. Attestation verified online through Phala, with the local re-check depending on Phala-supplied collateral and a Phala-authored library. No quote freshness or nonce. The witness ran in its own CVM on its own node with its own sealed key, but from the same Phala account — separation of key custody, process, CVM and node is demonstrated; operation by a different organisation is not.",
     "**Attestation freshness is bounded by certificate lifetime.** A credential reflects the workload's state at admission, not at the moment a record is signed. Contrast's one-year certificate lifetime bounds this; a deployment wanting tighter bounds should rotate pods.",
     "**This is not production-ready.** It is implemented, reviewed and tested. It has not been operated.",
     "**No endorsement is implied.** Edgeless Systems has not reviewed this work. All Contrast behaviour described is cited to public source and documentation."
@@ -327,14 +344,14 @@ export const blocks = [
     "A CooL × Contrast receipt becomes verifiable **to silicon, offline, without trusting the Coordinator** — which, as far as we can tell, nothing else currently offers for AI governance evidence.",
   ]),
   p(
-    "This is a focused piece of work on CooL's side. It needs no change to Contrast, though confirmation from Edgeless that the extension set is intended to be stable would reduce the risk of building on it.",
+    "This is a focused piece of work on CooL's side, and notably smaller than it was a month ago: CooL already verifies real TDX quotes against Intel collateral and has done so on live silicon, including the negative control where a single flipped byte is rejected. What remains is reassembling a quote from certificate extensions and handing it to machinery that already works. It needs no change to Contrast, though confirmation from Edgeless that the extension set is intended to be stable would reduce the risk of building on it.",
   ),
   h2("9.2 A short sequence that de-risks the rest"),
   table(
     ["Step", "Who", "What it settles"],
     [
       ["Technical review of the binding and trust model", "Edgeless engineering", "Whether the seam we chose is the one they would have chosen, and whether the extension set is stable to build on"],
-      ["One run on real TDX or SEV-SNP", "Either side with cluster access", "Removes the largest caveat in both documents in a single afternoon"],
+      ["One run of the adapter on a Contrast cluster", "Either side with cluster access", "Removes the last substantial caveat in both documents. CooL's side of this is already proven on Intel TDX; what is untested is the Contrast adapter specifically"],
       ["Independent quote verification against DCAP", "Northwind Cipher", "Takes the Coordinator out of the trusted set for the hardware claim"],
       ["Joint reference architecture, published", "Both", "A citable artefact for enterprise conversations on both sides"],
       ["Confidential-GPU attestation joined to the evidence", "Both", "Extends the story to GPU inference, where the AI governance questions are sharpest"],
@@ -346,7 +363,10 @@ export const blocks = [
     "A technical conversation, not a commitment. Specifically: thirty minutes with someone who knows the Coordinator, to check the binding design against how Contrast is intended to be used, and to tell us whether the certificate extension set is something we should be depending on.",
   ),
   p(
-    "Everything needed to have that conversation is reproducible in about ten minutes:",
+    "If it is useful before that conversation, the hardware campaign is fully documented: a narrative report, a per-domain matrix with negative controls, and 102 archived evidence files including the raw vendor attestation responses. It is the best available evidence that the CooL half of this integration does what it says.",
+  ),
+  p(
+    "Everything needed to have the conversation is reproducible in about ten minutes:",
   ),
   code([
     "git clone https://github.com/Northwind-Cipher/cool-sdk.git",

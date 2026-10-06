@@ -182,24 +182,34 @@
       }
       #s4-num {
         font-family: var(--sans);
-        font-size: 128px;
+        font-size: 76px;
         font-weight: 600;
         color: var(--pass);
         line-height: 1;
         margin: 0;
         letter-spacing: -0.02em;
       }
+      #s4-verdict {
+        font-family: var(--mono);
+        font-size: 31px;
+        color: var(--muted);
+        margin-top: 30px;
+      }
+      #s4-verdict b {
+        color: var(--pass);
+        font-weight: 400;
+      }
       #s4-numsub {
         font-family: var(--sans);
-        font-size: 28px;
+        font-size: 25px;
         color: var(--muted);
-        margin-top: 16px;
+        margin-top: 20px;
       }
       #s4-rule {
         width: 180px;
         height: 2px;
         background: var(--edge);
-        margin: 52px 0;
+        margin: 42px 0;
       }
       #s4-honest {
         font-family: var(--sans);
@@ -239,7 +249,7 @@
       data-start="0"
       data-width="1920"
       data-height="1080"
-      data-duration="23.2"
+      data-duration="24.9"
       data-fps="30"
     >
       <div id="wash"></div>
@@ -295,11 +305,12 @@
       </section>
 
       <!-- ── scene 4 · what it will not claim ────────────────────── -->
-      <section id="s4" class="clip" data-start="18.44" data-duration="4.76" data-track-index="3">
-        <div id="s4-num">152</div>
-        <div id="s4-numsub">tests passing &nbsp;·&nbsp; 33 for this integration</div>
+      <section id="s4" class="clip" data-start="18.44" data-duration="6.46" data-track-index="3">
+        <div id="s4-num">Verified on real Intel TDX</div>
+        <div id="s4-verdict">attestation&nbsp;<b>pass</b> &nbsp; enclave&nbsp;<b>pass</b> &nbsp; witnesses&nbsp;<b>pass</b></div>
+        <div id="s4-numsub">Phala Cloud · two confidential VMs · quotes verified against intel-dcap</div>
         <div id="s4-rule"></div>
-        <p id="s4-honest">Not claimed: that any hardware was involved.</p>
+        <p id="s4-honest">Not claimed: that the Contrast adapter has run on hardware.</p>
         <div id="s4-cta">npm run demo:contrast</div>
         <div id="s4-repo">github.com/Northwind-Cipher/cool-sdk</div>
         <div id="s4-foot">Contrast is a product of Edgeless Systems GmbH · no endorsement implied</div>
@@ -310,9 +321,9 @@
         id="music"
         src="assets/music/happy-beats-business-moves-vol-9-by-ende-dot-app.mp3"
         data-start="0"
-        data-duration="23.2"
+        data-duration="24.9"
         data-track-index="8"
-        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":1.2,"v":0.3},{"t":12.4,"v":0.3},{"t":12.9,"v":0.19},{"t":18.2,"v":0.19},{"t":20.4,"v":0}]}]}'
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":1.2,"v":0.3},{"t":12.4,"v":0.3},{"t":12.9,"v":0.19},{"t":18.2,"v":0.19},{"t":21.2,"v":0}]}]}'
       ></audio>
 
       <audio id="sfx-type-1" src="assets/sfx/click_003.ogg" data-duration="0.01" data-start="0.46" data-track-index="9" data-volume="0.3"></audio>
@@ -418,14 +429,17 @@
          Three beats, each held. The honest line gets the longest hold in
          the video. No sting — the music has already faded out by 20.4s. */
       tl.fromTo("#s4-num", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 18.6);
-      tl.fromTo("#s4-numsub", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 18.96);
-      tl.fromTo("#s4-rule", { opacity: 0, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.45, ease: "power2.out" }, 19.5);
-      tl.fromTo("#s4-honest", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 20.02);
-      tl.fromTo("#s4-cta", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 21.59);
-      tl.fromTo("#s4-repo", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 21.8);
-      tl.fromTo("#s4-foot", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 22.0);
+      // The real verdict, on the beat. This is the claim the whole piece earns.
+      tl.fromTo("#s4-verdict", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 19.48);
+      tl.fromTo("#s4-numsub", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 20.02);
+      tl.fromTo("#s4-rule", { opacity: 0, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.45, ease: "power2.out" }, 20.54);
+      // The boundary gets the longest hold in the video.
+      tl.fromTo("#s4-honest", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 21.06);
+      tl.fromTo("#s4-cta", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 23.17);
+      tl.fromTo("#s4-repo", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 23.38);
+      tl.fromTo("#s4-foot", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 23.6);
       // Resolve before data-duration so the final state is actually rendered.
-      tl.to("#s4", { opacity: 0, duration: 0.42, ease: "power1.in" }, 22.74);
+      tl.to("#s4", { opacity: 0, duration: 0.42, ease: "power1.in" }, 24.44);
 
       window.__timelines["brag"] = tl;
     </script>

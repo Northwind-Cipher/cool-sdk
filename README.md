@@ -543,7 +543,7 @@ pinned root, real claims     →  workload = pass
 
 A compromised Coordinator can certify an arbitrary workload. That is Contrast's own trust assumption; CooL inherits it and narrows it by requiring the reader to attest the Coordinator themselves.
 
-**No hardware run has been performed on this path.** The test fixtures carry a software-built TDX quote, and the Kubernetes manifests have not been applied to a cluster. `docs/contrast.md` §7 states exactly what was and was not tested.
+**The Contrast adapter has not run on hardware.** CooL's evidence model has — see [Hardware validation](#hardware-validation) — but on this path the test fixtures carry a software-built TDX quote and the Kubernetes manifests have not been applied to a cluster. `docs/contrast.md` §7 states exactly what was and was not tested.
 
 ```bash
 npm run demo:contrast
@@ -653,7 +653,7 @@ These artifacts are historical records of specific validation runs, not a certif
 - Measurement pins are only as trustworthy as the process approving them.
 - A witness demonstrates separation of key custody and process, not organizational independence.
 - The documented validation uses Intel TDX CPU instances. No GPU or confidential-GPU attestation is claimed.
-- On the Edgeless Contrast path, CooL verifies a Coordinator-issued credential against a root the reader pins. It does **not** independently verify the underlying TDX/SNP quote against Intel DCAP or AMD KDS, so a compromised Coordinator could certify an arbitrary workload. No hardware run has been performed on this path; see `docs/contrast.md` §7.
+- On the Edgeless Contrast path, CooL verifies a Coordinator-issued credential against a root the reader pins. It does **not** independently verify the underlying TDX/SNP quote against Intel DCAP or AMD KDS, so a compromised Coordinator could certify an arbitrary workload. The Contrast adapter has not run on hardware; the dstack path has. See `docs/contrast.md` §7.
 - No third-party certification or security audit is claimed.
 
 ---
