@@ -14,6 +14,7 @@ npm start
 | [`express/`](express) | Evidence for each HTTP request that reaches a model, off the response path. |
 | [`agent/`](agent) | An AI agent that leaves a verifiable trail of tool calls and decisions. |
 | [`dstack/`](dstack) | Bind evidence to a hardware-attested Phala dstack enclave. |
+| [`contrast/`](contrast) | Run inside an Edgeless Systems Contrast confidential workload, seal AI changes, and have an auditor verify them against a Coordinator root. Includes Kubernetes manifests, a Dockerfile and a deploy script. |
 
 The examples depend on `"cool-nwc": "file:../.."`, so they run against the build
 in this repo. In your own project the dependency is just `cool-nwc`.

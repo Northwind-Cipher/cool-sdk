@@ -78,7 +78,8 @@ Your application records an event; CooL returns a self-contained receipt that an
 - that the record has not been altered through a deterministic cryptographic commitment,
 - authenticity through a hybrid **ML-DSA-65 + Ed25519** signature,
 - that it sits in an **append-only RFC 6962 Merkle log**,
-- and, through the Phala-backed Intel TDX path, **where it ran** through hardware measurements and attestation evidence.
+- and, through the Phala-backed Intel TDX path, **where it ran** through hardware measurements and attestation evidence,
+- or, through the **Edgeless Contrast** path, **which confidential workload** produced it — the Coordinator-issued mesh certificate, its measurements and its policy hash, bound to the same signing key.
 
 Sensitive values are committed as salted hashes and discarded; receipts never carry plaintext.
 
@@ -175,11 +176,12 @@ The matrix separates the properties being established so that a verifier can see
 |---|---|---|
 | **SDK** | `CooL` and `CoolTee` | TypeScript, ESM, Node >= 20 |
 | **Receipts** | `cool.receipt.v2` with signed `cool.evidence.v1` | Canonical CBOR, salted commitments |
-| **Cryptographic verification** | Binding, signature, inclusion, witnesses, attestation | Structured verdict per domain |
+| **Cryptographic verification** | Binding, signature, inclusion, witnesses, attestation, enclave, workload, anchor | Structured verdict per domain |
 | **Append-only log** | RFC 6962 Merkle tree | File-backed and in-memory logs |
 | **Consistency** | `verifyLogConsistency` | Detects forks and altered heads |
 | **Witness** | Independent log observer | Refuses forks and rollbacks |
 | **Intel TDX** | Hardware-backed execution | Phala / dstack integration |
+| **Confidential containers** | Workload-bound evidence on Kubernetes | Edgeless Contrast, Intel TDX or AMD SEV-SNP |
 | **Attestation** | Quote verification | Configured verifier |
 | **Runtime status** | Evidence-derived status | `REAL`, `UNVERIFIED`, `SIMULATED`, `UNAVAILABLE`, or failure |
 | **CLI** | `status`, `seal`, `verify`, `records`, `wire`, `ui` | `COOL_REQUIRE_HARDWARE=1` |
@@ -442,6 +444,129 @@ COOL_REQUIRE_HARDWARE=1
 
 ---
 
+# CooL × Edgeless Contrast
+
+A second confidential-execution path, alongside Phala dstack.
+
+[Contrast](https://docs.edgeless.systems/contrast) runs Kubernetes pods as confidential containers on Intel TDX or AMD SEV-SNP. Its **Coordinator**, itself a confidential VM, admits a pod only if the pod's attestation report matches a signed manifest.
+
+The shape is genuinely different from dstack's, and that difference is the integration. Contrast hands the workload a **credential, not a quote**: after verifying the report, the Coordinator issues a mesh certificate that **carries the claims it verified** as X.509 extensions, bound to a key only that pod holds.
+
+```text
+1.3.9901.2.2.14   MRTD
+1.3.9901.2.2.18   RTMR0
+1.3.9901.2.2.21   RTMR3
+1.3.9901.2.2.15   MRCONFIGID  →  HOSTDATA  =  policy hash
+1.3.9901.3.1      WorkloadSecretID
+```
+
+So CooL binds on both sides, and needs both.
+
+```text
+SEALING
+      the CooL signing key is HKDF-derived from
+      /contrast/secrets/workload-secret-seed, which the
+      Coordinator releases only to a pod that passed
+      attestation. No key in the image, in a vault, or in CI.
+
+CERTIFYING
+      the pod's mesh key signs a commitment to that CooL
+      public key. The certificate travels in the receipt;
+      the identity it states travels INSIDE the signed core.
+```
+
+```text
+AI CHANGE
+      │
+      ▼
+COOL RECEIPT  +  HYBRID SIGNATURE
+      │
+      ▼
+KEY BINDING  signed by the pod's mesh key
+      │
+      ▼
+MESH CERTIFICATE  measurements · policy hash
+      │
+      ▼
+COORDINATOR ROOT CA  pinned via `contrast verify`
+      │
+      ▼
+CONFIDENTIAL EXECUTION
+```
+
+A receipt from workload A **cannot** be presented as workload B's. The binding signature verifies only under A's certificate, and the identity is inside the signature, so making the two agree breaks the signature instead.
+
+Adoption is a runtime swap, not a rewrite:
+
+```ts
+import { CooL } from "cool-nwc";
+import { ContrastWorkload } from "cool-nwc/contrast";
+
+const runtime = await ContrastWorkload.open({ requireConfidential: true });
+const cool = new CooL({ applicationId: "refund-agent", runtime });
+
+await cool.change({
+  kind: "prompt",
+  ref: "billing/refund-agent#system",
+  before: "Refund when the policy allows.",
+  after: "Refund when the policy allows. Escalate above $500.",
+  actor: { id: "user:priya@bank.example", method: "session" },
+});
+```
+
+In a pod spec it is three lines:
+
+```yaml
+runtimeClassName: contrast-cc
+metadata.annotations:
+  contrast.edgeless.systems/workload-secret-id: default/ai-service
+env:
+  - name: COOL_CONTRAST_ROOT
+    value: /contrast
+```
+
+Verification, by an auditor with no cluster access:
+
+```bash
+cool verify receipts.json   --coordinator-root verify/coordinator-root-ca.pem   --manifest manifest.json   --require-hardware
+```
+
+## What the Contrast path does not claim
+
+CooL does **not** re-verify the TDX/SNP quote against Intel DCAP on this path. It checks that the credential chains to a Coordinator root **the reader pinned**, and the `workload` verdict domain says exactly that.
+
+```text
+no pinned Coordinator root   →  workload = absent   (reported, never passed)
+Contrast insecure platform   →  workload = simulated
+pinned root, real claims     →  workload = pass
+```
+
+A compromised Coordinator can certify an arbitrary workload. That is Contrast's own trust assumption; CooL inherits it and narrows it by requiring the reader to attest the Coordinator themselves.
+
+**The Contrast adapter has not run on hardware.** CooL's evidence model has — see [Hardware validation](#hardware-validation) — but on this path the test fixtures carry a software-built TDX quote and the Kubernetes manifests have not been applied to a cluster. `docs/contrast.md` §7 states exactly what was and was not tested.
+
+```bash
+npm run demo:contrast
+```
+
+End to end in about ninety seconds, with no cluster: the workload's Contrast identity, four AI changes sealed inside it, an independent verdict, then four forgeries that must fail.
+
+## Documents and demo video
+
+Everything for this integration sits in one folder: [`docs/cool-x-contrast/`](docs/cool-x-contrast).
+
+| | |
+|---|---|
+| **Demo video** (23s, 1080p) | [`cool-contrast-demo.mp4`](docs/cool-x-contrast/cool-contrast-demo.mp4) — a typed `npm run demo:contrast`, the workload identity read out of the Coordinator-issued certificate, four AI changes sealed, then four forgeries rejected |
+| **Technical documentation** (21pp) | [PDF](docs/cool-x-contrast/CooL-x-Contrast-Technical-Documentation.pdf) · [Word](docs/cool-x-contrast/CooL-x-Contrast-Technical-Documentation.docx) — architecture, the exact binding, receipt format, verifier, trust model, threat table, full test matrix, source citations |
+| **Intersections** (10pp) | [PDF](docs/cool-x-contrast/CooL-x-Contrast-Intersections.pdf) · [Word](docs/cool-x-contrast/CooL-x-Contrast-Intersections.docx) — where the two systems meet, what each side gains, honest boundaries, proposed next steps |
+
+Both documents are generated from one content source ([`tools/docs-build/`](tools/docs-build)) so the PDF and Word copies cannot drift. The video is a Hyperframes composition built with the `/brag` workflow; its plan, brief and source live in `brag-output-2026-10-06-023130/`.
+
+
+
+---
+
 # Deployment
 
 ## Development
@@ -528,6 +653,7 @@ These artifacts are historical records of specific validation runs, not a certif
 - Measurement pins are only as trustworthy as the process approving them.
 - A witness demonstrates separation of key custody and process, not organizational independence.
 - The documented validation uses Intel TDX CPU instances. No GPU or confidential-GPU attestation is claimed.
+- On the Edgeless Contrast path, CooL verifies a Coordinator-issued credential against a root the reader pins. It does **not** independently verify the underlying TDX/SNP quote against Intel DCAP or AMD KDS, so a compromised Coordinator could certify an arbitrary workload. The Contrast adapter has not run on hardware; the dstack path has. See `docs/contrast.md` §7.
 - No third-party certification or security audit is claimed.
 
 ---

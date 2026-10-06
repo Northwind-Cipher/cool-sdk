@@ -31,9 +31,9 @@
  * dstack client construction, the change-record model) lives one layer down, in
  * `cool-nwc/phala`.
  */
-import { CoolTee, type RecordRequest } from "./phala/client";
+import { CoolTee, type ChangeRequest, type RecordRequest } from "./phala/client";
 import { HttpDstackClient } from "./phala/dstack";
-import type { DstackClient, EnclaveInfo } from "./phala/dstack";
+import type { AttestationSource, DstackClient, EnclaveInfo } from "./phala/dstack";
 import type { AttestationHandshake } from "./phala/ratls";
 import type { RuntimeStatus } from "./phala/runtime";
 import type { Measurement, ReceiptV2, TeeVendor } from "./phala/types";
@@ -51,9 +51,11 @@ import {
 export interface AttestationConfig {
   /**
    * `"local"` (default) runs the built-in simulator — no hardware, clearly
-   * labelled. `"dstack"` talks to a Phala dstack guest agent.
+   * labelled. `"dstack"` talks to a Phala dstack guest agent. `"contrast"`
+   * reads the credential Edgeless Systems Contrast mounts into the pod; it
+   * needs no endpoint, because the integration surface is a directory.
    */
-  readonly provider?: "local" | "dstack";
+  readonly provider?: "local" | "dstack" | "contrast";
   /**
    * dstack guest-agent endpoint. Inside a dstack CVM this is the unix socket
    * `/var/run/dstack.sock`; over TCP (the dstack simulator) an `http://` URL.
@@ -95,6 +97,22 @@ export interface CooLOptions {
   readonly onDrop?: (reason: string) => void;
   /** Inject a dstack client directly (tests, non-standard transports). */
   readonly dstackClient?: DstackClient;
+  /**
+   * Inject any confidential runtime — notably `ContrastWorkload` from
+   * `cool-nwc/contrast`. Supplying this is all it takes to move an application
+   * from the simulator onto Contrast; nothing else about the call sites changes.
+   */
+  readonly runtime?: AttestationSource;
+  /**
+   * The Contrast volume root, when `provider` is `"contrast"`. Defaults to
+   * `$COOL_CONTRAST_ROOT`, then `/contrast`.
+   */
+  readonly contrastRoot?: string;
+  /**
+   * The Contrast `manifest.json` this deployment approved. Sealed into every
+   * receipt by digest. Defaults to `$COOL_CONTRAST_MANIFEST` as a file path.
+   */
+  readonly contrastManifest?: string | Uint8Array;
   /** RFC 3339 clock. Inject for deterministic vectors and tests. */
   readonly clock?: () => string;
   /** Record-id generator. Inject for deterministic vectors and tests. */
@@ -105,6 +123,9 @@ export interface CooLOptions {
 
 /** A record request handed to {@link CooL.record}. */
 export type RecordInput = RecordRequest;
+
+/** A change request handed to {@link CooL.change}. */
+export type ChangeInput = ChangeRequest;
 
 /** A single piece of verifiable execution evidence. */
 export type Evidence = ReceiptV2;
@@ -123,7 +144,7 @@ export interface EvidenceResult {
 
 /** A summary of the connected runtime. */
 export interface Environment {
-  readonly provider: "local" | "dstack";
+  readonly provider: "local" | "dstack" | "contrast";
   readonly mode: EnclaveInfo["mode"];
   readonly vendor: EnclaveInfo["vendor"];
   readonly appId: string;
@@ -137,17 +158,26 @@ export interface Environment {
 
 const DEFAULT_SOCKET = "/var/run/dstack.sock";
 
-function resolveProvider(config: AttestationConfig): "local" | "dstack" {
+function resolveProvider(
+  config: AttestationConfig,
+  options: CooLOptions,
+): "local" | "dstack" | "contrast" {
   if (config.provider) return config.provider;
+  if (options.runtime) return "contrast";
   if (config.endpoint) return "dstack";
-  if (typeof process !== "undefined" && process.env?.["COOL_DSTACK_ENDPOINT"]) return "dstack";
+  if (typeof process === "undefined") return "local";
+  if (process.env?.["COOL_DSTACK_ENDPOINT"]) return "dstack";
+  // Being inside a Contrast pod is a fact about the filesystem, and saying so
+  // explicitly beats guessing: an operator sets this in the pod spec alongside
+  // the volume mount.
+  if (process.env?.["COOL_CONTRAST_ROOT"]) return "contrast";
   return "local";
 }
 
 export class CooL {
   private readonly options: CooLOptions;
   private readonly applicationId: string;
-  private readonly provider: "local" | "dstack";
+  private readonly provider: "local" | "dstack" | "contrast";
   private connecting: Promise<CoolTee> | null = null;
   private tee: CoolTee | null = null;
   private closed = false;
@@ -155,7 +185,7 @@ export class CooL {
   constructor(options: CooLOptions = {}) {
     this.options = options;
     this.applicationId = options.applicationId ?? "cool-app";
-    this.provider = resolveProvider(options.attestation ?? {});
+    this.provider = resolveProvider(options.attestation ?? {}, options);
 
     if (this.applicationId.length === 0) {
       throw new ConfigurationError(
@@ -196,7 +226,20 @@ export class CooL {
     const security = this.options.security ?? {};
     const attestation = this.options.attestation ?? {};
 
-    let client: DstackClient | undefined = this.options.dstackClient;
+    let client: AttestationSource | undefined =
+      this.options.runtime ?? this.options.dstackClient;
+    if (!client && this.provider === "contrast") {
+      // Imported here rather than at the top so a browser or a dstack-only
+      // deployment never pulls in the Node file reader.
+      const { ContrastWorkload } = await import("./contrast/workload");
+      client = await ContrastWorkload.open({
+        ...(this.options.contrastRoot === undefined ? {} : { root: this.options.contrastRoot }),
+        ...(this.options.contrastManifest === undefined
+          ? {}
+          : { manifest: this.options.contrastManifest }),
+        ...(security.requireAttestation ? { requireConfidential: true } : {}),
+      });
+    }
     if (!client && this.provider === "dstack") {
       const endpoint =
         attestation.endpoint ??
@@ -222,7 +265,7 @@ export class CooL {
     let tee: CoolTee;
     try {
       tee = await CoolTee.connect({
-        ...(client ? { dstack: client } : {}),
+        ...(client ? { runtime: client } : {}),
         app: {
           name: this.applicationId,
           imageDigest:
@@ -300,6 +343,41 @@ export class CooL {
         evidence.record.schema === "cool.evidence.v1"
           ? evidence.record.event.execution_id
           : evidence.record.record_id,
+      digest: evidence.binding_hash,
+    };
+  }
+
+  /**
+   * Record a change to the AI system itself — a prompt edit, a model bump, a
+   * widened agent permission, a parameter change, a policy change.
+   *
+   * The other half of the evidence model, and the half that matters for
+   * governance: `record()` captures what the system DID, `change()` captures
+   * what someone changed ABOUT it. Both share one transparency log, one signing
+   * key and one verifier, so "what it was running" and "what it did" are
+   * provably the same history rather than two systems to reconcile.
+   *
+   * The before/after values are committed as salted hashes and discarded; the
+   * receipt carries the commitments and the diff digest, never the text.
+   */
+  async change(input: ChangeInput): Promise<EvidenceResult> {
+    if (!input || typeof input.ref !== "string" || input.ref.length === 0) {
+      throw new EvidenceError("change() requires a non-empty `ref`", {
+        action:
+          "pass { kind: 'prompt', ref: 'billing/refund-agent#system', after: '...', actor: { id: 'user:you', method: 'session' } }",
+      });
+    }
+    const tee = await this.connect();
+    let evidence: Evidence;
+    try {
+      evidence = await tee.change(input);
+    } catch (error) {
+      throw new EvidenceError("failed to seal the change record", { cause: error });
+    }
+    return {
+      evidence,
+      recordId: evidence.record.record_id,
+      executionId: evidence.record.record_id,
       digest: evidence.binding_hash,
     };
   }

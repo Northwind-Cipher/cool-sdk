@@ -31,7 +31,7 @@
  */
 import type { KeyDirectory } from "../types";
 import { CaptureQueue, type CaptureOptions, type CaptureStats } from "./capture";
-import { SimulatedDstackClient, type DstackClient } from "./dstack";
+import { SimulatedDstackClient, type AttestationSource, type DstackClient } from "./dstack";
 import {
   EvidencePlane,
   type CaptureEvent,
@@ -75,6 +75,13 @@ export interface CoolTeeOptions {
    * simulator from `app` — the same code path, no hardware, clearly labelled.
    */
   readonly dstack?: DstackClient;
+  /**
+   * Any confidential runtime, including Contrast's `ContrastWorkload`.
+   *
+   * `dstack` remains for source compatibility; `runtime` is the name to use for
+   * anything that is not dstack. Exactly one of them should be set.
+   */
+  readonly runtime?: AttestationSource;
   /** Identity of the deployed image, when using the built-in simulator. */
   readonly app?: { readonly name: string; readonly imageDigest: string };
   /** What the client demands of the endpoint before transmitting. */
@@ -161,7 +168,8 @@ export class CoolTee {
    * policy. Only if that passes does a queue exist to put events in.
    */
   static async connect(options: CoolTeeOptions = {}): Promise<CoolTee> {
-    const client: DstackClient =
+    const client: AttestationSource =
+      options.runtime ??
       options.dstack ??
       new SimulatedDstackClient({
         appName: options.app?.name ?? "cool-evidence-plane",
@@ -190,6 +198,8 @@ export class CoolTee {
     const channel = await AttestedChannel.connect<Envelope>({
       client,
       expectedKey: plane.keys.record.directoryEntry,
+      // The channel attests the SAME credential the records will carry.
+      workload: plane.workload ?? null,
       policy: options.policy ?? {},
       sink: async (batch) => {
         // This runs INSIDE the enclave in a real deployment: the plaintext that

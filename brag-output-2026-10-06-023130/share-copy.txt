@@ -1,0 +1,5 @@
+CooL × Edgeless Systems Contrast: an AI-change receipt that proves which confidential workload produced it.
+
+Four AI changes sealed inside an attested pod, then four forgeries — a stolen credential, a Coordinator nobody attested — rejected on camera. The evidence model itself is verified on real Intel TDX: attestation pass, enclave pass, witnesses pass.
+
+npm run demo:contrast

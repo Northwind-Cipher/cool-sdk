@@ -16,7 +16,7 @@
  * demo can do, a CI job can do too, and there is no interactive-only magic.
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { basename, dirname, join, relative } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { domainOrder } from "../phala/index";
 import type { ChangeKind, ReceiptV2, RuntimeState, VerdictV2 } from "../phala/index";
@@ -195,12 +195,53 @@ export function printVerdict(verdict: VerdictV2, subject: string): void {
   out();
 }
 
+/**
+ * `--coordinator-root <pem>` and `--manifest <json>`: the two files a reader
+ * needs to verify a Contrast-bound receipt independently.
+ *
+ * Both are paths, read here rather than passed through, so a missing file fails
+ * at the flag and not three layers down inside the verifier.
+ */
+function contrastFlags(args: string[]): {
+  coordinatorRootCA?: string;
+  manifest?: Uint8Array;
+} {
+  const value = (flag: string): string | undefined => {
+    const index = args.indexOf(flag);
+    if (index === -1) return undefined;
+    const next = args[index + 1];
+    if (next === undefined || next.startsWith("--")) {
+      throw new Error(`${flag} needs a file path`);
+    }
+    return next;
+  };
+
+  const rootPath = value("--coordinator-root");
+  const manifestPath = value("--manifest");
+  return {
+    ...(rootPath === undefined ? {} : { coordinatorRootCA: readFileSync(resolve(rootPath), "utf8") }),
+    ...(manifestPath === undefined ? {} : { manifest: new Uint8Array(readFileSync(resolve(manifestPath))) }),
+  };
+}
+
+/** The argv entries consumed as flag VALUES, so they are not read as targets. */
+function consumedValues(args: string[]): Set<string> {
+  const consumed = new Set<string>();
+  for (const flag of ["--coordinator-root", "--manifest"]) {
+    const index = args.indexOf(flag);
+    const next = index === -1 ? undefined : args[index + 1];
+    if (next !== undefined && !next.startsWith("--")) consumed.add(next);
+  }
+  return consumed;
+}
+
 export async function verifyCommand(
   workspace: Workspace | null,
   args: string[],
 ): Promise<number> {
   const requireHardware = args.includes("--require-hardware");
-  const targets = args.filter((arg) => !arg.startsWith("--"));
+  const contrast = contrastFlags(args);
+  const targets = args.filter((arg) => !arg.startsWith("--") && !consumedValues(args).has(arg));
   const stored = loadReceipts(workspace?.root);
 
   let receipts: { label: string; receipt: ReceiptV2 }[];
@@ -220,7 +261,7 @@ export async function verifyCommand(
   let failures = 0;
   for (const { label, receipt } of receipts) {
     const progress = new Progress().start(`verifying ${label}`);
-    const verdict = await verify(receipt, workspace, { requireHardware, pin: true });
+    const verdict = await verify(receipt, workspace, { requireHardware, pin: true, ...contrast });
     if (verdict.ok) progress.succeed(`${label}`);
     else progress.fail(`${label}`);
     printVerdict(verdict, label);
@@ -296,29 +337,90 @@ export async function stats(workspace: Workspace | null): Promise<void> {
 /* ── attest ───────────────────────────────────────────────────────────── */
 
 export function attest(workspace: Workspace): void {
-  const quote = workspace.cool.handshake.quote;
+  const handshake = workspace.cool.handshake;
+  const quote = handshake.quote;
+  const workload = handshake.workload;
   const m = workspace.info.measurement;
 
-  panel(
-    "quote",
-    [
-      `${c.grey("format")}       ${quote.format}`,
-      `${c.grey("root")}         ${
-        quote.root === "cool-sim-root" ? c.cyan(`${quote.root} — NOT a vendor root`) : c.green(quote.root)
-      }`,
-      `${c.grey("tcb")}          ${quote.body.tcb_status}`,
-      `${c.grey("report_data")}  ${quote.body.report_data}`,
-      c.faint("   ↳ commits to the public half of the key that signs every record"),
-    ],
-    quote.root === "cool-sim-root" ? c.cyan : c.green,
-  );
-  out();
-  out(`  ${c.bold("measurement registers")}`);
-  for (const [name, value] of Object.entries(m)) {
-    out(`    ${c.grey(name.toUpperCase().padEnd(6))} ${c.faint(value.slice(4))}`);
+  // Two attestation routes reach this screen and they are not interchangeable.
+  // dstack hands over a vendor quote; Contrast's Coordinator hands over a
+  // certificate carrying the claims it checked. Rendering one as the other
+  // would be the easiest way to mislead a reader, so each gets its own panel.
+  if (quote) {
+    panel(
+      "quote",
+      [
+        `${c.grey("format")}       ${quote.format}`,
+        `${c.grey("root")}         ${
+          quote.root === "cool-sim-root" ? c.cyan(`${quote.root} — NOT a vendor root`) : c.green(quote.root)
+        }`,
+        `${c.grey("tcb")}          ${quote.body.tcb_status}`,
+        `${c.grey("report_data")}  ${quote.body.report_data}`,
+        c.faint("   ↳ commits to the public half of the key that signs every record"),
+      ],
+      quote.root === "cool-sim-root" ? c.cyan : c.green,
+    );
+    out();
+    out(`  ${c.bold("measurement registers")}`);
+    for (const [name, value] of Object.entries(m)) {
+      out(`    ${c.grey(name.toUpperCase().padEnd(6))} ${c.faint(value.slice(4))}`);
+    }
+    out();
+    out(`  ${c.faint("MRTD is the image; RTMR3 moves when your application does.")}`);
+    out();
+    return;
   }
-  out();
-  out(`  ${c.faint("MRTD is the image; RTMR3 moves when your application does.")}`);
+
+  if (workload) {
+    const id = workload.identity;
+    const insecure = id.tee === "insecure";
+    panel(
+      "workload credential",
+      [
+        `${c.grey("platform")}     ${id.platform}`,
+        `${c.grey("tee")}          ${
+          insecure ? c.cyan("insecure — no confidential-computing hardware") : c.green(id.tee)
+        }`,
+        `${c.grey("workload")}     ${id.workload_name ?? "(unnamed)"}`,
+        `${c.grey("policy hash")}  ${(id.policy_hash ?? "hex:(absent)").slice(4)}`,
+        c.faint("   ↳ the manifest entry that authorised this pod (Contrast HOSTDATA)"),
+        `${c.grey("secret id")}    ${id.workload_secret_id ?? "(none)"}`,
+        `${c.grey("key binding")}  ${workload.attestation.key_binding}`,
+        c.faint("   ↳ signed by the pod's mesh key; commits to the record signing key"),
+      ],
+      insecure ? c.cyan : c.green,
+    );
+    out();
+    out(`  ${c.bold("attestation registers")} ${c.faint("(as the Coordinator certified them)")}`);
+    const names = Object.keys(id.registers).sort();
+    if (names.length === 0) {
+      out(`    ${c.cyan("none — this credential carries no measurements")}`);
+    }
+    for (const name of names) {
+      out(`    ${c.grey(name.toUpperCase().padEnd(12))} ${c.faint((id.registers[name] ?? "").slice(4))}`);
+    }
+    out();
+    out(`  ${c.bold("handshake")}`);
+    for (const step of handshake.steps) {
+      out(`    ${step.ok ? c.green("ok ") : c.red("X  ")} ${c.grey(step.label.padEnd(20))} ${c.faint(step.detail)}`);
+    }
+    out();
+    out(
+      `  ${c.faint("Verify independently: contrast verify -c <coordinator>, then")}
+  ${c.faint("cool verify <receipt> --coordinator-root verify/coordinator-root-ca.pem")}`,
+    );
+    out();
+    return;
+  }
+
+  panel(
+    "attestation",
+    [
+      c.cyan("none — this evidence plane has no attestation path at all"),
+      c.faint("   ↳ records are tamper-evident, but say nothing about where they ran"),
+    ],
+    c.cyan,
+  );
   out();
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "cool-nwc",
   "version": "3.0.0",
-  "description": "Cryptographic Observability & On-chain Ledger — tamper-evident, offline-verifiable execution evidence for AI and enterprise workloads. Hybrid post-quantum signatures (ML-DSA-65 + Ed25519), an RFC 6962 transparency log, measurement-sealed keys via Phala dstack, and a verifier that trusts nothing but the bytes.",
+  "description": "Cryptographic Observability & On-chain Ledger — tamper-evident, offline-verifiable execution evidence for AI and enterprise workloads. Hybrid post-quantum signatures (ML-DSA-65 + Ed25519), an RFC 6962 transparency log, measurement-sealed keys via Phala dstack or Edgeless Systems Contrast, and a verifier that trusts nothing but the bytes.",
   "license": "BUSL-1.1",
   "type": "module",
   "sideEffects": false,
@@ -17,6 +17,10 @@
     "./phala": {
       "types": "./dist/phala/index.d.ts",
       "default": "./dist/phala/index.js"
+    },
+    "./contrast": {
+      "types": "./dist/contrast/index.d.ts",
+      "default": "./dist/contrast/index.js"
     },
     "./verify": {
       "types": "./dist/verify.d.ts",
@@ -57,7 +61,13 @@
     "remote-attestation",
     "ai-provenance",
     "verifiable-evidence",
-    "audit-trail"
+    "audit-trail",
+    "contrast",
+    "edgeless",
+    "confidential-containers",
+    "kata-containers",
+    "amd-sev-snp",
+    "workload-attestation"
   ],
   "author": "Northwind Cipher Pvt. Ltd.",
   "homepage": "https://github.com/Northwind-Cipher/cool-sdk#readme",
@@ -90,6 +100,7 @@
     "test": "node scripts/run-tests.mjs",
     "verify:package": "node scripts/verify-package.mjs",
     "demo": "node --import tsx scripts/demo.ts",
+    "demo:contrast": "node --import tsx examples/contrast/demo.mjs",
     "verify:all": "npm run typecheck && npm run test"
   }
 }

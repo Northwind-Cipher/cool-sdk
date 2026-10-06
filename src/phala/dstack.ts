@@ -33,11 +33,25 @@
  * property customers are buying; it should be demonstrable without a data centre.
  */
 import { sha256, sha384 } from "@noble/hashes/sha2";
-import type { Base64Field, HexField, KeyDirectory, KeyPair, Multihash } from "../types";
+import type {
+  Base64Field,
+  DirectoryEntry,
+  HexField,
+  KeyDirectory,
+  KeyPair,
+  Multihash,
+} from "../types";
 import { concatBytes, toBase64Field, toHexField, utf8 } from "../codec";
 import { generateKeypair } from "../keys";
 import { multihashDigest } from "../multihash";
-import type { Measurement, QuoteBody, QuoteEnvelope, RuntimeMode, TeeVendor } from "./types";
+import type {
+  Measurement,
+  QuoteBody,
+  QuoteEnvelope,
+  RuntimeMode,
+  TeeVendor,
+  WorkloadBinding,
+} from "./types";
 import { SIM_ROOT_KEY_ID, signSimulatedQuote } from "./quote";
 
 /** One entry of the RTMR event log — what was extended, and with what. */
@@ -83,6 +97,66 @@ export interface DstackClient {
    * root's public half so simulated receipts stay offline-verifiable.
    */
   directory(): KeyDirectory;
+}
+
+/**
+ * What the evidence plane actually requires of a confidential runtime.
+ *
+ * `DstackClient` satisfies this; so does `ContrastWorkload` from
+ * `cool-nwc/contrast`. The widening is deliberate and small, because the two
+ * platforms differ in exactly one respect: where the attestation lives.
+ *
+ *   • dstack hands the workload a RAW VENDOR QUOTE. The verifier chains it to
+ *     Intel DCAP or AMD KDS itself. `getQuote` returns it; `attestWorkload` is
+ *     absent.
+ *   • Contrast's Coordinator — a confidential VM the reader attests separately
+ *     with `contrast verify` — checks the workload's report against a manifest
+ *     and issues a MESH CERTIFICATE carrying the claims it checked. There is no
+ *     quote for the workload to return, so `getQuote` is `null` and
+ *     `attestWorkload` produces the credential.
+ *
+ * A source may provide either, or both. Providing neither yields a `mock`
+ * receipt, which is what v1 always was and is reported as such.
+ */
+export interface AttestationSource {
+  readonly mode: RuntimeMode;
+  info(): Promise<EnclaveInfo>;
+  /** Derive a 32-byte secret only this measured workload can obtain. */
+  deriveKey(path: string): Promise<Uint8Array>;
+  directory(): KeyDirectory;
+  /**
+   * A vendor quote over `reportData`, or `null` on a platform that issues none.
+   */
+  getQuote(reportData: Multihash): Promise<QuoteEnvelope | null>;
+  /**
+   * An orchestrator-issued credential binding CooL's signing identity to this
+   * workload, plus the identity that credential states. Present only on
+   * platforms that work that way.
+   */
+  attestWorkload?(keyId: string, entry: DirectoryEntry): Promise<WorkloadBinding>;
+  /**
+   * The trust anchor the runtime itself was given, PEM.
+   *
+   * A Contrast pod receives the Coordinator root CA from the Coordinator over
+   * aTLS, so the pod can check that its own credential chain is coherent before
+   * it transmits. That is a useful self-check and nothing more: a root that
+   * arrived with the credential cannot establish the credential. An independent
+   * reader still has to pin their own copy from `contrast verify`, and the
+   * handshake transcript and the `workload` verdict domain both say so.
+   */
+  readonly coordinatorRootCA?: string;
+  /**
+   * The key id to record in signatures for a given role.
+   *
+   * Exists because the default -- derived from the enclave measurement -- is
+   * ambiguous on a platform where several distinct workloads share one image.
+   * Two Contrast pods built from the same image have the same MRTD but
+   * different workload secrets, so they hold DIFFERENT keys; labelling both
+   * `cool-enclave-<mrtd>` would put two public keys under one id and quietly
+   * break any directory that merges them. A source that can name itself more
+   * precisely should.
+   */
+  keyId?(role: string): string;
 }
 
 /* ── the real guest agent ─────────────────────────────────────────────── */

@@ -29,7 +29,7 @@
  */
 import type { KeyPair } from "../types";
 import { generateKeypair } from "../keys";
-import type { DstackClient } from "./dstack";
+import type { AttestationSource } from "./dstack";
 import { shortMeasurement } from "./quote";
 
 /** Derivation paths CooL uses. Stable strings — changing one rotates a key. */
@@ -58,11 +58,12 @@ export interface SealedKeyOptions {
  * Derive a hybrid ML-DSA-65 + Ed25519 keypair sealed to the enclave.
  *
  * The 32-byte seed never leaves the TEE in a hardware deployment; here it is
- * fetched through the {@link DstackClient} abstraction, which means the same
- * call works against the real guest agent and against the simulator.
+ * fetched through the {@link AttestationSource} abstraction, which means the same
+ * call works against the real guest agent, the simulator, and Contrast's
+ * workload secret -- see `cool-nwc/contrast`.
  */
 export async function sealedKeypair(
-  client: DstackClient,
+  client: AttestationSource,
   options: SealedKeyOptions = {},
 ): Promise<KeyPair> {
   const path = options.path ?? KEY_PATH.record;
@@ -70,10 +71,15 @@ export async function sealedKeypair(
   if (seed.length !== 32) {
     throw new Error(`key provider returned ${seed.length} bytes, expected a 32-byte seed`);
   }
+  const role = options.role ?? "enclave";
   let keyId = options.keyId;
+  if (!keyId && client.keyId) {
+    // The runtime can name itself unambiguously -- see AttestationSource.keyId.
+    keyId = client.keyId(role);
+  }
   if (!keyId) {
     const info = await client.info();
-    keyId = `cool-${options.role ?? "enclave"}-${shortMeasurement(info.measurement, 10)}`;
+    keyId = `cool-${role}-${shortMeasurement(info.measurement, 10)}`;
   }
   return generateKeypair(keyId, { seed });
 }
@@ -85,7 +91,7 @@ export interface SealedKeyset {
 }
 
 /** Derive both sealed keys in one round-trip pair. */
-export async function sealedKeyset(client: DstackClient): Promise<SealedKeyset> {
+export async function sealedKeyset(client: AttestationSource): Promise<SealedKeyset> {
   const [record, log] = await Promise.all([
     sealedKeypair(client, { path: KEY_PATH.record, role: "enclave" }),
     sealedKeypair(client, { path: KEY_PATH.log, role: "log" }),

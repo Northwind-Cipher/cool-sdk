@@ -56,6 +56,7 @@ export {
 } from "./runtime";
 export type { RuntimeState, RuntimeStatus } from "./runtime";
 export type {
+  AttestationSource,
   DstackClient,
   EnclaveEvent,
   EnclaveInfo,

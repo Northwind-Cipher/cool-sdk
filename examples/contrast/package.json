@@ -1,0 +1,16 @@
+{
+  "name": "cool-contrast-example",
+  "private": true,
+  "type": "module",
+  "description": "An AI service that runs inside an Edgeless Systems Contrast confidential workload and seals verifiable evidence of every change to it.",
+  "scripts": {
+    "start": "node ai-service.mjs",
+    "verify": "node verify.mjs receipts.json --coordinator-root verify/coordinator-root-ca.pem --manifest manifest.json --require-hardware"
+  },
+  "dependencies": {
+    "cool-nwc": "file:../.."
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

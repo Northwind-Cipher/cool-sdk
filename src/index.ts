@@ -14,7 +14,8 @@
  * verifier, the typed error set, and the cryptographic primitives the evidence
  * model is built from. Everything advanced — the change-record model, direct
  * dstack clients, the quote/anchor/witness/policy machinery — lives behind
- * `cool-nwc/phala`.
+ * `cool-nwc/phala`, and the Edgeless Systems Contrast integration behind
+ * `cool-nwc/contrast`.
  *
  *     import { CooL, verifyEvidence } from "cool-nwc";
  *
@@ -25,6 +26,7 @@
 export { CooL } from "./client";
 export type {
   AttestationConfig,
+  ChangeInput,
   CooLOptions,
   Environment,
   Evidence,
@@ -67,6 +69,11 @@ export type {
   TeeVendor,
   RuntimeMode,
   GpuAttestationRef,
+  WorkloadIdentityV1,
+  WorkloadAttestationV1,
+  WorkloadBinding,
+  WorkloadPlatform,
+  WorkloadTee,
 } from "./phala/types";
 
 /* ── errors ──────────────────────────────────────────────────────────── */

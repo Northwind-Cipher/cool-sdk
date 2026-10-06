@@ -1,0 +1,14 @@
+{
+  "name": "cool-docs-build",
+  "private": true,
+  "type": "module",
+  "description": "Generates the CooL x Contrast PDF/Word deliverables from one content source.",
+  "scripts": {
+    "docs": "node build.mjs"
+  },
+  "dependencies": {
+    "docx": "^9.0.0",
+    "pdfjs-dist": "^4.10.38",
+    "pdfkit": "^0.15.0"
+  }
+}

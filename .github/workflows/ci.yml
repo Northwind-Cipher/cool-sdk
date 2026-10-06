@@ -33,6 +33,8 @@ jobs:
         run: npm run build
       - name: Demo (valid -> tamper -> fail)
         run: npm run demo
+      - name: contrast demo (end to end, against Contrast-generated fixtures)
+        run: npm run demo:contrast
         env:
           NO_COLOR: "1"
 

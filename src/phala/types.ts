@@ -141,6 +141,124 @@ export interface GpuAttestationRef {
   readonly verdict: "verified" | "unverified" | "simulated";
 }
 
+/* ── workload identity (orchestrator-issued attestation) ──────────────── */
+
+/**
+ * Which attestation topology issued a workload credential.
+ *
+ * `contrast` is Edgeless Systems' Contrast. Its shape is genuinely different
+ * from dstack's and the difference matters: dstack hands the workload a raw
+ * vendor quote and the verifier chains it to Intel/AMD itself, whereas
+ * Contrast's Coordinator — a confidential VM the reader attests once, with
+ * `contrast verify` — checks each workload's SNP/TDX report against a manifest
+ * and then issues a mesh certificate that CARRIES the claims it checked. So a
+ * Contrast credential is an attestation *statement by an attested authority*,
+ * not a quote. Conflating the two would be the central dishonesty available
+ * here, so they are separate fields with separate verdict domains.
+ */
+export type WorkloadPlatform = "contrast";
+
+/**
+ * The confidential-computing technology behind a workload credential.
+ * `insecure` is Contrast's own term for a development platform with no CC
+ * hardware; such a credential carries no measurements at all.
+ */
+export type WorkloadTee = "intel-tdx" | "amd-sev-snp" | "insecure";
+
+/**
+ * Who the workload is, according to the orchestrator that attested it.
+ *
+ * This lives INSIDE the signed record core. Every field is recomputable from
+ * the credential in the receipt envelope, which is what makes the pairing
+ * checkable: if someone swaps the credential, the recomputed identity stops
+ * matching the signed one; if someone edits the signed identity, the record
+ * signature breaks. Neither half can move without the other.
+ */
+export interface WorkloadIdentityV1 {
+  readonly schema: "cool.workload.v1";
+  readonly platform: WorkloadPlatform;
+  readonly tee: WorkloadTee;
+  /**
+   * Contrast's policy hash: the digest of the pod's initdata document, carried
+   * in the report's HostData (TDX: `MRCONFIGID[:32]`; SNP: `HOST_DATA`) and used
+   * as the key of the manifest's `Policies` map. This is the single value that
+   * answers "which manifest entry authorised this pod".
+   */
+  readonly policy_hash: HexField | null;
+  /** Contrast's `WorkloadSecretID` — the derivation label for the sealed secret. */
+  readonly workload_secret_id: string | null;
+  /** The workload's name as the Coordinator issued it (first DNS SAN). */
+  readonly workload_name: string | null;
+  /** Every subject alternative name in the credential, in certificate order. */
+  readonly sans: readonly string[];
+  /**
+   * The attestation registers read out of the credential, by their platform
+   * names (`mrtd`, `rtmr0`…`rtmr3`, `mrseam`, or SNP's `measurement`).
+   * A map rather than a fixed struct because SNP and TDX do not share a shape
+   * and padding one into the other would invent values.
+   */
+  readonly registers: Readonly<Record<string, HexField>>;
+  /** One commitment over `registers` — the value a deployment pins and diffs. */
+  readonly registers_digest: Multihash;
+  /**
+   * `mh:sha256` of the DER of the Coordinator root CA this deployment trusts.
+   * Sealing it means the record states which root it expected to be judged
+   * against, so a verifier can detect that it is holding the wrong root rather
+   * than silently failing the chain.
+   */
+  readonly coordinator_root: Multihash | null;
+  /** `mh:sha256` of the exact `manifest.json` bytes the operator pinned. */
+  readonly manifest_digest: Multihash | null;
+}
+
+/**
+ * The credential itself, and the statement binding it to CooL's signing key.
+ *
+ * Lives in the receipt envelope rather than the signed core because it is large
+ * and because the core already commits to everything that matters about it.
+ */
+export interface WorkloadAttestationV1 {
+  readonly schema: "cool.workload.attestation.v1";
+  readonly platform: WorkloadPlatform;
+  /** The workload's certificate chain, PEM, leaf first (Contrast `certChain.pem`). */
+  readonly cert_chain: string;
+  /**
+   * `mh:sha256` of the binding statement — a commitment to the CooL signing
+   * identity. The orchestrator-issued key signs THIS, which is how "an attested
+   * workload holds this credential" and "this key signed this record" become one
+   * chain instead of two adjacent assertions. The analogue of a quote's
+   * `report_data`, with the Coordinator standing where the silicon stands.
+   */
+  readonly key_binding: Multihash;
+  /** The key id of the CooL record key the binding statement covers. */
+  readonly bound_key_id: string;
+  /** DER `ECDSA-Sig-Value` over the binding statement, by the credential's key. */
+  readonly binding_signature: Base64Field;
+  /** Algorithm OID of `binding_signature`, e.g. `1.2.840.10045.4.3.2`. */
+  readonly binding_alg: string;
+  /** When the binding was made. Part of the signed statement. */
+  readonly issued_at: string;
+}
+
+/**
+ * What an attestation source returns when it can bind CooL's key to a workload.
+ *
+ * Both halves come from the source together because only the source can produce
+ * them consistently: the identity is read out of the very credential the
+ * signature is made with. Splitting them would let the two drift, and the whole
+ * point of the design is that they cannot.
+ *
+ * It also keeps the evidence plane platform-agnostic — the core never parses a
+ * certificate, so Contrast support stays an integration layer instead of a
+ * dependency of the SDK's centre.
+ */
+export interface WorkloadBinding {
+  /** Goes into the signed record core. */
+  readonly identity: WorkloadIdentityV1;
+  /** Goes into the receipt envelope. */
+  readonly attestation: WorkloadAttestationV1;
+}
+
 /**
  * The v2 runtime block. Unlike v1's frozen `mock` shape, this is part of the
  * signed core AND carries real values — so an attacker cannot re-label a record
@@ -149,6 +267,11 @@ export interface GpuAttestationRef {
  * `tee_quote` is a hash rather than the quote itself: the core stays small, and
  * because the hash is inside the signed bytes the quote in the receipt envelope
  * is still covered by the record signature (Build Plan §4).
+ *
+ * `workload` is OPTIONAL in the encoding sense, not merely nullable: on a
+ * deployment with no orchestrator-issued credential the key is absent from the
+ * canonical CBOR entirely, so every receipt minted before this field existed
+ * still hashes, signs and verifies to exactly the same bytes.
  */
 export interface RuntimeBlockV2 {
   readonly tee_vendor: TeeVendor;
@@ -156,6 +279,7 @@ export interface RuntimeBlockV2 {
   readonly enclave_measurement: Measurement | null;
   readonly tee_quote: Multihash | null;
   readonly gpu: GpuAttestationRef | null;
+  readonly workload?: WorkloadIdentityV1;
 }
 
 /* ── record cores ─────────────────────────────────────────────────────── */
@@ -304,6 +428,12 @@ export interface AttestationV2 {
   readonly expected_measurement: Measurement | null;
   /** Recomputable commitment to the signing identity — see {@link QuoteBody.report_data}. */
   readonly key_binding: Multihash | null;
+  /**
+   * An orchestrator-issued workload credential, when the deployment has one.
+   * Optional in the encoding sense so receipts predating the field are byte-
+   * identical. See {@link WorkloadAttestationV1}.
+   */
+  readonly workload?: WorkloadAttestationV1;
 }
 
 /**
@@ -362,9 +492,18 @@ export interface DomainCheckV2 {
 }
 
 /**
- * The seven trust domains of a v2 verdict. `enclave` is the one v1 could not
- * have: it answers "was the key that signed this record held by the attested
- * code, and was that code the code we pinned?".
+ * The eight trust domains of a v2 verdict.
+ *
+ * `enclave` is the one v1 could not have: it answers "was the key that signed
+ * this record held by the attested code, and was that code the code we pinned?"
+ * against a raw vendor quote.
+ *
+ * `workload` answers the same question where the attestation is issued by an
+ * orchestrator instead of read from silicon — Contrast's Coordinator. It is a
+ * separate domain rather than an extra way to pass `enclave` because the trust
+ * argument is genuinely different: a reader who pins a Coordinator root is
+ * trusting an authority they attested, not arithmetic over a quote. Keeping the
+ * domains apart lets a verdict say which of the two it actually checked.
  */
 export interface VerdictChecksV2 {
   readonly binding: DomainCheckV2;
@@ -373,6 +512,7 @@ export interface VerdictChecksV2 {
   readonly witnesses: DomainCheckV2;
   readonly attestation: DomainCheckV2;
   readonly enclave: DomainCheckV2;
+  readonly workload: DomainCheckV2;
   readonly anchor: DomainCheckV2;
 }
 
@@ -407,6 +547,40 @@ export interface VerifyOptionsV2 {
   /**
    * Require a hardware root. With this on, a simulated receipt cannot be `ok` —
    * the setting a regulated deployment turns on and never turns off again.
+   *
+   * Satisfied by EITHER a vendor quote verified against Intel/AMD/NVIDIA, OR a
+   * workload credential that chained to a Coordinator root the verifier pinned.
+   * The second route is transitive — it trusts an authority the reader attested
+   * separately — and the verdict always names which route was taken, so the
+   * distinction survives into the audit trail rather than being flattened here.
    */
   readonly requireHardware?: boolean;
+  /**
+   * Coordinator root CA certificates, PEM, that the verifier trusts.
+   *
+   * This is the Contrast trust anchor, and the workload domain cannot reach
+   * `pass` without it: an unpinned chain is self-asserted, and a pod can hand
+   * out any CA it likes. Obtain the real one by running
+   * `contrast verify -c <coordinator>`, which attests the Coordinator CVM
+   * against the manifest's reference values and writes
+   * `verify/coordinator-root-ca.pem`.
+   */
+  readonly coordinatorRootCA?: string;
+  /**
+   * Policy hashes the deployment approved — the keys of the manifest's
+   * `Policies` map. When set, a credential whose policy hash is not in this set
+   * FAILS the workload domain instead of merely being reported.
+   */
+  readonly allowedPolicyHashes?: readonly string[];
+  /**
+   * The exact `manifest.json` bytes the deployment approved. When set, the
+   * record's sealed manifest digest must match, which is what turns "this ran
+   * under the manifest I reviewed" into a checkable statement.
+   */
+  readonly expectedManifest?: string | Uint8Array;
+  /**
+   * Pin the workload credential's attestation registers. When set, any drift —
+   * a rebuilt image, a different kernel — FAILS the workload domain.
+   */
+  readonly expectedRegisters?: Readonly<Record<string, string>>;
 }
