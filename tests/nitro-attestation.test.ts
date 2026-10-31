@@ -19,7 +19,7 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
-import { X509Certificate, createPrivateKey, sign as cryptoSign } from "node:crypto";
+import { sign as cryptoSign } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Tag, decode, encode } from "cbor2";
@@ -34,6 +34,7 @@ import {
   verifyNitroAttestation,
 } from "../src/nitro/index";
 import type { NitroPcrPolicy, VerifyNitroOptions } from "../src/nitro/index";
+import { syntheticNitroPki } from "./support/synthetic-pki";
 
 const DIR = join(import.meta.dirname, "fixtures", "nitro");
 const GENUINE = new Uint8Array(
@@ -42,12 +43,12 @@ const GENUINE = new Uint8Array(
 const GENUINE_TIME = Date.parse("2024-09-09T19:49:12.400Z");
 const GENUINE_NONCE = Uint8Array.from([...new Array(19).fill(0), 1]);
 
-const der = (name: string) => new Uint8Array(new X509Certificate(readFileSync(join(DIR, "synthetic", name))).raw);
-const SYN_ROOT = der("root.pem");
-const SYN_INTER = der("inter.pem");
-const SYN_LEAF = der("leaf.pem");
-const SYN_LEAF_KEY = createPrivateKey(readFileSync(join(DIR, "synthetic", "leaf.key.pem")));
-const SYN_BUNDLE = trustBundleFromDer("synthetic-test-pki", "2026-10-31", "tests/fixtures/nitro/synthetic", [
+const PKI = syntheticNitroPki();
+const SYN_ROOT = PKI.root;
+const SYN_INTER = PKI.intermediate;
+const SYN_LEAF = PKI.leaf;
+const SYN_LEAF_KEY = PKI.leafKey;
+const SYN_BUNDLE = trustBundleFromDer("synthetic-test-pki", "per-run", "tests/support/synthetic-pki.ts", [
   { name: "synthetic.nitro-root", der: SYN_ROOT },
 ]);
 const NOW = Date.parse("2027-01-01T00:00:00Z");
@@ -361,7 +362,7 @@ test("synthetic: missing policy, freshness or receipt key is unknown — never p
 });
 
 test("synthetic: a stale trust bundle is unknown; an expired chain fails", () => {
-  const stale = trustBundleFromDer("synthetic-test-pki", "2026-10-31", "test", [{ name: "synthetic.nitro-root", der: SYN_ROOT }], "2026-12-01T00:00:00Z");
+  const stale = trustBundleFromDer("synthetic-test-pki", "per-run", "test", [{ name: "synthetic.nitro-root", der: SYN_ROOT }], "2026-12-01T00:00:00Z");
   const r = verifyNitroAttestation(synthetic(), synOptions({ trustBundle: stale }));
   assert.equal(r.checks.trust_root.reason, "trust_bundle_stale");
   assert.equal(r.overall_status, "unknown");

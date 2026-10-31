@@ -19,7 +19,7 @@ The specification's "spec / verifier / SDK" split already exists **inside** `Nor
 ## Decision
 
 1. All new work goes into `Northwind-Cipher/cool-sdk`. The `KenidoesCode` repositories are treated as historical v0.1 snapshots and are not modified. Changing them would fork the work and leave the June code looking current.
-2. The Nitro work is based on `origin/main`, not on the unpushed branch. Building on that branch would publish its 14 commits, which include documents such as `docs/IP-PROTECTION-REPORT.md`, without the owner deciding to publish them.
+2. The Nitro work is based on `origin/main`, not on the unpushed branch. Building on that branch would publish its 14 commits, which include internal material such as `docs/demo-script.md`, `brag-output-*/` and `deploy.bat`, without the owner deciding to publish them.
 3. New code goes in `src/nitro/`, behind the subpath export `cool-nwc/nitro`, and does not depend on the verifier split. When that split merges, `src/nitro/attestation.ts`, `trust-root.ts` and `epochs.ts` move into `packages/cool-verifier/src/nitro/` unchanged, because they import only the canonical, codec, hash, sign and types modules.
 4. No repository restructure beyond that is proposed here.
 
