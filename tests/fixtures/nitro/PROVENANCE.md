@@ -1,0 +1,21 @@
+# Nitro fixtures: where each file came from
+
+Two kinds of fixture live here, and they are never mixed up in the tests.
+
+## `genuine-debug-us-east-1-2024-09-09.cbor.b64`: a real AWS document
+
+- **What it is:** a genuine AWS Nitro Enclaves attestation document, captured by a third party from an enclave in `us-east-1` on 2024-09-09T19:49:12.400Z. Module `i-0bbf1bfe232b8c2ce-enc0191ba35c9d1b77a`.
+- **Source:** [`EternisAI/remote-attestation-verifier`](https://github.com/EternisAI/remote-attestation-verifier), file `fixtures/example_attestation`, at commit `711d2f7fa69558f6f6cd4ff52e262fdbdfc295a8`. MIT licensed. The bytes are unmodified; only whitespace was stripped from the base64.
+- **SHA-256 of the decoded bytes:** `8056eefb696e0e5d178f9d6cb81f7ef0d4bb084cbac9507663b1a31d89e00385`
+- **How we know it is genuine:** it is not taken on trust. `tests/nitro-attestation.test.ts` verifies its ES384 COSE signature and its four-certificate chain to the pinned `AWS_NitroEnclaves_Root-G1`, whose fingerprint `641a0321…79bb5b` was checked against AWS's published value. Only AWS's PKI could have produced that chain.
+- **What it is not:** a CooL enclave. It is a **debug-mode** enclave (PCR0–2 are all zero), its nonce is a fixed `00…01`, and its `user_data` is the other project's own protocol, not a CooL key binding. It is used to prove parsing, signature, chain, root pinning, debug detection, freshness and tamper rejection on real AWS bytes. It cannot prove CooL key binding.
+- **Review:** it contains no secrets. The public key, user data and nonce were chosen by the capturing project.
+
+**The gap this leaves:** the spec requires a genuine document *captured from a CooL test enclave*, binding a CooL receipt key. That needs an AWS Nitro-enabled EC2 instance, or Caution access, and has not been done. Until it is, the key-binding positive path is proven only on the synthetic PKI below.
+
+## The synthetic PKI: a test PKI, not AWS, and never on disk
+
+- Built fresh in memory on every test run by `tests/support/synthetic-pki.ts`: a root CA → intermediate CA → leaf, all P-384 / ecdsa-with-SHA384, in the same shape as the Nitro PKI.
+- **No key or certificate is committed.** The repository's security policy (`.github/workflows/security.yml`) forbids committing key material, and the keys live only as long as the test process.
+- **The verifier never trusts this root by default.** Tests pass it explicitly as a trust bundle named `synthetic-test-pki`, and every report names the bundle it used.
+- Tests use it to build documents with chosen PCRs, `user_data`, `public_key` and nonce, signed with the leaf key. These are labelled synthetic in every test name. A pass against this PKI is a test of the verifier's logic, never evidence about a real enclave.

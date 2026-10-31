@@ -341,6 +341,48 @@ export const COMMANDS: readonly CommandDoc[] = [
     seeAlso: ["status", "attestation"],
   },
   {
+    name: "bundle",
+    args: "verify <bundle.json>",
+    summary: "verify a portable evidence bundle, offline",
+    description:
+      "Re-verifies every envelope in a cool.bundle.v1 export, checks the manifest and the " +
+      "exporter's signature, resolves every reference, and rebuilds the timeline itself. It " +
+      "never trusts the exporter's conclusions. Without --trust it uses the bundle's own " +
+      "snapshot and says the result is self-asserted. Exit 0 pass, 1 fail, 2 unknown.",
+    examples: [
+      { run: "cool bundle verify bundle.json --trust trust.json", does: "verify against your own trust snapshot" },
+      { run: "cool bundle verify bundle.json --json", does: "the full report as JSON" },
+    ],
+    flags: [
+      { flag: "--trust <file>", does: "a cool.trust-snapshot.v1 you control" },
+      { flag: "--json", does: "machine-readable report" },
+    ],
+    seeAlso: ["decide", "gate-demo"],
+  },
+  {
+    name: "decide",
+    args: "<policy.json> <facts.json>",
+    summary: "evaluate a cool.policy.v1 against facts",
+    description:
+      "Runs the shared policy engine with no side effects. Missing facts are unknown, never " +
+      "safe. Exit 0 for allow or audit_only, 1 for deny or quarantine, 2 for decisions that " +
+      "need a human (require_approval, defer).",
+    examples: [{ run: "cool decide policy.json facts.json", does: "show the decision and every matched rule" }],
+    flags: [{ flag: "--json", does: "the decision record as JSON" }],
+    seeAlso: ["bundle", "policy"],
+  },
+  {
+    name: "gate-demo",
+    args: "[dir]",
+    summary: "the supply-chain deployment gate, end to end",
+    description:
+      "Builds a benign artifact, records signed provenance, gates a deployment to a local " +
+      "directory target, tampers the artifact and shows the retry refused, then exports and " +
+      "verifies a bundle. Everything is real except the scale: a directory stands in for a cluster.",
+    examples: [{ run: "cool gate-demo ./demo", does: "run it and keep the files" }],
+    seeAlso: ["bundle", "decide"],
+  },
+  {
     name: "help",
     args: "[command|topic]",
     summary: "this manual",
