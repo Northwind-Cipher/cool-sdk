@@ -54,11 +54,17 @@ check it could not perform. `requireAttestation` (connect) and `requireHardware`
 
 ## Key management
 
-Signing and log keys are derived inside the enclave from the measurement (dstack
-`GetKey`) — there is nothing to configure or rotate manually, and a redeploy
-rotates them. Each receipt carries its own `key_directory`, so historical
-receipts verify after rotation. Keys are never logged, never persisted outside
-the enclave, and never appear in a receipt (only public halves do).
+Signing and log keys come from dstack `GetKey`, served by the dstack KMS to an
+attested CVM, so there is nothing to configure manually. They follow the dstack
+application identity. A workload change under the same `app_id` keeps the same
+key: the closure run observed this on dstack-dev-0.5.9, and
+`docs/attestation.md#keys` has the details. Workload identity is therefore
+established by the pinned measurement in the enclave domain, not by the key.
+Each receipt carries its own `key_directory`, so historical receipts verify
+after a rotation. CooL never logs keys and never puts a private half in a
+receipt (only public halves appear). Where key material lives outside CooL's
+process is governed by the dstack KMS, which can itself derive these keys; its
+guarantees are trust assumptions CooL inherits.
 
 ## Privacy
 

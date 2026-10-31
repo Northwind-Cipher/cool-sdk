@@ -69,10 +69,23 @@ connect and returns `ok: false` at verify.
 
 ## Keys
 
-The signing and log keys are **derived inside the enclave** from the measurement
-(dstack `GetKey`). There is no key to configure and none to leak into config.
-A redeploy that changes the image rotates the keys automatically; historical
-receipts stay verifiable because each carries its own `key_directory`.
+The signing and log keys come from dstack `GetKey`, which the dstack KMS serves
+to an attested CVM. There is no key to configure and none to leak into config.
+Historical receipts stay verifiable because each carries its own `key_directory`.
+
+**A redeploy does not necessarily rotate the keys.** The key follows the dstack
+*application identity*, not the workload image. In the recorded closure run,
+Deployments A and B ran different code (RTMR3 `c15d0c44…` vs `e833df44…`) under
+the same `app_id` and signed with the **same** key `cool-enclave-f06dfda6dc`
+(see `artifacts/closure/raw`). The key id's suffix is an MRTD prefix, and MRTD
+names the base image, not the workload.
+
+So a valid signature does not tell workload A from workload B. The **enclave
+domain** does: each receipt's quote, carrying its RTMR3, sits inside the signed
+core, and the verifier compares it with the pinned measurement. That is why
+"B against A's pin" was rejected. Always pin the measurement. The dstack
+KMS's own guarantees are trust assumptions CooL inherits and does not
+strengthen.
 
 ## `requireHardware` and the enclave domain
 

@@ -380,13 +380,13 @@ To reproduce the hardware validation end to end (compose files, deployment and e
 |:-:|---|---|
 | ✍️ | **FIPS 204 · ML-DSA-65** | Post-quantum signatures |
 | ✍️ | **Ed25519** | Classical signatures |
-| 🔐 | **FIPS 203 · ML-KEM-1024** + **X25519** | Hybrid key agreement where used |
-| 🔐 | **ChaCha20-Poly1305** | AEAD channel encryption |
 | #️⃣ | **SHA-256** · multihash | Commitments and hashing |
 | 📐 | **Canonical CBOR** | Deterministic serialization |
 | 🌳 | **RFC 6962** | Merkle transparency log |
-| ⏱️ | **RFC 3161** · OpenTimestamps | Timestamping and Bitcoin anchoring |
+| ⏱️ | **OpenTimestamps** | Bitcoin anchoring of tree heads |
 | 🛡️ | **Intel TDX** · dstack | Confidential execution and attestation |
+
+<sub>Not implemented, despite appearing in earlier descriptions: ML-KEM-1024, X25519, ChaCha20-Poly1305 and RFC 3161 timestamping.</sub>
 
 Built on a small set of well-known, dependency-light libraries: [`@noble/curves`](https://github.com/paulmillr/noble-curves), [`@noble/hashes`](https://github.com/paulmillr/noble-hashes), [`@noble/post-quantum`](https://github.com/paulmillr/noble-post-quantum) and [`cbor2`](https://github.com/hildjj/cbor2).
 
@@ -437,7 +437,9 @@ See [LICENSE](LICENSE), [NOTICE.txt](NOTICE.txt) and [third-party licenses](docs
 
 <sub><b>Evidence over claims.</b></sub>
 
-<br/>
+<br/><br/>
+
+<a href="https://phala.com/"><img src="https://img.shields.io/badge/powered%20by-Phala-7ee2a8?style=flat-square&labelColor=0b0f14" alt="Powered by Phala" /></a>
 
 <sub>© 2026 Northwind Cipher Pvt. Ltd.</sub>
 

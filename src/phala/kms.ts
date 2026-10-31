@@ -15,14 +15,14 @@
  * identity is a property of the code rather than a secret an operator holds.
  * Two consequences, and they are the reason the integration exists:
  *
- *   • CooL's own staff cannot forge a record. There is no key to steal from a
- *     laptop, a vault, or a CI secret — outside the attested image the seed is
- *     simply not derivable.
- *   • Modifying the image is self-reporting. Different code measures
- *     differently, derives a different seed, and produces a different key id.
- *     The old records do not "break"; they keep verifying against a key the new
- *     deployment can no longer produce, which is exactly the signal an auditor
- *     wants.
+ *   • There is no key to steal from a laptop, a vault, or a CI secret: the
+ *     seed is released only to an attested CVM. It is not exclusive to one
+ *     image, though — the dstack KMS can derive it, and so can any workload it
+ *     admits under the same application identity.
+ *   • The key follows the application identity, NOT the workload image. In
+ *     the closure run, Deployments A and B (different RTMR3, same app_id)
+ *     signed with one key. A key id does not name the code; the pinned
+ *     measurement in the enclave domain does, and that is what tells A from B.
  *
  * The derivation path is domain-separated so the record key, the log key and any
  * future transport key are independent even though one seed provider backs them.
