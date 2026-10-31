@@ -38,6 +38,7 @@ import {
   verifyCommand,
 } from "./commands";
 import { help } from "./help";
+import { bundleCommand, decideCommand, gateDemoCommand } from "./platform";
 import { walkthrough } from "./walkthrough";
 import { discloseCommand, logCommand, records, witnessCommand } from "./evidence";
 import { complianceCommand, packCommand, policyCommand } from "./governance";
@@ -141,6 +142,12 @@ async function run(name: string, args: string[], workspace: Workspace | null): P
       return ui(workspace, args);
     case "doctor":
       return doctor(workspace);
+    case "bundle":
+      return bundleCommand(args);
+    case "decide":
+      return decideCommand(args);
+    case "gate-demo":
+      return gateDemoCommand(args);
     default:
       out(`  ${c.red(g.fail)} unknown command ${c.bold(name)} — try ${c.brand("cool help")}`);
       return 1;

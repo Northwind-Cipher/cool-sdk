@@ -67,3 +67,5 @@ jobs:
         run: cd examples/verification && npm install --no-audit --no-fund && node index.mjs
       - name: agent
         run: cd examples/agent && npm install --no-audit --no-fund && node index.mjs
+      - name: supply-chain-gate
+        run: cd examples/supply-chain-gate && npm install --no-audit --no-fund && node index.mjs

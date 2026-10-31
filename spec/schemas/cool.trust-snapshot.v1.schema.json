@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Northwind-Cipher/cool-sdk/spec/schemas/cool.trust-snapshot.v1.schema.json",
+  "title": "cool.trust-snapshot.v1",
+  "description": "Keys a verifier accepts, for which purposes, until when. Past max_age_ms every trust answer is unknown (trust_snapshot_stale).",
+  "type": "object",
+  "required": ["schema", "id", "as_of", "keys"],
+  "properties": {
+    "schema": { "const": "cool.trust-snapshot.v1" },
+    "id": { "type": "string" },
+    "as_of": { "type": "string" },
+    "max_age_ms": { "type": "integer" },
+    "keys": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key_id", "entry", "purposes", "owner", "valid_from", "status"],
+        "properties": {
+          "key_id": { "type": "string" },
+          "entry": { "type": "object", "required": ["ml_dsa_pub", "ed25519_pub"] },
+          "purposes": { "type": "array", "items": { "enum": ["evidence", "log", "witness", "builder", "policy", "enforcement", "source"] } },
+          "owner": { "type": "string" },
+          "valid_from": { "type": "string" },
+          "valid_until": { "type": "string" },
+          "status": { "enum": ["active", "rotated", "revoked", "compromised"] },
+          "rotated_at": { "type": "string" },
+          "successor": { "type": "string" },
+          "revoked_at": { "type": "string" },
+          "compromised_since": { "type": "string" }
+        }
+      }
+    }
+  }
+}

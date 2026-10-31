@@ -14,6 +14,9 @@ npm start
 | [`express/`](express) | Evidence for each HTTP request that reaches a model, off the response path. |
 | [`agent/`](agent) | An AI agent that leaves a verifiable trail of tool calls and decisions. |
 | [`dstack/`](dstack) | Bind evidence to a hardware-attested Phala dstack enclave. |
+| [`supply-chain-gate/`](supply-chain-gate) | Signed provenance → policy → a deployment the target confirms; a tampered artifact refused; a bundle an auditor re-verifies. Uses `cool-nwc/platform`. |
+
+For **every** capability in one self-checking run, use `npm run showcase` from the repository root ([docs/showcase.md](../docs/showcase.md)).
 
 The examples depend on `"cool-nwc": "file:../.."`, so they run against the build
 in this repo. In your own project the dependency is just `cool-nwc`.

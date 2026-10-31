@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Northwind-Cipher/cool-sdk/spec/schemas/cool.envelope.v1.schema.json",
+  "title": "cool.signed-envelope.v1 (core: cool.envelope.v1)",
+  "description": "A signed, technology-neutral evidence envelope. core_cbor holds the exact canonical (CBOR CDE) bytes; the verifier recomputes everything from them. Payload shape is fixed by payload_schema (see src/platform/payloads.ts).",
+  "type": "object",
+  "required": ["format", "core", "encoding", "core_cbor", "digest_alg", "digest", "signatures", "key_directory"],
+  "additionalProperties": false,
+  "properties": {
+    "format": { "const": "cool.signed-envelope.v1" },
+    "encoding": { "const": "cbor-cde" },
+    "core_cbor": { "type": "string", "description": "base64 of the committed canonical bytes" },
+    "digest_alg": { "const": "sha-256" },
+    "digest": { "type": "string", "pattern": "^mh:sha256:[0-9a-f]{64}$" },
+    "signatures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["alg", "key_id", "ml_dsa", "ed25519"],
+        "properties": {
+          "alg": { "const": "ml-dsa-65+ed25519" },
+          "key_id": { "type": "string" },
+          "ml_dsa": { "type": "string" },
+          "ed25519": { "type": "string" }
+        }
+      }
+    },
+    "key_directory": { "type": "object" },
+    "checkpoint": {
+      "type": "object",
+      "required": ["sth", "leaf_index", "audit_path"],
+      "properties": {
+        "sth": { "type": "object", "required": ["log_id", "tree_size", "root_hash", "timestamp", "signature", "witnesses"] },
+        "leaf_index": { "type": "integer" },
+        "audit_path": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "attestation": {
+      "type": "object",
+      "required": ["platform", "document"],
+      "properties": { "platform": { "const": "aws-nitro" }, "document": { "type": "string" } }
+    },
+    "core": {
+      "type": "object",
+      "required": ["schema", "event_id", "event_type", "payload_schema", "occurred_at", "observed_at", "source", "actor", "action", "resource", "provenance", "relations", "payload"],
+      "additionalProperties": false,
+      "properties": {
+        "schema": { "const": "cool.envelope.v1" },
+        "event_id": { "type": "string" },
+        "event_type": { "type": "string" },
+        "payload_schema": { "type": "string", "pattern": "\\.v[0-9]+$" },
+        "occurred_at": { "type": "string" },
+        "observed_at": { "type": "string" },
+        "source": { "type": "object", "required": ["system"], "properties": { "system": { "type": "string" }, "instance": { "type": "string" }, "event_id": { "type": "string" } } },
+        "actor": { "type": "object", "required": ["id", "type"], "properties": { "id": { "type": "string" }, "type": { "enum": ["human", "workload", "service", "unknown"] }, "issuer": { "type": "string" } } },
+        "action": { "type": "string" },
+        "resource": { "type": "object", "required": ["type", "ref"] },
+        "provenance": { "type": "object", "required": ["collection_method", "refs"], "properties": { "collection_method": { "enum": ["emitted", "observed", "imported", "derived"] }, "refs": { "type": "array", "items": { "type": "string" } } } },
+        "relations": { "type": "array", "items": { "type": "object", "required": ["type", "ref"] } },
+        "policy": { "type": "object", "required": ["policy_id", "policy_version", "decision", "decision_ref"] },
+        "sequence": { "type": "object", "required": ["epoch", "number"], "properties": { "epoch": { "type": "integer" }, "number": { "type": "integer" } } },
+        "attestation_ref": { "type": "string" },
+        "payload": { "type": "object" }
+      }
+    }
+  }
+}

@@ -18,6 +18,14 @@
       "types": "./dist/phala/index.d.ts",
       "default": "./dist/phala/index.js"
     },
+    "./nitro": {
+      "types": "./dist/nitro/index.d.ts",
+      "default": "./dist/nitro/index.js"
+    },
+    "./platform": {
+      "types": "./dist/platform/index.d.ts",
+      "default": "./dist/platform/index.js"
+    },
     "./verify": {
       "types": "./dist/verify.d.ts",
       "default": "./dist/verify.js"
@@ -90,6 +98,7 @@
     "test": "node scripts/run-tests.mjs",
     "verify:package": "node scripts/verify-package.mjs",
     "demo": "node --import tsx scripts/demo.ts",
+    "showcase": "node --import tsx scripts/showcase.ts",
     "verify:all": "npm run typecheck && npm run test"
   }
 }

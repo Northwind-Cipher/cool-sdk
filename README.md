@@ -16,11 +16,12 @@
 [![Intel TDX](https://img.shields.io/badge/verified%20on-Intel%20TDX-7ee2a8?style=for-the-badge&labelColor=0b0f14)](#-proven-on-real-silicon)
 
 [![Node](https://img.shields.io/badge/node-%E2%89%A5%2020-8b949e?style=flat-square&labelColor=0b0f14)](https://nodejs.org)
-[![Tests](https://img.shields.io/badge/tests-119%20passing-8b949e?style=flat-square&labelColor=0b0f14)](artifacts/closure-verification-matrix.md)
+[![Tests](https://img.shields.io/badge/tests-226%20passing-8b949e?style=flat-square&labelColor=0b0f14)](docs/status/2026-10-31-implementation-status.md)
 [![License](https://img.shields.io/badge/license-BUSL--1.1-8b949e?style=flat-square&labelColor=0b0f14)](#license)
 
 <br/>
 
+[**Full showcase**](#-everything-in-one-run) &nbsp;·&nbsp;
 [**Quick start**](#-quick-start) &nbsp;·&nbsp;
 [**See it catch a forgery**](#-watch-it-catch-a-forgery) &nbsp;·&nbsp;
 [**Proof on real hardware**](#-proven-on-real-silicon) &nbsp;·&nbsp;
@@ -136,6 +137,45 @@ Two cross-cutting tests also passed:
 - **Workload change:** redeploying different code changed `RTMR3` and nothing else. The new build was **rejected against the old pin** and accepted against its own.
 
 📂 All raw evidence (receipts, quotes, verifier output and negative controls) is in [`artifacts/`](artifacts). Start with the [**closure verification matrix**](artifacts/closure-verification-matrix.md). <sub>These are records of specific validation runs, not a certification, audit or vendor endorsement.</sub>
+
+<br/>
+
+## 🚦 Everything in one run
+
+```bash
+npm run showcase
+```
+
+Twelve chapters, from AI receipts to an incident reconstruction. **The showcase checks itself**: every ✓ is an assertion, a single broken claim exits 1, and CI runs it on every push. Real output, abridged:
+
+```text
+05  Supply Chain: a real deployment gate
+    ✓ verified provenance → admitted, and the target confirms the deployed bytes
+    ✓ a tampered artifact is denied and production keeps the approved bytes  — bytes-match:artifact_digest_mismatch
+
+10  AWS Nitro: enclave → untrusted host → log (SYNTHETIC test PKI)
+    ✓ the receipt the host dropped becomes a recorded gap
+    ✓ a late copy fills the gap — and the gap stays on record
+    ✓ a receipt the host altered is rejected and nothing is stored  — canonical_encoding_valid: core_mismatch
+
+11  Incident Evidence
+    ✓ the spoofed sensor event is labelled source-asserted, not verified
+    ✓ a completion that predates its request is flagged as a contradiction
+    ✓ so the case bundle does not pass — the verifier refuses to paper over gaps
+
+all 47 claims held
+limits: TDX ran on the simulator; Nitro receipts ran on a synthetic PKI; enforcement targets are local; no network was used.
+```
+
+| | Chapters |
+|---|---|
+| **AI evidence** | 01 AI change receipts · 02 selective disclosure and witnesses |
+| **Shared core** | 03 one evidence envelope · 04 a policy engine that does not guess |
+| **Five modules** | 05 supply-chain gate · 06 identity & authority · 07 change control · 08 runtime guard · 11 incident evidence |
+| **Confidential computing** | 09 a genuine AWS Nitro document · 10 the Nitro receipt path |
+| **Portable proof** | 12 an auditor re-verifies everything offline |
+
+It leaves `release-bundle.json` and `trust.json` behind, so you can check them yourself: `cool bundle verify release-bundle.json --trust trust.json`. See [docs/showcase.md](docs/showcase.md) for what each chapter proves and what is simulated.
 
 <br/>
 
@@ -374,6 +414,22 @@ To reproduce the hardware validation end to end (compose files, deployment and e
 
 <br/>
 
+## 🧱 Beyond AI: the platform (preview)
+
+The same cryptographic core now backs a technology-neutral evidence platform, `cool-nwc/platform`. It has:
+- one signed envelope for builds, deployments, credentials, configuration, runtime events and incidents
+- a deterministic policy engine that treats missing facts as unknown, never as safe
+- enforcement that is **off and dry-run by default**, and that only counts as done when the target system confirms it
+
+```bash
+cool gate-demo ./demo        # build → signed provenance → policy → deploy; tamper → refused; export → verify
+cool bundle verify ./demo/bundle.json --trust ./demo/trust.json
+```
+
+Supply Chain, Identity & Authority, Change Control, Runtime Guard and Incident Evidence are thin modules on that core. The reference enforcement targets are local, so no cluster or SaaS integration ships yet. See [docs/platform.md](docs/platform.md) for the architecture, and the [status report](docs/status/2026-10-31-implementation-status.md) for exactly what is built, what is partial, and what is absent.
+
+<br/>
+
 ## Standards & primitives
 
 | | Standard | Role |
@@ -385,6 +441,7 @@ To reproduce the hardware validation end to end (compose files, deployment and e
 | 🌳 | **RFC 6962** | Merkle transparency log |
 | ⏱️ | **OpenTimestamps** | Bitcoin anchoring of tree heads |
 | 🛡️ | **Intel TDX** · dstack | Confidential execution and attestation |
+| 🛡️ | **AWS Nitro Enclaves** | Offline attestation verification (`cool-nwc/nitro`); the in-enclave runtime is [not built yet](docs/nitro.md#status) |
 
 <sub>Not implemented, despite appearing in earlier descriptions: ML-KEM-1024, X25519, ChaCha20-Poly1305 and RFC 3161 timestamping.</sub>
 
@@ -396,7 +453,13 @@ Built on a small set of well-known, dependency-light libraries: [`@noble/curves`
 
 | | |
 |---|---|
+| 🚦 [Showcase](docs/showcase.md) | Every capability in one self-checking run |
 | 🏁 [Getting started](docs/getting-started.md) | From install to first verified receipt |
+| 🧱 [Platform](docs/platform.md) · [Migration to the envelope](docs/migration-platform.md) | Envelope, policy, enforcement, the five modules |
+| 🛡️ [Trust models](docs/trust-models.md) · [AWS Nitro](docs/nitro.md) | Phala/TDX and Nitro, claim by claim |
+| ⌨️ [CLI exit codes](docs/cli-exit-codes.md) · [Schemas](spec/schemas/) | Stable contracts for pipelines |
+| 🧪 [Adversarial test plan](docs/adversarial-test-plan.md) | Every attack, its expected and observed result |
+| 📋 [Implementation status](docs/status/2026-10-31-implementation-status.md) | What is built, partial and absent |
 | 🏗️ [Architecture](docs/architecture.md) | How the pieces fit together |
 | 🧾 [Evidence format](docs/evidence-format.md) | The receipt, byte by byte |
 | ✅ [Verification](docs/verification.md) | Every domain and what it checks |
