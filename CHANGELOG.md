@@ -7,10 +7,43 @@ independently (`cool.evidence.v1`, `cool.receipt.v2`).
 
 ## [Unreleased]
 
-### Changed
+## [3.1.0] — 2026-10-31
 
+New capabilities under two new subpaths. **No breaking change:** `CooL`, `CoolTee`, `cool.evidence.v1`, `cool.receipt.v2` and `cool verify` behave exactly as in 3.0.0.
+
+### Added
+- **`npm run showcase`** (repository): twelve chapters covering every capability. Every printed claim is an assertion (47 today), and CI runs it as a test. See `docs/showcase.md`.
+- **`cool-nwc/platform`**: a technology-neutral evidence platform on the existing cryptographic core.
+  - `cool.envelope.v1` with explicit `createEnvelope` / `canonicalize` / `commit` / `signEnvelope` / `verifyEnvelope` / `inspectEnvelope`. The exact canonical bytes are carried, so non-canonical encodings are rejected.
+  - An eleven-check verification report (`pass | fail | unknown | not_applicable | not_checked`, plus reason codes). An invalid signature and an untrusted signer are separate failures.
+  - 33 typed, versioned event families (`PayloadRegistry`), with a guard against secret values in payloads.
+  - `TrustStore` with key purpose, validity, rotation, revocation and compromise. A revoked key is accepted only with a trusted checkpoint that predates the revocation.
+  - A fail-closed algorithm registry.
+  - A deterministic policy engine (`cool.policy.v1`): tri-valued logic, so unknown is never safe; the most restrictive decision wins; lifecycle with rollback; simulation; attributable overrides.
+  - `EnforcementCoordinator`: disabled and dry-run by default, idempotent, timeouts stay unknown until reconciled, and external confirmation is required. Reference targets: `LocalDirectoryTarget` and `LocalDenylistTarget`.
+  - `TransparencyLog` with witnessed checkpoints; signed evidence bundles (`exportBundle` / `verifyBundle`) whose verifier recomputes everything.
+  - Correlation and timelines that keep contradictions and gaps visible.
+  - A connector framework with `GitConnector` and `FileConfigConnector`.
+  - `CoolClient` with module namespaces, policy modes, a redacted `inspectConfig`, a pluggable `Signer`, and a deterministic `close`.
+  - Modules: supply-chain gate, identity & authority, change control, runtime guard, incident evidence.
+- **`cool-nwc/nitro`**: AWS Nitro Enclaves.
+  - The offline attestation verifier, pinned to `AWS_NitroEnclaves_Root-G1`.
+  - The in-enclave `NitroReceiptSealer`, behind `NsmSource`.
+  - vsock framing with a forward-only host proxy.
+  - `NitroLogServer`: registration on attestation, signed acknowledgements, epochs, gaps that are never erased, witnessed checkpoints.
+  - `normalizeNitro` / `normalizeTdx`.
+  - **Not run in a real enclave.** Tested on a genuine third-party AWS document and a synthetic PKI.
+- **CLI:** `cool bundle verify`, `cool decide` and `cool gate-demo`, with stable exit codes (`docs/cli-exit-codes.md`).
+- JSON Schemas in `spec/schemas/`, and the `examples/supply-chain-gate` example (run in CI).
+- Docs: `docs/platform.md`, `docs/trust-models.md`, `docs/nitro.md`, `docs/showcase.md`, `docs/migration-platform.md`, `docs/adversarial-test-plan.md`, ADRs 0001–0003, and the implementation status report.
+
+### Changed
 - **Licensing:** the repository moves from Apache-2.0 to the Business Source License 1.1 (Change Date 2030-01-01, Change License Apache-2.0). Versions released before this change, including 3.0.0, remain available under Apache-2.0. A few vendored files keep their Apache-2.0 license. See `LICENSE`, `NOTICE.txt` and `docs/IP-OWNERSHIP.md`.
 - Added copyright and SPDX headers to Northwind-owned source files (comment-only).
+
+### Fixed
+- **Documentation:** dstack keys follow the application identity, not the workload image. A redeploy under the same `app_id` keeps the same key. Workload identity comes from the pinned measurement.
+- **Documentation:** the README no longer lists ML-KEM-1024, X25519, ChaCha20-Poly1305 or RFC 3161. None of them is implemented.
 
 ## [3.0.0] — 2026-09-02
 
