@@ -385,6 +385,7 @@ To reproduce the hardware validation end to end (compose files, deployment and e
 | 🌳 | **RFC 6962** | Merkle transparency log |
 | ⏱️ | **OpenTimestamps** | Bitcoin anchoring of tree heads |
 | 🛡️ | **Intel TDX** · dstack | Confidential execution and attestation |
+| 🛡️ | **AWS Nitro Enclaves** | Offline attestation verification (`cool-nwc/nitro`); the in-enclave runtime is [not built yet](docs/nitro.md#status) |
 
 <sub>Not implemented, despite appearing in earlier descriptions: ML-KEM-1024, X25519, ChaCha20-Poly1305 and RFC 3161 timestamping.</sub>
 

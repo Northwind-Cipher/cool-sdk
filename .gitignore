@@ -18,6 +18,9 @@ examples/**/evidence.json
 
 # --- IP / secrets hardening (never commit credentials or key material) ---
 *.pem
+# The one exception: a synthetic, NON-AWS test PKI whose leaf key signs only
+# test documents. See tests/fixtures/nitro/PROVENANCE.md before widening this.
+!tests/fixtures/nitro/synthetic/*.pem
 *.key
 *.p12
 *.pfx

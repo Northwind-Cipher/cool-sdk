@@ -18,6 +18,10 @@
       "types": "./dist/phala/index.d.ts",
       "default": "./dist/phala/index.js"
     },
+    "./nitro": {
+      "types": "./dist/nitro/index.d.ts",
+      "default": "./dist/nitro/index.js"
+    },
     "./verify": {
       "types": "./dist/verify.d.ts",
       "default": "./dist/verify.js"
