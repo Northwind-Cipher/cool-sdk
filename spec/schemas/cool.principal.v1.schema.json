@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Northwind-Cipher/cool-sdk/spec/schemas/cool.principal.v1.schema.json",
+  "title": "cool.principal.v1",
+  "description": "Signed principal record, issued by a trusted identity issuer.",
+  "type": "object",
+  "required": [
+    "body",
+    "digest",
+    "signature",
+    "signer"
+  ],
+  "properties": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "principal_id",
+        "kind",
+        "issuer",
+        "owner",
+        "basis",
+        "created_at",
+        "keys"
+      ],
+      "properties": {
+        "schema": {
+          "const": "cool.principal.v1"
+        },
+        "principal_id": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "agent",
+            "human",
+            "service",
+            "workload"
+          ]
+        },
+        "issuer": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "tenant": {
+          "type": "string"
+        },
+        "basis": {
+          "enum": [
+            "self_asserted",
+            "issuer_attested",
+            "hardware_bound",
+            "federated"
+          ]
+        },
+        "sponsor": {
+          "type": "string"
+        },
+        "parent": {
+          "type": "string"
+        },
+        "workload_id": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": "string"
+        },
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "key_id",
+              "entry"
+            ]
+          }
+        }
+      }
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^mh:sha256:[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "alg",
+        "key_id",
+        "ml_dsa",
+        "ed25519"
+      ],
+      "properties": {
+        "alg": {
+          "const": "ml-dsa-65+ed25519"
+        }
+      }
+    },
+    "signer": {
+      "type": "object",
+      "required": [
+        "ml_dsa_pub",
+        "ed25519_pub"
+      ]
+    }
+  }
+}

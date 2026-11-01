@@ -4,31 +4,105 @@
   "title": "cool.verification-report.v1",
   "description": "Per-check verification of one envelope. overall_status is pass only when every required check passed or was not_applicable.",
   "type": "object",
-  "required": ["schema", "subject", "overall_status", "checks", "reasons", "verified_at"],
+  "required": [
+    "schema",
+    "subject",
+    "overall_status",
+    "outcome",
+    "checks",
+    "reasons",
+    "verified_at"
+  ],
   "$defs": {
     "check": {
       "type": "object",
-      "required": ["status", "reason", "detail"],
+      "required": [
+        "status",
+        "reason",
+        "detail"
+      ],
       "properties": {
-        "status": { "enum": ["pass", "fail", "unknown", "not_applicable", "not_checked"] },
-        "reason": { "type": "string" },
-        "detail": { "type": "string" },
-        "evidence_ref": { "type": "string" },
-        "algorithm": { "type": "string" },
-        "limitation": { "type": "string" }
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown",
+            "not_applicable",
+            "not_checked"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "evidence_ref": {
+          "type": "string"
+        },
+        "algorithm": {
+          "type": "string"
+        },
+        "limitation": {
+          "type": "string"
+        }
       }
     }
   },
   "properties": {
-    "schema": { "const": "cool.verification-report.v1" },
-    "subject": { "type": ["object", "null"] },
-    "overall_status": { "enum": ["pass", "fail", "unknown"] },
-    "reasons": { "type": "array", "items": { "type": "string" } },
-    "verified_at": { "type": "string" },
+    "schema": {
+      "const": "cool.verification-report.v1"
+    },
+    "subject": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "overall_status": {
+      "enum": [
+        "pass",
+        "fail",
+        "unknown"
+      ]
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "verified_at": {
+      "type": "string"
+    },
     "checks": {
       "type": "object",
-      "required": ["schema_valid", "canonical_encoding_valid", "digest_valid", "signature_valid", "signer_trusted", "signer_authorized", "timestamp_valid", "inclusion_proof_valid", "checkpoint_trusted", "attestation_valid", "evidence_complete"],
-      "additionalProperties": { "$ref": "#/$defs/check" }
+      "required": [
+        "schema_valid",
+        "canonical_encoding_valid",
+        "digest_valid",
+        "signature_valid",
+        "signer_trusted",
+        "signer_authorized",
+        "timestamp_valid",
+        "inclusion_proof_valid",
+        "checkpoint_trusted",
+        "attestation_valid",
+        "evidence_complete"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/check"
+      }
+    },
+    "outcome": {
+      "enum": [
+        "verified",
+        "invalid",
+        "unsupported",
+        "stale",
+        "incomplete",
+        "indeterminate"
+      ]
     }
   }
 }

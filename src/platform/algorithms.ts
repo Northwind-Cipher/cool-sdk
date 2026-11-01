@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -32,6 +29,7 @@ export const ALGORITHMS: readonly AlgorithmEntry[] = [
   { id: "sha-256", purpose: "digest", status: "active", spec: "FIPS 180-4" },
   { id: "cbor-cde", purpose: "canonicalization", status: "active", spec: "RFC 8949 §4.2 core deterministic encoding (cbor2 cdeEncodeOptions)" },
   { id: "salted-sha-256", purpose: "commitment", status: "active", spec: "SHA-256 over a 128-bit random salt and the value" },
+  { id: "hmac-sha-256", purpose: "commitment", status: "active", spec: "RFC 2104 HMAC-SHA-256 keyed commitment over the salt and the value; resists guessing low-entropy values" },
   { id: "rfc6962-sha-256", purpose: "transparency", status: "active", spec: "RFC 6962 Merkle tree hash with SHA-256" },
 ];
 

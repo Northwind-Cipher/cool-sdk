@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -33,7 +30,15 @@ import type { KeyPair } from "../types";
 import { createEnvelope, signEnvelope, type EnvelopeInput, type SignedEnvelope } from "../platform/envelope";
 import type { PayloadRegistry } from "../platform/payloads";
 import { ed25519Spki, keyBindingUserData } from "./attestation";
-import type { SignedEpochRegistration } from "./epochs";
+
+/**
+ * The part of a log's signed epoch registration the sealer needs. Verifying
+ * the registration's signature is the log operator's and the verifier's job;
+ * the log server itself is part of the commercial CooL platform.
+ */
+export interface EpochAssignment {
+  readonly registration: { readonly epoch: number; readonly key_id: string };
+}
 
 export interface NsmRequest {
   readonly nonce?: Uint8Array;
@@ -106,7 +111,7 @@ export class NitroReceiptSealer {
   }
 
   /** Accept the log's epoch assignment for this key. */
-  acceptEpoch(signed: SignedEpochRegistration): void {
+  acceptEpoch(signed: EpochAssignment): void {
     if (signed.registration.key_id !== this.#key.keyId) throw new Error("registration is for a different key");
     if (this.#epoch !== null && this.#epoch !== signed.registration.epoch) throw new Error("this key already has an epoch");
     this.#epoch = signed.registration.epoch;

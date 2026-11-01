@@ -1,9 +1,0 @@
-{
-  "name": "cool-example-supply-chain-gate",
-  "private": true,
-  "type": "module",
-  "scripts": { "start": "node index.mjs" },
-  "dependencies": {
-    "cool-nwc": "file:../.."
-  }
-}

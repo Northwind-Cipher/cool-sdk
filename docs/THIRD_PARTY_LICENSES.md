@@ -59,7 +59,7 @@ these packages into this repository (npm installs them). Container images or bun
 
 | Files | Origin | License | Handling |
 |---|---|---|---|
-| `src/canonical.ts`, `src/codec.ts`, `src/hash.ts`, `src/keys.ts`, `src/log-memory.ts`, `src/merkle.ts`, `src/multihash.ts`, `src/sign.ts` | `cool-sdk` (github.com/KenidoesCode/cool-sdk) | Apache-2.0 (per the header of `src/codec.ts`) | No Northwind header added; original license retained (`LICENSES/Apache-2.0.txt`). `src/codec.ts` documents its one modification. See docs/IP-OWNERSHIP.md. |
+| `src/canonical.ts`, `src/codec.ts`, `src/hash.ts`, `src/keys.ts`, `src/log-memory.ts`, `src/merkle.ts`, `src/multihash.ts`, `src/sign.ts` | `cool-sdk` (github.com/KenidoesCode/cool-sdk) | Apache-2.0 (per the header of `src/codec.ts`) | No Northwind header added; original license retained (`LICENSES/Apache-2.0.txt`). `src/codec.ts` documents its one modification. |
 
 ## Tools and services referenced but not vendored or declared
 

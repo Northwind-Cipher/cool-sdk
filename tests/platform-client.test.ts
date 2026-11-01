@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /** CoolClient lifecycle and configuration, and the connector framework. */
@@ -36,8 +33,6 @@ test("client: configuration is validated with actionable errors", () => {
 test("client: inspectConfig explains effective settings and leaks no key material", () => {
   const c = new CoolClient({ project: "acme", signer: KEYS.source, trust: trust() });
   const view = c.inspectConfig();
-  assert.equal(view["policy_mode"], "audit");
-  assert.deepEqual(view["enforcement"], { enabled: false, default: "dry run" });
   assert.equal(view["environment_variables_read"], "none");
   const text = JSON.stringify(view);
   for (const secret of [KEYS.source.ed25519Secret, KEYS.source.mlDsaSecret]) {
@@ -54,14 +49,6 @@ test("client: record → publish → verify; publish without a log is a clear er
   assert.equal(c.evidence.verify(env, { now: T0 }).overall_status, "pass");
   const noLog = new CoolClient({ project: "acme", signer: KEYS.source, trust: trust() });
   assert.throws(() => noLog.evidence.publish(env), (e: unknown) => e instanceof CooLError && e.code === "COOL_TRANSPARENCY_FAILED");
-});
-
-test("client: policy modes — disabled returns null, audit is advisory, enforce follows the policy", () => {
-  const p = { schema: "cool.policy.v1" as const, id: "p", version: "1", mode: "enforce" as const, default: "deny" as const, rules: [] };
-  const mk = (policyMode: "disabled" | "audit" | "enforce") => new CoolClient({ project: "a", signer: KEYS.source, trust: trust(), policyMode });
-  assert.equal(mk("disabled").policy.evaluate(p, {}), null);
-  assert.equal(mk("audit").policy.evaluate(p, {})?.enforced, false);
-  assert.equal(mk("enforce").policy.evaluate(p, {})?.enforced, true);
 });
 
 test("client: close is deterministic — later calls fail with COOL_CLOSED", () => {

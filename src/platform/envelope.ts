@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -42,6 +39,7 @@ import { verifyNitroAttestation, type VerifyNitroOptions } from "../nitro/attest
 import { usableAlgorithm } from "./algorithms";
 import type { PayloadRegistry } from "./payloads";
 import { check, overallOf, type Check, type OverallStatus } from "./status";
+import { classifyOutcome, type Outcome } from "./outcome";
 import type { KeyPurpose, TrustStore } from "./trust";
 
 export const ENVELOPE_SCHEMA = "cool.envelope.v1";
@@ -248,6 +246,8 @@ export interface VerificationReport {
   readonly schema: "cool.verification-report.v1";
   readonly subject: { readonly event_id: string; readonly event_type: string; readonly digest: string } | null;
   readonly overall_status: OverallStatus;
+  /** verified | invalid | unsupported | stale | incomplete | indeterminate */
+  readonly outcome: Outcome;
   readonly checks: EnvelopeChecks;
   readonly reasons: readonly string[];
   readonly verified_at: string;
@@ -301,7 +301,7 @@ export function verifyEnvelope(env: SignedEnvelope, options: VerifyEnvelopeOptio
       signer_trusted: skipped, signer_authorized: skipped, timestamp_valid: skipped, inclusion_proof_valid: skipped,
       checkpoint_trusted: skipped, attestation_valid: skipped, evidence_complete: skipped,
     };
-    return { schema: "cool.verification-report.v1", subject: null, overall_status: "fail", checks, reasons: [`schema_valid: ${schema.reason}`], verified_at };
+    return { schema: "cool.verification-report.v1", subject: null, overall_status: "fail", outcome: classifyOutcome(checks as unknown as Record<string, Check>, ["schema_valid"]).outcome, checks, reasons: [`schema_valid: ${schema.reason}`], verified_at };
   }
 
   // canonical encoding
@@ -451,6 +451,7 @@ export function verifyEnvelope(env: SignedEnvelope, options: VerifyEnvelopeOptio
     schema: "cool.verification-report.v1",
     subject: { event_id: core.event_id, event_type: core.event_type, digest: env.digest },
     overall_status: overall,
+    outcome: classifyOutcome(checks as unknown as Record<string, Check>, required).outcome,
     checks,
     reasons,
     verified_at,

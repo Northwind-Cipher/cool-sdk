@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -17,7 +14,7 @@
  *
  * The verifier trusts none of the exporter's conclusions. It recomputes every
  * envelope report, checks the manifest against the contents, resolves every
- * reference inside the bundle, and builds the timeline itself. The trust
+ * reference inside the bundle, and orders the evidence by time itself. The trust
  * snapshot inside the bundle is used only when the caller supplies none, and
  * the report then says the trust was self-asserted by the exporter.
  */
@@ -27,13 +24,39 @@ import { concatBytes, utf8 } from "../codec";
 import { hybridSign, hybridVerify } from "../sign";
 import type { KeyPair, Multihash, SignatureBlock } from "../types";
 import { verifyEnvelope, type SignedEnvelope, type VerificationReport, type VerifyEnvelopeOptions } from "./envelope";
-import type { PolicyDecisionRecord } from "./policy";
 import { check, overallOf, type Check, type OverallStatus } from "./status";
+import { classifyOutcome, type Outcome } from "./outcome";
 import { TrustStore, type TrustSnapshot } from "./trust";
-import { buildTimeline, type Timeline } from "./correlation";
+
+/**
+ * A decision record carried in a bundle. The open verifier binds it by digest
+ * and checks citations; evaluating policy is the commercial platform's job.
+ */
+export interface DecisionRecord {
+  readonly schema: string;
+  readonly policy_id?: string;
+  readonly policy_version?: string;
+  readonly evaluated_at?: string;
+}
+
+/** One envelope's place in time, ordered by occurrence. Correlation is not done here. */
+export interface BundleEntry {
+  readonly at: string;
+  readonly event_id: string;
+  readonly event_type: string;
+  readonly digest: Multihash;
+  readonly overall_status: OverallStatus;
+}
+
+/** A signed protocol object (request, decision, delegation, confirmation, …) carried for offline verification. */
+export interface BundleAttachment {
+  readonly kind: string;
+  readonly digest: Multihash;
+  readonly body: unknown;
+}
 
 export interface BundleManifestEntry {
-  readonly kind: "envelope" | "decision";
+  readonly kind: "envelope" | "decision" | "attachment";
   readonly id: string;
   readonly digest: Multihash;
 }
@@ -43,7 +66,8 @@ export interface EvidenceBundle {
   readonly created_at: string;
   readonly title: string;
   readonly envelopes: readonly SignedEnvelope[];
-  readonly decisions: readonly PolicyDecisionRecord[];
+  readonly decisions: readonly DecisionRecord[];
+  readonly attachments?: readonly BundleAttachment[];
   readonly trust_snapshot: TrustSnapshot;
   readonly manifest: { readonly entries: readonly BundleManifestEntry[]; readonly digest: Multihash };
   readonly signature: SignatureBlock;
@@ -52,8 +76,9 @@ export interface EvidenceBundle {
 
 const MANIFEST_DOMAIN = utf8("cool.bundle.manifest.v1\0");
 
-function manifestOf(envelopes: readonly SignedEnvelope[], decisions: readonly PolicyDecisionRecord[]) {
+function manifestOf(envelopes: readonly SignedEnvelope[], decisions: readonly DecisionRecord[], attachments: readonly BundleAttachment[] = []) {
   const entries: BundleManifestEntry[] = [
+    ...attachments.map((a) => ({ kind: "attachment" as const, id: a.kind, digest: a.digest })),
     ...envelopes.map((e) => ({ kind: "envelope" as const, id: e.core.event_id, digest: e.digest })),
     ...decisions.map((d) => ({ kind: "decision" as const, id: `${d.policy_id}@${d.policy_version}:${d.evaluated_at}`, digest: mhSha256(canonicalCbor(d)) })),
   ].sort((a, b) => (a.digest < b.digest ? -1 : a.digest > b.digest ? 1 : 0));
@@ -63,19 +88,23 @@ function manifestOf(envelopes: readonly SignedEnvelope[], decisions: readonly Po
 export function exportBundle(input: {
   readonly title: string;
   readonly envelopes: readonly SignedEnvelope[];
-  readonly decisions?: readonly PolicyDecisionRecord[];
+  readonly decisions?: readonly DecisionRecord[];
+  /** Signed protocol objects to carry, e.g. `{ kind: "authz-decision", body }`. */
+  readonly attachments?: ReadonlyArray<{ readonly kind: string; readonly body: unknown }>;
   readonly trust: TrustStore;
   readonly exporter: KeyPair;
   readonly now?: Date;
 }): EvidenceBundle {
   const decisions = input.decisions ?? [];
-  const manifest = manifestOf(input.envelopes, decisions);
+  const attachments = (input.attachments ?? []).map((a) => ({ kind: a.kind, digest: mhSha256(canonicalCbor(JSON.parse(JSON.stringify(a.body)))), body: a.body }));
+  const manifest = manifestOf(input.envelopes, decisions, attachments);
   return {
     schema: "cool.bundle.v1",
     created_at: (input.now ?? new Date()).toISOString(),
     title: input.title,
     envelopes: input.envelopes,
     decisions,
+    ...(attachments.length ? { attachments } : {}),
     trust_snapshot: input.trust.snapshot(),
     manifest,
     signature: hybridSign(multihashDigest(manifest.digest), input.exporter),
@@ -86,6 +115,8 @@ export function exportBundle(input: {
 export interface BundleReport {
   readonly schema: "cool.bundle-report.v1";
   readonly overall_status: OverallStatus;
+  /** verified | invalid | unsupported | stale | incomplete | indeterminate */
+  readonly outcome: Outcome;
   readonly checks: {
     readonly manifest_valid: Check;
     readonly exporter_signature_valid: Check;
@@ -93,9 +124,12 @@ export interface BundleReport {
     readonly envelopes_valid: Check;
     readonly evidence_complete: Check;
     readonly decisions_bound: Check;
+    readonly attachments_bound: Check;
+    readonly sequence_complete: Check;
   };
   readonly envelopes: ReadonlyArray<{ readonly event_id: string; readonly event_type: string; readonly overall_status: OverallStatus; readonly reasons: readonly string[] }>;
-  readonly timeline: Timeline;
+  /** Envelopes ordered by occurred_at. Cross-system correlation is a commercial feature. */
+  readonly entries: readonly BundleEntry[];
   readonly reasons: readonly string[];
 }
 
@@ -105,7 +139,7 @@ export function verifyBundle(
   options: Omit<VerifyEnvelopeOptions, "trust" | "resolve"> & { readonly trust?: TrustStore },
 ): BundleReport {
   if (bundle?.schema !== "cool.bundle.v1") throw new Error(`not a cool.bundle.v1 bundle`);
-  const recomputed = manifestOf(bundle.envelopes, bundle.decisions);
+  const recomputed = manifestOf(bundle.envelopes, bundle.decisions, bundle.attachments ?? []);
   // The manifest digest covers every entry, so one comparison detects any
   // added, removed or altered envelope or decision.
   const manifest = recomputed.digest === bundle.manifest.digest
@@ -144,14 +178,35 @@ export function verifyBundle(
     ? check("fail", "decision_missing", `${unbound.length} envelope(s) cite a policy decision not in the bundle`)
     : check("pass", "decisions_bound", `${bundle.decisions.length} decision(s); every citation resolves`);
 
-  const checks = { manifest_valid: manifest, exporter_signature_valid: exporter, trust_source: trustSource, envelopes_valid: envelopes, evidence_complete: complete, decisions_bound: decisions };
+  const badAttachments = (bundle.attachments ?? []).filter((a) => { try { return mhSha256(canonicalCbor(JSON.parse(JSON.stringify(a.body)))) !== a.digest; } catch { return true; } });
+  const attachments = badAttachments.length
+    ? check("fail", "attachment_mismatch", `${badAttachments.length} attachment(s) do not match their digest`)
+    : check(bundle.attachments?.length ? "pass" : "not_applicable", bundle.attachments?.length ? "attachments_bound" : "no_attachments", `${bundle.attachments?.length ?? 0} attachment(s)`);
+
+  // Sequenced receipts (e.g. from an enclave) must be contiguous per epoch.
+  // A dropped FINAL receipt is not detectable this way — only a later one is.
+  const byEpoch = new Map<number, number[]>();
+  for (const e of bundle.envelopes) if (e.core.sequence) byEpoch.set(e.core.sequence.epoch, [...(byEpoch.get(e.core.sequence.epoch) ?? []), e.core.sequence.number]);
+  const gaps: string[] = [];
+  for (const [epoch, nums] of byEpoch) {
+    const set = new Set(nums);
+    for (let n = 0; n <= Math.max(...nums); n++) if (!set.has(n)) gaps.push(`${epoch}.${n}`);
+  }
+  const sequence = !byEpoch.size ? check("not_applicable", "no_sequences", "no sequenced evidence in this bundle")
+    : gaps.length ? check("fail", "sequence_gap", `missing ${gaps.join(", ")} — the history for those intervals is incomplete`, { limitation: "a dropped final receipt is only detectable once a later one arrives" })
+      : check("pass", "sequences_contiguous", `${[...byEpoch.values()].reduce((n, v) => n + v.length, 0)} sequenced receipt(s), no gaps`, { limitation: "a dropped final receipt is only detectable once a later one arrives" });
+
+  const checks = { manifest_valid: manifest, exporter_signature_valid: exporter, trust_source: trustSource, envelopes_valid: envelopes, evidence_complete: complete, decisions_bound: decisions, attachments_bound: attachments, sequence_complete: sequence };
   const { overall, reasons } = overallOf(checks, Object.keys(checks));
   return {
     schema: "cool.bundle-report.v1",
     overall_status: overall,
+    outcome: classifyOutcome(checks, Object.keys(checks)).outcome,
     checks,
     envelopes: reports.map((r, i) => ({ event_id: bundle.envelopes[i]!.core.event_id, event_type: bundle.envelopes[i]!.core.event_type, overall_status: r.overall_status, reasons: r.reasons })),
-    timeline: buildTimeline(bundle.envelopes, reports),
+    entries: bundle.envelopes
+      .map((e, i) => ({ at: e.core.occurred_at, event_id: e.core.event_id, event_type: e.core.event_type, digest: e.digest, overall_status: reports[i]!.overall_status }))
+      .sort((a, b) => (a.at === b.at ? a.digest.localeCompare(b.digest) : a.at.localeCompare(b.at))),
     reasons,
   };
 }

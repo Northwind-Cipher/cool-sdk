@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -150,8 +147,8 @@ export {
   CALENDARS,
 } from "./anchor";
 export type { AnchorCheck, BlockHeaderSource, Timestamp as AnchorTimestamp } from "./anchor";
-export { attachWitness, cosign, countWitnesses, Witness } from "./witness";
-export type { WitnessChecks, WitnessDecision, WitnessOptions, WitnessStatement } from "./witness";
+export { attachWitness, cosign, countWitnesses } from "./witness";
+export type { WitnessStatement } from "./witness";
 
 export { OBLIGATIONS, coverage, gaps } from "./compliance";
 export type { Coverage, Obligation } from "./compliance";

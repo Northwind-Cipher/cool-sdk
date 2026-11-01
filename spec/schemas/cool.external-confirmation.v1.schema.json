@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Northwind-Cipher/cool-sdk/spec/schemas/cool.external-confirmation.v1.schema.json",
+  "title": "cool.external-confirmation.v1",
+  "description": "Signed confirmation from the system that performed, or refused, the action. outcome is completed | rejected | failed.",
+  "type": "object",
+  "required": [
+    "body",
+    "digest",
+    "signature",
+    "signer"
+  ],
+  "properties": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "confirmation_id",
+        "target",
+        "tool",
+        "request_id",
+        "request_digest",
+        "outcome",
+        "reason",
+        "confirmed_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "cool.external-confirmation.v1"
+        },
+        "confirmation_id": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "request_digest": {
+          "type": "string",
+          "pattern": "^mh:sha256:[0-9a-f]{64}$"
+        },
+        "decision_id": {
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "completed",
+            "rejected",
+            "failed"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "response_digest": {
+          "type": "string",
+          "pattern": "^mh:sha256:[0-9a-f]{64}$"
+        },
+        "external_ref": {
+          "type": "string"
+        },
+        "confirmed_at": {
+          "type": "string"
+        }
+      }
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^mh:sha256:[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "alg",
+        "key_id",
+        "ml_dsa",
+        "ed25519"
+      ],
+      "properties": {
+        "alg": {
+          "const": "ml-dsa-65+ed25519"
+        }
+      }
+    },
+    "signer": {
+      "type": "object",
+      "required": [
+        "ml_dsa_pub",
+        "ed25519_pub"
+      ]
+    }
+  }
+}

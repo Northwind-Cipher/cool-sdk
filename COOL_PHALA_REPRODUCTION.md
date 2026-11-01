@@ -1,5 +1,7 @@
 # Reproducing the CooL x Phala Real-TEE Validation
 
+> **What is public, and what is not.** The recorded evidence (`artifacts/`) and the scripts that verify it (`phala-validation/final-verify.mjs`, `offline-dcap-verify.mjs`, `closure-verify.mjs`, `external-verify.mjs`, `gen-manifest.mjs`) are open source, so anyone can re-check the results below. The validation *workloads*, meaning the evidence-plane server, the witness service, their Dockerfile and compose files, are part of the commercial CooL platform and are not in this repository. The deploy steps below describe how the run was done; redeploying it requires access to those components.
+
 Two deployments are used. Keep them distinct:
 
 | Role | Compose file | Image (registry tag / digest recorded in the run) |
