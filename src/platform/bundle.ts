@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -17,7 +14,7 @@
  *
  * The verifier trusts none of the exporter's conclusions. It recomputes every
  * envelope report, checks the manifest against the contents, resolves every
- * reference inside the bundle, and builds the timeline itself. The trust
+ * reference inside the bundle, and orders the evidence by time itself. The trust
  * snapshot inside the bundle is used only when the caller supplies none, and
  * the report then says the trust was self-asserted by the exporter.
  */
@@ -27,10 +24,28 @@ import { concatBytes, utf8 } from "../codec";
 import { hybridSign, hybridVerify } from "../sign";
 import type { KeyPair, Multihash, SignatureBlock } from "../types";
 import { verifyEnvelope, type SignedEnvelope, type VerificationReport, type VerifyEnvelopeOptions } from "./envelope";
-import type { PolicyDecisionRecord } from "./policy";
 import { check, overallOf, type Check, type OverallStatus } from "./status";
 import { TrustStore, type TrustSnapshot } from "./trust";
-import { buildTimeline, type Timeline } from "./correlation";
+
+/**
+ * A decision record carried in a bundle. The open verifier binds it by digest
+ * and checks citations; evaluating policy is the commercial platform's job.
+ */
+export interface DecisionRecord {
+  readonly schema: string;
+  readonly policy_id?: string;
+  readonly policy_version?: string;
+  readonly evaluated_at?: string;
+}
+
+/** One envelope's place in time, ordered by occurrence. Correlation is not done here. */
+export interface BundleEntry {
+  readonly at: string;
+  readonly event_id: string;
+  readonly event_type: string;
+  readonly digest: Multihash;
+  readonly overall_status: OverallStatus;
+}
 
 export interface BundleManifestEntry {
   readonly kind: "envelope" | "decision";
@@ -43,7 +58,7 @@ export interface EvidenceBundle {
   readonly created_at: string;
   readonly title: string;
   readonly envelopes: readonly SignedEnvelope[];
-  readonly decisions: readonly PolicyDecisionRecord[];
+  readonly decisions: readonly DecisionRecord[];
   readonly trust_snapshot: TrustSnapshot;
   readonly manifest: { readonly entries: readonly BundleManifestEntry[]; readonly digest: Multihash };
   readonly signature: SignatureBlock;
@@ -52,7 +67,7 @@ export interface EvidenceBundle {
 
 const MANIFEST_DOMAIN = utf8("cool.bundle.manifest.v1\0");
 
-function manifestOf(envelopes: readonly SignedEnvelope[], decisions: readonly PolicyDecisionRecord[]) {
+function manifestOf(envelopes: readonly SignedEnvelope[], decisions: readonly DecisionRecord[]) {
   const entries: BundleManifestEntry[] = [
     ...envelopes.map((e) => ({ kind: "envelope" as const, id: e.core.event_id, digest: e.digest })),
     ...decisions.map((d) => ({ kind: "decision" as const, id: `${d.policy_id}@${d.policy_version}:${d.evaluated_at}`, digest: mhSha256(canonicalCbor(d)) })),
@@ -63,7 +78,7 @@ function manifestOf(envelopes: readonly SignedEnvelope[], decisions: readonly Po
 export function exportBundle(input: {
   readonly title: string;
   readonly envelopes: readonly SignedEnvelope[];
-  readonly decisions?: readonly PolicyDecisionRecord[];
+  readonly decisions?: readonly DecisionRecord[];
   readonly trust: TrustStore;
   readonly exporter: KeyPair;
   readonly now?: Date;
@@ -95,7 +110,8 @@ export interface BundleReport {
     readonly decisions_bound: Check;
   };
   readonly envelopes: ReadonlyArray<{ readonly event_id: string; readonly event_type: string; readonly overall_status: OverallStatus; readonly reasons: readonly string[] }>;
-  readonly timeline: Timeline;
+  /** Envelopes ordered by occurred_at. Cross-system correlation is a commercial feature. */
+  readonly entries: readonly BundleEntry[];
   readonly reasons: readonly string[];
 }
 
@@ -151,7 +167,9 @@ export function verifyBundle(
     overall_status: overall,
     checks,
     envelopes: reports.map((r, i) => ({ event_id: bundle.envelopes[i]!.core.event_id, event_type: bundle.envelopes[i]!.core.event_type, overall_status: r.overall_status, reasons: r.reasons })),
-    timeline: buildTimeline(bundle.envelopes, reports),
+    entries: bundle.envelopes
+      .map((e, i) => ({ at: e.core.occurred_at, event_id: e.core.event_id, event_type: e.core.event_type, digest: e.digest, overall_status: reports[i]!.overall_status }))
+      .sort((a, b) => (a.at === b.at ? a.digest.localeCompare(b.digest) : a.at.localeCompare(b.at))),
     reasons,
   };
 }

@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -357,30 +354,7 @@ export const COMMANDS: readonly CommandDoc[] = [
       { flag: "--trust <file>", does: "a cool.trust-snapshot.v1 you control" },
       { flag: "--json", does: "machine-readable report" },
     ],
-    seeAlso: ["decide", "gate-demo"],
-  },
-  {
-    name: "decide",
-    args: "<policy.json> <facts.json>",
-    summary: "evaluate a cool.policy.v1 against facts",
-    description:
-      "Runs the shared policy engine with no side effects. Missing facts are unknown, never " +
-      "safe. Exit 0 for allow or audit_only, 1 for deny or quarantine, 2 for decisions that " +
-      "need a human (require_approval, defer).",
-    examples: [{ run: "cool decide policy.json facts.json", does: "show the decision and every matched rule" }],
-    flags: [{ flag: "--json", does: "the decision record as JSON" }],
-    seeAlso: ["bundle", "policy"],
-  },
-  {
-    name: "gate-demo",
-    args: "[dir]",
-    summary: "the supply-chain deployment gate, end to end",
-    description:
-      "Builds a benign artifact, records signed provenance, gates a deployment to a local " +
-      "directory target, tampers the artifact and shows the retry refused, then exports and " +
-      "verifies a bundle. Everything is real except the scale: a directory stands in for a cluster.",
-    examples: [{ run: "cool gate-demo ./demo", does: "run it and keep the files" }],
-    seeAlso: ["bundle", "decide"],
+    seeAlso: ["verify", "pack"],
   },
   {
     name: "help",

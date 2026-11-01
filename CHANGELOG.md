@@ -7,6 +7,32 @@ independently (`cool.evidence.v1`, `cool.receipt.v2`).
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-11-01
+
+**CooL's open core, under Apache-2.0.** This package now contains everything needed to adopt CooL and to verify its evidence independently. The operational, enterprise layer moves to the separately licensed commercial CooL platform. See `docs/open-core.md`.
+
+### Changed
+- **License:** Apache-2.0 for 4.0.0 and later. 3.1.0–3.1.1 were published under BUSL-1.1 and keep those terms.
+- `verifyBundle` returns `entries` (envelopes ordered by time) in place of `timeline`. Cross-system correlation is a commercial feature. Bundles carry decision records as generic `DecisionRecord`s, bound by digest exactly as before.
+- `CoolClient` keeps the `evidence`, `trust` and `connectors` namespaces. `policyMode`, `enforcement` and the module namespaces moved to the commercial platform.
+- `NitroReceiptSealer.acceptEpoch()` takes a structural `EpochAssignment`.
+
+### Removed (moved to the commercial CooL platform)
+- `cool-nwc/platform`:
+  - the policy engine (`evaluatePolicy`, `PolicyRegistry`, …)
+  - `EnforcementCoordinator`, `LocalDirectoryTarget`, `LocalDenylistTarget`
+  - correlation (`correlate`, `buildTimeline`)
+  - the supply-chain, identity, change-control, runtime-guard and incident modules
+- `cool-nwc/nitro`: `NitroLogServer`, `EpochLog`, `verifyEpochRegistration`.
+- `cool-nwc/phala`: the observing `Witness` service class. Co-signing and witness verification (`cosign`, `attachWitness`, `countWitnesses`) stay.
+- CLI: `cool decide`, `cool gate-demo`.
+- `examples/supply-chain-gate`; the validation evidence-plane and witness service deployment files. The verification scripts and `artifacts/` stay.
+- Internal documents: IP reports, ADRs, status reports, research and pricing notes.
+
+### Migration
+- If you used the removed APIs, pin `cool-nwc@3.1.1` (BUSL-1.1) or contact Northwind Cipher about the commercial platform.
+- The evidence formats are unchanged. Receipts, envelopes and bundles produced by 3.x verify with 4.0.0.
+
 ## [3.1.1] — 2026-11-01
 
 The first npm release of the 3.1 line. The code is identical to 3.1.0. That version was tagged but never reached npm, because the release workflow's npm was too old for trusted publishing.

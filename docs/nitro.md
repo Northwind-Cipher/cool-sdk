@@ -4,7 +4,6 @@
 - offline attestation verification
 - the in-enclave receipt sealer
 - enclave↔host framing
-- the log server with epochs and gap detection
 - an attestation result normalized with the TDX path
 
 The trust model is in [trust-models.md](trust-models.md#aws-nitro-enclaves).
@@ -17,7 +16,7 @@ The trust model is in [trust-models.md](trust-models.md#aws-nitro-enclaves).
 | In-enclave sealer (`NitroReceiptSealer`): fresh key, attestation binding, `[epoch].[sequence]` receipts as `cool.envelope.v1` | **implemented, tested** against a synthetic NSM |
 | NSM access (`NsmSource`, `CommandNsmSource` → helper binary) | **interface implemented; helper absent.** A helper that talks to `/dev/nsm` inside the enclave must be supplied |
 | Enclave↔host framing and forward-only host proxy (`encodeFrame`, `FrameDecoder`, `forwardFrames`) | **implemented, tested** over in-memory streams. **Not run over a real vsock** |
-| Log server (`NitroLogServer`): registration on attestation, receipt verification, epochs, gaps, signed acks, RFC 6962 log, witnessed checkpoints | **implemented, tested** (in memory) |
+| Log server: registration on attestation, epochs, gap detection, signed acknowledgements | **commercial CooL platform** (Evidence Cloud), not in this package |
 | Nitro evidence verified by the shared envelope verifier (`attestation_valid`) | **implemented, tested** |
 | Normalized attestation result shared with TDX (`normalizeNitro`, `normalizeTdx`) | **implemented, tested** |
 | Public anchoring of Nitro checkpoints | **not wired.** OpenTimestamps exists for the TDX path (`src/phala/anchor.ts`) and needs network access |
@@ -74,17 +73,7 @@ report.reasons;                   // ["freshness: nonce_replayed", …]
 
 ## Epochs and gaps
 
-```ts
-import { EpochLog } from "cool-nwc/nitro";
-
-const log = new EpochLog(logKeypair);
-const { registration } = log.register(report, keyId, "refund-agent"); // refuses unless report passed
-log.ingest({ receipt_id, key_id: keyId, epoch: registration.epoch, sequence: 0, digest });
-log.gaps();   // every gap ever seen: "unresolved" or "filled_late"
-log.events(); // registrations, epoch transitions, gaps, conflicts
-```
-
-The log assigns the epoch; a caller cannot choose one. A gap means evidence is **missing**. It does not show malice, because the log cannot tell suppression from a crash. A dropped *final* receipt is invisible until a later sequence arrives. A late arrival marks the gap `filled_late` rather than erasing it.
+The sealer numbers receipts `[epoch].[sequence]`, and the sequence is bound into the signed core. Assigning epochs, detecting dropped receipts and acknowledging delivery is the log server's job, which is part of the commercial CooL platform. `NitroReceiptSealer.acceptEpoch()` takes the log's assignment as an `EpochAssignment`.
 
 ## Data and network
 
