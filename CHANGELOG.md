@@ -11,6 +11,26 @@ independently (`cool.evidence.v1`, `cool.receipt.v2`).
 
 **CooL's open core, under Apache-2.0.** This package now contains everything needed to adopt CooL and to verify its evidence independently. The operational, enterprise layer moves to the separately licensed commercial CooL platform. See `docs/open-core.md`.
 
+### Added
+- **`cool-nwc/authz`**, the agent authorization protocol:
+  - **Principals.** Issuer-signed records with key binding and status **at event time**.
+  - **Delegation chains.** Scopes must be subsets, with depth and cycle limits, audience and validity checks, revocation, and privilege-amplification detection.
+  - **Canonical authorization requests.** Parameters and context are carried only as salted or **HMAC-keyed commitments**, with NFC normalization.
+  - **Signed decisions.** `permit` / `deny` / `indeterminate` / `error`, with `trusted` or **`reproducible`** assurance. In `reproducible` mode the verifier re-runs the deterministic policy.
+  - **Atomic replay stores.** `MemoryNonceStore` and `FileNonceStore`, which uses O_EXCL.
+  - **Execution binding**, and the reference enforcement boundary **`ToolGateway`**, which fails closed and issues **signed external confirmations**.
+- **Policy evaluation is public again.** `evaluatePolicy`, `validatePolicy`, `policyDigest` and `simulatePolicy` are back in `cool-nwc/platform`, because independent replay must not be paywalled. The managed lifecycle (`PolicyRegistry`, overrides) stays commercial.
+- **Six verification outcomes**: `verified`, `invalid`, `unsupported`, `stale`, `incomplete`, `indeterminate`. `outcome` is on every envelope and bundle report.
+- **Bundles.** Signed protocol objects can travel as attachments (`attachments_bound`). Gaps in sequenced evidence give **`incomplete`** (`sequence_complete`).
+- **TEE adapter interface.** `nitroAdapter` and `tdxAdapter` are implemented. Phala dstack is partial. AMD SEV-SNP and NVIDIA CC return `unsupported`.
+- **Legacy compatibility.** `wrapLegacyReceipt` / `verifyWrappedLegacy` bring `cool.receipt.v2` into the envelope unchanged.
+- **17 new event families**, 50 in total (`docs/event-taxonomy.md`). New key purposes: `identity_issuer`, `evaluator`. Algorithm registry entry `hmac-sha-256`.
+- **New schemas and test vectors**: `cool.principal.v1`, `cool.delegation.v1`, `cool.authz-request.v1`, `cool.authz-decision.v1`, `cool.external-confirmation.v1`, and `spec/test-vectors/authz-commitments.v1.json`.
+- **`npm run demo:agent`**: scenarios A–H, self-checking. **`npm run bench`**: microbenchmarks.
+- **Tests**: authorization, the gateway, schema conformance, outcomes, and **egress**, which proves the showcase and demo make zero network calls.
+- **Release.** A CycloneDX SBOM is attached to every GitHub release.
+- **Docs**: guarantees, feature matrix, repository audit, system threat model, authorization, demo scenarios, event taxonomy, TEE support, key management, deployment modes, telemetry and egress, performance, compliance mapping (sample), release criteria, `GOVERNANCE.md` (RFC process), the CVA/RCVA/ZK research spike, and the status of every feature.
+
 ### Changed
 - **License:** Apache-2.0 for 4.0.0 and later. 3.1.0–3.1.1 were published under BUSL-1.1 and keep those terms.
 - `verifyBundle` returns `entries` (envelopes ordered by time) in place of `timeline`. Cross-system correlation is a commercial feature. Bundles carry decision records as generic `DecisionRecord`s, bound by digest exactly as before.
@@ -19,7 +39,7 @@ independently (`cool.evidence.v1`, `cool.receipt.v2`).
 
 ### Removed (moved to the commercial CooL platform)
 - `cool-nwc/platform`:
-  - the policy engine (`evaluatePolicy`, `PolicyRegistry`, …)
+  - the policy *lifecycle* (`PolicyRegistry`, `overrideDecision`). Evaluation stays public, see Added
   - `EnforcementCoordinator`, `LocalDirectoryTarget`, `LocalDenylistTarget`
   - correlation (`correlate`, `buildTimeline`)
   - the supply-chain, identity, change-control, runtime-guard and incident modules

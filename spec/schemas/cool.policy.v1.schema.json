@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Northwind-Cipher/cool-sdk/spec/schemas/cool.policy.v1.schema.json",
+  "title": "cool.policy.v1",
+  "description": "A versioned policy: ordered rules over named facts. Missing facts are unknown; each rule's on_unknown (or the policy's, default defer) decides them. The most restrictive contribution wins: deny > quarantine > require_approval > defer > audit_only > allow.",
+  "type": "object",
+  "required": ["schema", "id", "version", "mode", "default", "rules"],
+  "$defs": {
+    "decision": { "enum": ["allow", "deny", "require_approval", "quarantine", "defer", "audit_only"] },
+    "condition": {
+      "oneOf": [
+        { "type": "object", "required": ["all"], "properties": { "all": { "type": "array", "items": { "$ref": "#/$defs/condition" } } } },
+        { "type": "object", "required": ["any"], "properties": { "any": { "type": "array", "items": { "$ref": "#/$defs/condition" } } } },
+        { "type": "object", "required": ["not"], "properties": { "not": { "$ref": "#/$defs/condition" } } },
+        { "type": "object", "required": ["fact", "op"], "properties": { "fact": { "type": "string" }, "op": { "enum": ["eq", "neq", "in", "exists", "lt", "lte", "gt", "gte", "matches"] }, "value": {} } }
+      ]
+    }
+  },
+  "properties": {
+    "schema": { "const": "cool.policy.v1" },
+    "id": { "type": "string" },
+    "version": { "type": "string" },
+    "description": { "type": "string" },
+    "mode": { "enum": ["observe", "enforce"] },
+    "default": { "$ref": "#/$defs/decision" },
+    "on_unknown": { "$ref": "#/$defs/decision" },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "when", "decision", "reason"],
+        "properties": {
+          "id": { "type": "string" },
+          "description": { "type": "string" },
+          "when": { "$ref": "#/$defs/condition" },
+          "decision": { "$ref": "#/$defs/decision" },
+          "reason": { "type": "string" },
+          "on_unknown": { "$ref": "#/$defs/decision" }
+        }
+      }
+    }
+  }
+}

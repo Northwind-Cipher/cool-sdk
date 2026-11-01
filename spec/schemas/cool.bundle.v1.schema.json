@@ -4,23 +4,137 @@
   "title": "cool.bundle.v1",
   "description": "A portable evidence bundle. The manifest digest covers every entry; the exporter signs the manifest. Verifiers recompute everything and never trust the exporter's conclusions.",
   "type": "object",
-  "required": ["schema", "created_at", "title", "envelopes", "decisions", "trust_snapshot", "manifest", "signature", "exporter_key"],
+  "required": [
+    "schema",
+    "created_at",
+    "title",
+    "envelopes",
+    "decisions",
+    "trust_snapshot",
+    "manifest",
+    "signature",
+    "exporter_key"
+  ],
   "properties": {
-    "schema": { "const": "cool.bundle.v1" },
-    "created_at": { "type": "string" },
-    "title": { "type": "string" },
-    "envelopes": { "type": "array", "items": { "type": "object", "required": ["format", "core", "digest"] } },
-    "decisions": { "type": "array", "items": { "type": "object", "required": ["schema", "policy_id", "policy_version", "policy_digest", "decision", "matched_rules", "input_digest"] } },
-    "trust_snapshot": { "type": "object", "required": ["schema", "id", "as_of", "keys"], "properties": { "schema": { "const": "cool.trust-snapshot.v1" } } },
-    "manifest": {
-      "type": "object",
-      "required": ["entries", "digest"],
-      "properties": {
-        "entries": { "type": "array", "items": { "type": "object", "required": ["kind", "id", "digest"], "properties": { "kind": { "enum": ["envelope", "decision"] } } } },
-        "digest": { "type": "string", "pattern": "^mh:sha256:[0-9a-f]{64}$" }
+    "schema": {
+      "const": "cool.bundle.v1"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "envelopes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "format",
+          "core",
+          "digest"
+        ]
       }
     },
-    "signature": { "type": "object", "required": ["alg", "key_id", "ml_dsa", "ed25519"] },
-    "exporter_key": { "type": "object", "required": ["key_id", "ml_dsa_pub", "ed25519_pub"] }
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema",
+          "policy_id",
+          "policy_version",
+          "policy_digest",
+          "decision",
+          "matched_rules",
+          "input_digest"
+        ]
+      }
+    },
+    "trust_snapshot": {
+      "type": "object",
+      "required": [
+        "schema",
+        "id",
+        "as_of",
+        "keys"
+      ],
+      "properties": {
+        "schema": {
+          "const": "cool.trust-snapshot.v1"
+        }
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "required": [
+        "entries",
+        "digest"
+      ],
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "kind",
+              "id",
+              "digest"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "envelope",
+                  "decision",
+                  "attachment"
+                ]
+              }
+            }
+          }
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^mh:sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "alg",
+        "key_id",
+        "ml_dsa",
+        "ed25519"
+      ]
+    },
+    "exporter_key": {
+      "type": "object",
+      "required": [
+        "key_id",
+        "ml_dsa_pub",
+        "ed25519_pub"
+      ]
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "kind",
+          "digest",
+          "body"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string",
+            "pattern": "^mh:sha256:[0-9a-f]{64}$"
+          },
+          "body": {}
+        }
+      }
+    }
   }
 }

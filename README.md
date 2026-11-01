@@ -16,7 +16,7 @@
 [![Intel TDX](https://img.shields.io/badge/verified%20on-Intel%20TDX-7ee2a8?style=for-the-badge&labelColor=0b0f14)](#-proven-on-real-silicon)
 
 [![Node](https://img.shields.io/badge/node-%E2%89%A5%2020-8b949e?style=flat-square&labelColor=0b0f14)](https://nodejs.org)
-[![Tests](https://img.shields.io/badge/tests-177%20passing-8b949e?style=flat-square&labelColor=0b0f14)](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-203%20passing-8b949e?style=flat-square&labelColor=0b0f14)](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-8b949e?style=flat-square&labelColor=0b0f14)](#license)
 
 <br/>
@@ -177,6 +177,53 @@ It leaves `evidence-bundle.json` and `trust.json` behind, so you can check them 
 
 <br/>
 
+## 🤖 Govern what an agent is allowed to do
+
+```bash
+npm run demo:agent
+```
+
+An AI agent asks to refund a customer. CooL follows that action from start to finish:
+- **who** the agent is, and **who delegated** it authority
+- the **exact request**: parameters committed, never stored in plaintext
+- a **signed, replayable policy decision**
+- a **real enforcement boundary** that owns the tool
+- a **signed confirmation** of what actually happened
+
+Then it attacks the run eight ways. Every ✓ is an assertion:
+
+| | Scenario | Result |
+|:-:|---|---|
+| **A** | refund 200 within a 500 delegation | `permit` → executed → confirmed; the decision **replays identically** offline |
+| **B** | refund 900 | refused **at the boundary**, even when a misconfigured policy says yes |
+| **C** | the policy changes later | the old decision still verifies against its own policy version |
+| **D** | replay, including 3 simultaneous submissions | exactly one refund |
+| **E** | a substituted workload | `execution_mismatch` → refused |
+| **F** | a tampered receipt | `invalid` |
+| **G** | a dropped event | **`incomplete`**, never "verified" |
+| **H** | a stale attestation | **`stale`** |
+
+```ts
+import { createAuthorizationRequest, decide, ToolGateway, FileNonceStore } from "cool-nwc/authz";
+
+const { request, secrets } = createAuthorizationRequest({
+  principal: "agent:refund-bot", action: "refund", resource: "order:4471",
+  audience: "acme-payments", policy_selector: "refunds",
+  params: { order: "4471", amount: 200 }, delegation: grant.body.delegation_id,
+});
+const decision = decide({ request, policy, facts: { "refund.amount": 200 }, evaluatorKey });
+
+// the gateway sits with the tool: it verifies everything, consumes the nonce, then executes
+const gateway = new ToolGateway({ id: "payments-gw", audience: "acme-payments", key: gatewayKey,
+  trust, nonces: new FileNonceStore("./nonces"), directory, roots: ["user:asha"] });
+const { confirmation } = await gateway.invoke({ tool: "issue_refund", request,
+  params: secrets.params, params_salt: secrets.params_salt, decision, delegation: [grant], policy, facts });
+```
+
+Verification gives one of six outcomes: **`verified`**, **`invalid`**, **`unsupported`**, **`stale`**, **`incomplete`** or **`indeterminate`**. A gap is never reported as success. See [docs/authorization.md](docs/authorization.md) and [docs/demo-scenarios.md](docs/demo-scenarios.md).
+
+<br/>
+
 ## 🧰 What you get
 
 <table>
@@ -229,14 +276,34 @@ It leaves `evidence-bundle.json` and `trust.json` behind, so you can check them 
 </td>
 <td valign="top">
 
-**📜 Policy & compliance**<br/>
-<sub>Governance rules, approvals, and a map of which obligations your evidence covers.</sub>
+**📜 Replayable policy**<br/>
+<sub>Deterministic <code>cool.policy.v1</code> decisions anyone can re-run, plus a sample compliance map.</sub>
 
 </td>
 <td valign="top">
 
 **🖥️ Live console**<br/>
 <sub>Watch a real project's changes get sealed in a browser: <code>cool ui</code>.</sub>
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+**🤖 Agent authorization**<br/>
+<sub>Principals, delegation chains without privilege amplification, and committed requests: <code>cool-nwc/authz</code>.</sub>
+
+</td>
+<td valign="top">
+
+**🚧 Enforcement gateway**<br/>
+<sub>Fails closed, consumes nonces atomically, binds execution, and signs what really happened.</sub>
+
+</td>
+<td valign="top">
+
+**🧮 Honest outcomes**<br/>
+<sub><code>incomplete</code>, <code>stale</code> and <code>unsupported</code> are results, never silent passes.</sub>
 
 </td>
 </tr>
@@ -420,10 +487,11 @@ To reproduce the hardware validation end to end (compose files, deployment and e
 |---|---|
 | Evidence format, schemas, test vectors, specifications, threat model | **Evidence Cloud**: managed ingestion, storage, retention, log and witness operations |
 | SDKs and capture: `CooL`, `CoolTee`, `CoolClient`, reference connectors, the Nitro receipt sealer | **Incident Intelligence**: cross-system correlation and incident reconstruction |
-| Local verification: receipts, envelopes, bundles, Nitro attestation, log consistency, witness signatures, disclosure | **Risk Controls**: policy management, approvals, response and containment integrations |
+| Local verification: receipts, envelopes, bundles, Nitro attestation, log consistency, witness signatures, disclosure | **Risk Controls**: managed policy lifecycle, approvals, response and containment integrations |
+| Authorization protocol, **replayable policy evaluation**, and the reference enforcement gateway | **Enterprise** (planned): SSO/SCIM, RBAC, multi-tenant control plane, retention |
 | CLI, audit packs, examples, the hardware validation evidence and its verifiers | **Assurance**: enterprise reporting and evidence packages, plus support and service commitments |
 
-Independent verification stays open on purpose: you should never need our service to check our evidence. See [docs/open-core.md](docs/open-core.md) for the exact split.
+Independent verification stays open on purpose: you should never need our service to check our evidence. See [docs/open-core.md](docs/open-core.md) and the [feature matrix](docs/feature-matrix.md) for the exact split.
 
 <br/>
 
@@ -434,6 +502,7 @@ Independent verification stays open on purpose: you should never need our servic
 | ✍️ | **FIPS 204 · ML-DSA-65** | Post-quantum signatures |
 | ✍️ | **Ed25519** | Classical signatures |
 | #️⃣ | **SHA-256** · multihash | Commitments and hashing |
+| 🔑 | **HMAC-SHA-256** (RFC 2104) | Keyed commitments for low-entropy request parameters |
 | 📐 | **Canonical CBOR** | Deterministic serialization |
 | 🌳 | **RFC 6962** | Merkle transparency log |
 | ⏱️ | **OpenTimestamps** | Bitcoin anchoring of tree heads |
@@ -451,6 +520,11 @@ Built on a small set of well-known, dependency-light libraries: [`@noble/curves`
 | | |
 |---|---|
 | 🚦 [Showcase](docs/showcase.md) | Every capability in one self-checking run |
+| 🤖 [Authorization](docs/authorization.md) · [Demo scenarios A–H](docs/demo-scenarios.md) | Principals, delegation, decisions, the gateway |
+| 🎯 [Guarantees](docs/guarantees.md) · [Status of every feature](docs/milestones-status.md) | Each claim, its test and its limit; implemented / partial / planned |
+| 🗂️ [Event taxonomy](docs/event-taxonomy.md) · [TEE support](docs/tee-support.md) · [Key management](docs/key-management.md) | 50 event families; Nitro / TDX / SNP / NVIDIA labels; key lifecycle |
+| 🚢 [Deployment modes](docs/deployment-modes.md) · [Telemetry & egress](docs/telemetry-and-egress.md) · [Performance](docs/performance.md) | Where CooL runs; no phone-home; benchmarks |
+| 📋 [Compliance mapping](docs/compliance-mapping.md) · [Release criteria](docs/release-criteria.md) · [Governance](GOVERNANCE.md) | Sample control map; SBOM and provenance; the RFC process |
 | 🏁 [Getting started](docs/getting-started.md) | From install to first verified receipt |
 | 🧱 [Open core](docs/open-core.md) · [Evidence core](docs/platform.md) · [Migration to the envelope](docs/migration-platform.md) | What is open, the envelope, trust, transparency, bundles |
 | 🛡️ [Trust models](docs/trust-models.md) · [AWS Nitro](docs/nitro.md) | Phala/TDX and Nitro, claim by claim |

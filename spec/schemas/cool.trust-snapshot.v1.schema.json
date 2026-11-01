@@ -18,7 +18,7 @@
         "properties": {
           "key_id": { "type": "string" },
           "entry": { "type": "object", "required": ["ml_dsa_pub", "ed25519_pub"] },
-          "purposes": { "type": "array", "items": { "enum": ["evidence", "log", "witness", "builder", "policy", "enforcement", "source"] } },
+          "purposes": { "type": "array", "items": { "enum": ["evidence", "log", "witness", "builder", "policy", "enforcement", "source", "identity_issuer", "evaluator"] } },
           "owner": { "type": "string" },
           "valid_from": { "type": "string" },
           "valid_until": { "type": "string" },

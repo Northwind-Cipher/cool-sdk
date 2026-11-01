@@ -58,3 +58,22 @@ Receipt (cool.receipt.v2)  →  Verifier (src/phala/verify.ts)   offline, 7 doma
 | local dev / CI | `local` (default) | signatures, log, canonicalization. Attestation is `simulated`. |
 | dstack simulator | `dstack` + `COOL_DSTACK_ENDPOINT` | quote *structure* and key binding, under a CooL-held root. Still `simulated`. |
 | dstack on Intel TDX (self-hosted or Phala Cloud) | `dstack` + `/var/run/dstack.sock` | hardware quote, measurement-sealed key. `hardware` once a quote verifier confirms the vendor root. |
+
+## The authorization and enforcement layer (4.x)
+
+```
+principal (issuer-signed) ─┐
+delegation chain ──────────┼─► authorization request ─► decision (evaluator-signed) ─► ToolGateway ─► tool
+execution context ─────────┘     (commitments, nonce,      (policy digest, input        (verifies all,     │
+                                  audience, expiry)          digest, assurance)          consumes nonce)    ▼
+                                                                                     external confirmation
+                                                                                     (gateway-signed)
+        every step is also recorded as a typed envelope ─► transparency log ─► bundle ─► offline verifier
+```
+
+- **`src/authz/`** holds the protocol objects. Each is a domain-separated `Signed<T>`, verified against a purpose in the trust snapshot.
+- **The `ToolGateway`** is the enforcement point. It sits with the tool, not with CooL, and it refuses on any failed or unknown check (fail closed).
+- **Decisions are reproducible.** The deterministic `cool.policy.v1` evaluator (`src/platform/policy.ts`) is public, so a verifier given the facts can re-run it.
+- **Verification outcomes** (`src/platform/outcome.ts`) are `verified`, `invalid`, `unsupported`, `stale`, `incomplete` and `indeterminate`.
+
+See `docs/authorization.md` for the protocol and `docs/demo-scenarios.md` for it end to end.

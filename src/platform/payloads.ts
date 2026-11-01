@@ -71,6 +71,26 @@ const FAMILIES: Record<string, Record<string, FieldSpec>> = {
   "incident.opened": { incident_id: r("string"), title: r("string"), severity: r("enum:low|medium|high|critical") },
   "incident.evidence_added": { incident_id: r("string"), evidence_ref: r("digest"), label: r("enum:verified|source-asserted|inferred|unknown|contradicted|missing") },
   "incident.closed": { incident_id: r("string"), resolution: r("string") },
+  // Agent identity, authority and authorization (cool-nwc/authz). Ids, digests and commitments only.
+  "principal.enrolled": { principal_id: r("string"), kind: r("enum:agent|human|service|workload"), issuer: r("string"), basis: r("enum:self_asserted|issuer_attested|hardware_bound|federated"), record_digest: r("digest") },
+  "principal.key_rotated": { principal_id: r("string"), key_id: r("string"), retired_key_id: o("string"), event_digest: r("digest") },
+  "principal.status_changed": { principal_id: r("string"), status: r("enum:active|suspended|revoked|decommissioned"), reason: o("string"), event_digest: r("digest") },
+  "delegation.granted": { delegation_id: r("string"), delegator: r("string"), delegate: r("string"), audience: r("string"), expires_at: r("timestamp"), parent: o("string"), delegation_digest: r("digest") },
+  "delegation.revoked": { delegation_id: r("string"), revoked_by: r("string"), reason: r("string") },
+  "authorization.requested": { request_id: r("string"), request_digest: r("digest"), principal: r("string"), action: r("string"), resource: r("string"), audience: r("string"), policy_selector: r("string"), params_commitment: r("digest"), expires_at: r("timestamp"), delegation: o("string") },
+  "authorization.decided": { decision_id: r("string"), decision: r("enum:permit|deny|indeterminate|error"), request_id: r("string"), request_digest: r("digest"), policy_digest: r("digest"), evaluator: r("string"), assurance: r("enum:trusted|reproducible"), decision_digest: r("digest") },
+  "policy.updated": { policy_id: r("string"), version: r("string"), policy_digest: r("digest"), previous_digest: o("digest") },
+  "execution.started": { workload_id: r("string"), artifact_digest: r("digest"), config_digest: r("digest"), platform: r("string") },
+  "tool.invoked": { tool: r("string"), request_id: r("string"), decision_id: o("string") },
+  "external.confirmed": { confirmation_id: r("string"), target: r("string"), request_id: r("string"), decision_id: o("string"), outcome: r("enum:completed|rejected|failed|unknown|timed_out"), reason: r("string"), response_digest: o("digest"), confirmation_digest: r("digest") },
+  "attestation.recorded": { platform: r("enum:aws-nitro|intel-tdx|amd-sev-snp|nvidia-cc|phala-dstack"), document_digest: r("digest"), outcome: r("enum:verified|invalid|unsupported|stale|incomplete|indeterminate") },
+  "receipt.published": { receipt_digest: r("digest"), log_id: r("string"), leaf_index: r("int") },
+  "checkpoint.signed": { log_id: r("string"), tree_size: r("int"), root_hash: r("digest") },
+  "witness.signed": { witness_id: r("string"), log_id: r("string"), tree_size: r("int"), root_hash: r("digest") },
+  // An analyst's note. Never a verified fact; carried so timelines can show it as an annotation.
+  "incident.annotated": { incident_id: r("string"), annotation_digest: r("digest"), analyst: r("string") },
+  // A cool.receipt.v2 wrapped without changing its semantics (see legacy.ts).
+  "legacy.receipt": { legacy_schema: r("enum:cool.receipt.v2"), record_id: r("string"), receipt_digest: r("digest") },
   // Platform's own sensitive events.
   "policy.lifecycle": { policy_id: r("string"), version: r("string"), from_state: r("string"), to_state: r("string"), actor: r("string") },
   "enforcement.requested": { request_id: r("string"), adapter: r("string"), action: r("string"), target: r("string"), dry_run: r("bool"), decision_ref: r("digest") },

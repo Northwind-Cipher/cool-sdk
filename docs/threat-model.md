@@ -30,3 +30,49 @@ CooL does not protect against:
   policy;
 - a malicious but *approved* workload;
 - traffic analysis / metadata leakage at the network layer.
+
+---
+
+## System-wide threat model (4.x: authorization, enforcement, multi-platform)
+
+This section extends the model above to agents, authorization and the tool-call boundary (spec chapter 5). **Attacker capabilities** are what an adversary can do. **Trust assumptions** are what CooL has to rely on. Each row is marked *mitigated*, *detected*, *partially mitigated* or *out of scope*.
+
+### Adversaries and controls
+
+| Adversary / capability | Control | Status | Test | Residual risk |
+|---|---|---|---|---|
+| Malicious agent sends a request beyond its authority | delegation chain verified at the boundary; scope subset; amount ceiling | mitigated | `authz`, `demo:agent` B | the boundary must be the only path to the tool |
+| Agent substitutes parameters (amount, recipient) after approval | params commitment recomputed at the boundary | mitigated | `authz`, `authz-gateway` | — |
+| Replay attacker resubmits a consumed authorization, including in a race | atomic nonce consumption; expiry; audience binding | mitigated | `authz` (25-way race), `demo:agent` D | single-host nonce store; HA store not built |
+| Compromised workload or substituted artifact presents a valid authorization | execution binding (planned vs observed) | detected → refused | `authz`, `demo:agent` E | only as good as the observation source |
+| Policy substitution (claim a decision used a different policy) | decision binds the policy digest | detected | `authz`, `demo:agent` C | — |
+| Evaluator compromise (signs `permit` wrongly) | `reproducible` assurance lets anyone replay; the boundary re-checks delegation regardless | detected (when facts disclosed) / partially mitigated | `authz`, `demo:agent` B | with undisclosed facts, evaluator trust is an assumption |
+| Stolen signing key | trust snapshot status (`revoked`, `compromised`), checkpoint-proven signing time | partially mitigated | `platform-envelope` | signatures before the revocation is known remain accepted |
+| Identity issuer compromise | issuer is a trust root; lifecycle events are issuer-signed | out of scope (trust assumption) | — | a compromised issuer can mint principals |
+| Malicious log operator (fork, rollback, split view) | consistency proofs; witness co-signatures; anchoring | detected | `witness-consistency`, `platform-envelope` | needs witnesses that are independent in practice |
+| Witness collusion | witness threshold; witnesses only count if trusted | partially mitigated | `platform-envelope` | colluding witnesses defeat the threshold |
+| Clock manipulation | event / observed / checkpoint times compared; a checkpoint proves "signed before"; nonce for live freshness | partially mitigated | `platform-envelope`, `nitro-attestation` | no RFC 3161 TSA yet |
+| Host / proxy between enclave and log (drop, delay, replay, mutate) | receipts signed in-enclave; sequence gaps; mutation fails verification | detected | `nitro-path`, `demo:agent` G | a dropped **final** receipt is invisible until a later one arrives |
+| Evidence omission (events never sent) | sequence numbers, heartbeats, `incomplete` outcome | detected where sequenced / out of scope otherwise | `evidence-v2`, `platform-modules` | unsequenced sources cannot show omission |
+| Malicious connector | connectors yield inputs that are still validated and signed by the collector | partially mitigated | `platform-client` | a connector can feed false (but well-formed) facts |
+| Malicious SDK dependency (supply chain) | 5 runtime deps, trusted publishing with provenance, SBOM, CodeQL, dependency audit | partially mitigated | CI | an upstream compromise before detection |
+| Network partition / unavailable dependency | replay store and observation unavailable → `rejected`; verifier → `indeterminate` | mitigated (fail-closed at boundary) | `authz-gateway` | availability is traded for integrity |
+| Denial of service | bounded queues; explicit refusal | partially mitigated | `capture` | sustained overload loses evidence, visibly |
+| Insider modifying a policy quietly | policies are digest-addressed; `policy.updated` events; managed lifecycle in the commercial platform | detected | `demo:agent` C | requires those events to be recorded |
+| Cross-tenant access (hosted control plane) | — | out of scope (not built) | — | to be addressed with the control plane |
+
+### Boundaries
+
+| Boundary | What crosses | Trusted? | Protection |
+|---|---|---|---|
+| agent → SDK | request inputs, plaintext params | the agent is **untrusted** | the SDK commits; it never trusts the agent's claims of authority |
+| agent → gateway | request, params + salt, decision, delegation chain | untrusted input | full re-verification at the gateway |
+| SDK → enclave | events to seal | enclave trusted per attestation policy | attestation binding; in-enclave keys |
+| enclave → host proxy | signed frames | **untrusted** transport | framing limits; receipts signed before crossing |
+| SDK → log | envelope digests | log operator semi-trusted | inclusion and consistency proofs; witnesses |
+| log → witness | checkpoints | witness trusted per snapshot | the witness verifies consistency before signing |
+| verifier → trust bundle | roots, keys, policies | the **only** trust input | versioned, pinned, never fetched at verify time |
+| policy engine → enforcement | signed decision | evaluator trusted per snapshot | signature, binding, freshness; replay for `reproducible` |
+| control plane → tenant | — | not built | — |
+
+**Security review:** no independent review has taken place yet (spec chapter 42). Production assurance claims wait for one.

@@ -48,9 +48,16 @@ export type { KeyPurpose, KeyRecord, KeyStatus, TrustQuery, TrustSnapshot } from
 export { ALGORITHMS, usableAlgorithm } from "./algorithms";
 export type { AlgorithmEntry } from "./algorithms";
 export { check, overallOf } from "./status";
+export { classifyOutcome } from "./outcome";
+export { legacyReceiptDigest, verifyWrappedLegacy, wrapLegacyReceipt } from "./legacy";
+export { ADAPTERS, nitroAdapter, tdxAdapter, unsupportedAdapter } from "./tee";
+export type { AdapterResult, SupportLevel, TeeAdapter, TeePlatform } from "./tee";
+export type { Outcome } from "./outcome";
 export type { Check, CheckStatus, OverallStatus } from "./status";
+export { evaluatePolicy, policyDigest, simulatePolicy, validatePolicy } from "./policy";
+export type { Condition, Decision, Facts, MatchedRule, PolicyDecisionRecord, PolicyDocument, PolicyRule } from "./policy";
 export { TransparencyLog } from "./transparency";
 export { exportBundle, verifyBundle } from "./bundle";
-export type { BundleEntry, BundleReport, DecisionRecord, EvidenceBundle } from "./bundle";
+export type { BundleAttachment, BundleEntry, BundleReport, DecisionRecord, EvidenceBundle } from "./bundle";
 export { FileConfigConnector, GitConnector, fileDigest, runConnector } from "./connectors";
 export type { Connector, ConnectorRun } from "./connectors";

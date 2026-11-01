@@ -1,0 +1,102 @@
+{
+  "schema": "cool.test-vectors.authz-commitments.v1",
+  "description": "Commitments for cool.authz-request.v1 parameters and context. Algorithm: SHA-256 (or HMAC-SHA-256 under `key`) over the domain label ('cool.authz.params.v1\u0000' or 'cool.authz.context.v1\u0000'), the salt bytes, and the RFC 8949 deterministic (CDE) CBOR of the NFC-normalized value. Output is a mh:sha256: multihash string.",
+  "commitments": [
+    {
+      "name": "simple refund",
+      "kind": "params",
+      "value": {
+        "order": "4471",
+        "amount": 200,
+        "recipient": "cust-981"
+      },
+      "salt": "000102030405060708090a0b0c0d0e0f",
+      "commitment": "mh:sha256:fd14bc5e3ef5db6a1a361da023729a6eb6f4c6a570994f73cbfdbd378e1f14ec"
+    },
+    {
+      "name": "key order does not matter",
+      "kind": "params",
+      "value": {
+        "recipient": "cust-981",
+        "amount": 200,
+        "order": "4471"
+      },
+      "salt": "000102030405060708090a0b0c0d0e0f",
+      "commitment": "mh:sha256:fd14bc5e3ef5db6a1a361da023729a6eb6f4c6a570994f73cbfdbd378e1f14ec"
+    },
+    {
+      "name": "NFC: composed é",
+      "kind": "params",
+      "value": {
+        "name": "Amélie"
+      },
+      "salt": "000102030405060708090a0b0c0d0e0f",
+      "commitment": "mh:sha256:9868cba5fba5489772b383ad6974a27a282c96960d976bc469f88b5bb71e4829"
+    },
+    {
+      "name": "NFC: decomposed e + combining acute (same as composed)",
+      "kind": "params",
+      "value": {
+        "name": "Amélie"
+      },
+      "salt": "000102030405060708090a0b0c0d0e0f",
+      "commitment": "mh:sha256:9868cba5fba5489772b383ad6974a27a282c96960d976bc469f88b5bb71e4829"
+    },
+    {
+      "name": "null is a value",
+      "kind": "params",
+      "value": {
+        "a": 1,
+        "b": null
+      },
+      "salt": "000102030405060708090a0b0c0d0e0f",
+      "commitment": "mh:sha256:74e1af876dafe1c3c01cbb8ce13789b9e86ef2b50622ffa820461d85d6eb16cd"
+    },
+    {
+      "name": "nested arrays keep order",
+      "kind": "params",
+      "value": {
+        "items": [
+          3,
+          1,
+          2
+        ],
+        "meta": {
+          "tag": "x"
+        }
+      },
+      "salt": "000102030405060708090a0b0c0d0e0f",
+      "commitment": "mh:sha256:b594b376cfa9567038243bc055024c04715d8dece83ee420726c90b1652d1031"
+    },
+    {
+      "name": "decimal travels as string",
+      "kind": "params",
+      "value": {
+        "amount": "12.50",
+        "currency": "USD"
+      },
+      "salt": "000102030405060708090a0b0c0d0e0f",
+      "commitment": "mh:sha256:3b58311060a068f5537e04790746805fda2b9bbb0391dc98cf35ccef3459adfd"
+    },
+    {
+      "name": "context",
+      "kind": "context",
+      "value": {
+        "channel": "chat",
+        "ticket": "T-77"
+      },
+      "salt": "000102030405060708090a0b0c0d0e0f",
+      "commitment": "mh:sha256:2eebcf56184e4997a084cff0e351ead96b1f3aabac03c6d8d52e1b6ee78972b5"
+    },
+    {
+      "name": "keyed (HMAC-SHA-256)",
+      "kind": "params",
+      "value": {
+        "approve": "yes"
+      },
+      "salt": "000102030405060708090a0b0c0d0e0f",
+      "key": "1111111111111111111111111111111111111111111111111111111111111111",
+      "commitment": "mh:sha256:8f343f2d9e2d6410baeba186a6d64e8f0d2f1004c6277c2decd12d441de6c38c"
+    }
+  ]
+}

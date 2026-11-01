@@ -18,6 +18,10 @@
       "types": "./dist/phala/index.d.ts",
       "default": "./dist/phala/index.js"
     },
+    "./authz": {
+      "types": "./dist/authz/index.d.ts",
+      "default": "./dist/authz/index.js"
+    },
     "./nitro": {
       "types": "./dist/nitro/index.d.ts",
       "default": "./dist/nitro/index.js"
@@ -99,6 +103,8 @@
     "verify:package": "node scripts/verify-package.mjs",
     "demo": "node --import tsx scripts/demo.ts",
     "showcase": "node --import tsx scripts/showcase.ts",
+    "demo:agent": "node --import tsx scripts/demo-agent.ts",
+    "bench": "node --import tsx scripts/bench.ts",
     "verify:all": "npm run typecheck && npm run test"
   }
 }

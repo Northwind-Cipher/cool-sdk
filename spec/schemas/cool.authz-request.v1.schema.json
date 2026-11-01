@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Northwind-Cipher/cool-sdk/spec/schemas/cool.authz-request.v1.schema.json",
+  "title": "cool.authz-request.v1",
+  "description": "Canonical authorization request. Parameters and context are carried only as commitments (salted SHA-256 or HMAC-SHA-256); see spec/test-vectors/authz-commitments.v1.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "request_id",
+    "principal",
+    "action",
+    "resource",
+    "audience",
+    "policy_selector",
+    "params_commitment",
+    "context_commitment",
+    "commitment_scheme",
+    "nonce",
+    "issued_at",
+    "expires_at"
+  ],
+  "properties": {
+    "schema": {
+      "const": "cool.authz-request.v1"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "principal": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "resource": {
+      "type": "string"
+    },
+    "audience": {
+      "type": "string"
+    },
+    "policy_selector": {
+      "type": "string"
+    },
+    "params_commitment": {
+      "type": "string",
+      "pattern": "^mh:sha256:[0-9a-f]{64}$"
+    },
+    "context_commitment": {
+      "type": "string",
+      "pattern": "^mh:sha256:[0-9a-f]{64}$"
+    },
+    "commitment_scheme": {
+      "enum": [
+        "salted-sha-256",
+        "hmac-sha-256"
+      ]
+    },
+    "nonce": {
+      "type": "string"
+    },
+    "issued_at": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "delegation": {
+      "type": "string"
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "workload_id",
+        "artifact_digest",
+        "config_digest",
+        "platform"
+      ],
+      "properties": {
+        "workload_id": {
+          "type": "string"
+        },
+        "artifact_digest": {
+          "type": "string",
+          "pattern": "^mh:sha256:[0-9a-f]{64}$"
+        },
+        "config_digest": {
+          "type": "string",
+          "pattern": "^mh:sha256:[0-9a-f]{64}$"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "measurement": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
