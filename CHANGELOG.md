@@ -7,6 +7,13 @@ independently (`cool.evidence.v1`, `cool.receipt.v2`).
 
 ## [Unreleased]
 
+## [3.1.1] — 2026-11-01
+
+The first npm release of the 3.1 line. The code is identical to 3.1.0. That version was tagged but never reached npm, because the release workflow's npm was too old for trusted publishing.
+
+### Fixed
+- Release workflow: install npm ≥ 11.5.1 before publishing, which trusted publishing (OIDC) requires.
+
 ## [3.1.0] — 2026-10-31
 
 New capabilities under two new subpaths. **No breaking change:** `CooL`, `CoolTee`, `cool.evidence.v1`, `cool.receipt.v2` and `cool verify` behave exactly as in 3.0.0.
