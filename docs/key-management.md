@@ -33,9 +33,33 @@ Each `KeyRecord` has `valid_from`, an optional `valid_until`, and a `status`: `a
 
 ## Signing with a KMS or HSM
 
-`Signer` is an interface: `{ keyId, directoryEntry, sign(message) → SignatureBlock }` (`src/platform/envelope.ts`). `localSigner` is the in-memory reference. To use a KMS or HSM, implement `sign` against your provider. The hybrid scheme needs both an ML-DSA-65 and an Ed25519 signature, so your provider must support both, or you combine a provider-held Ed25519 key with an ML-DSA key held in your secure enclave.
+A CooL signature has two halves: ML-DSA-65 (FIPS 204, pure, empty context) and Ed25519 (RFC 8032, pure), over the same message. Both must verify. A provider-backed signer is therefore two **component signers**, one per algorithm, and the two can live in different places. `hybridSigner()` combines them into an `AsyncSigner`.
 
-**No managed KMS/HSM adapter ships in the open core.** AWS KMS, GCP KMS, Azure Key Vault and PKCS#11 adapters are **planned**. They will be thin `Signer` implementations, and verification will not change.
+Before returning, every remote signature is **verified locally against the configured public key**. A wrong key id, a wrong algorithm or a provider fault therefore fails at signing time, not at an auditor's.
+
+Async signing paths:
+- `signEnvelopeAsync`
+- `signObjectAsync`
+- `decideAsync`
+- `ToolGateway({ key })`, which accepts an `AsyncSigner`
+
+| Provider | Adapter | Key setup | Label |
+|---|---|---|---|
+| **AWS KMS** | `awsKmsSigner(client, { mlDsaKeyId, ed25519KeyId })` | `ML_DSA_65` (signs with `ML_DSA_SHAKE_256`) + `ECC_NIST_EDWARDS25519` (`ED25519_SHA_512`), `MessageType: RAW` | **experimental** |
+| **Google Cloud KMS** | `gcpKmsSigner(client, { mlDsaVersion, ed25519Version })` | `PQ_SIGN_ML_DSA_65` + `EC_SIGN_ED25519` (both pure) | **experimental** |
+| **PKCS#11 HSM** | `pkcs11Component(session, label, alg, publicKey)` | `CKM_ML_DSA` (PKCS#11 3.2) + `CKM_EDDSA` (3.0), if your HSM supports them | **experimental** |
+| **Mixed** | `hybridSigner({ mlDsa: awsKmsComponent(…), ed25519: pkcs11Component(…) })` | any combination | follows its parts |
+| **Azure Key Vault** | — | Key Vault offers neither Ed25519 nor ML-DSA | **unsupported** |
+
+**Why "experimental":** the adapters are tested against in-process provider emulators. These hold the private key the way the service does, return public keys in the provider's own format, and enforce its API rules. They have not yet been run against the live services from this repository. To move one to *implemented*, run it against your account and commit the artifact:
+
+```bash
+npm i --no-save @aws-sdk/client-kms
+COOL_AWS_MLDSA_KEY=alias/cool-mldsa COOL_AWS_ED25519_KEY=alias/cool-ed25519 npm run validate:kms -- aws
+# writes artifacts/kms-validation/aws-<time>.json: public keys, a signed envelope, the verdict. No secrets.
+```
+
+Provider SDKs are not dependencies. Each adapter takes the smallest client shape it needs, and the doc comments in `src/platform/signers.ts` show the two-line wrappers for the AWS SDK v3 and `@google-cloud/kms`. Network calls happen only inside the client you pass in.
 
 ## Keys in TEEs
 

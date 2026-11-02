@@ -17,6 +17,7 @@
  *   65  input is not valid (schema, JSON)
  *   66  input could not be read
  */
+import { CAPABILITIES } from "../platform/capabilities";
 import { readFileSync } from "node:fs";
 import { PayloadRegistry, TrustStore, verifyBundle, type EvidenceBundle, type TrustSnapshot } from "../platform/index";
 import { c, g, out } from "./tty";
@@ -79,4 +80,13 @@ export function bundleCommand(args: string[]): number {
     out(`  ${mark(report.overall_status)} bundle ${report.overall_status}${report.reasons.length ? c.grey(` — ${report.reasons.join("; ")}`) : ""}`);
   }
   return report.overall_status === "pass" ? EXIT.ok : report.overall_status === "fail" ? EXIT.fail : EXIT.unknown;
+}
+
+/** `cool capabilities [--json]` — every capability, its label and the evidence behind it. */
+export function capabilitiesCommand(args: string[]): number {
+  if (args.includes("--json")) { out(JSON.stringify(CAPABILITIES, null, 2)); return 0; }
+  const tag = (l: string) => (l === "implemented" ? c.green(l) : l === "experimental" || l === "partial" ? c.yellow(l) : c.faint(l));
+  for (const cap of CAPABILITIES) out(`  ${tag(cap.label.padEnd(12))} ${cap.name}${c.faint(`  — ${cap.limits}`)}`);
+  out(`  ${c.faint("labels: implemented = validated against genuine evidence or a real service · experimental = built and tested, not yet validated on the real thing")}`);
+  return 0;
 }

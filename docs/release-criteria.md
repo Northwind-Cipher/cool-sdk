@@ -10,6 +10,9 @@ A version of `cool-nwc` is released only when **every** item below holds. The re
 | The tamper demo fails as expected, the showcase and the agent demo hold every claim | `ci.yml`, `tests/evidence-v2.test.ts` |
 | No network calls on the SDK paths | `tests/egress.test.ts` |
 | A consumer install from the packed tarball works; the examples run | `ci.yml` |
+| The shared replay store holds against a real Redis server | `ci.yml` (`redis` job) |
+| The Nitro enclave image builds and the NSM helper compiles; outside an enclave it fails loudly | `ci.yml` (`nitro-image` job) |
+| Docs match the capability registry; no stale claim reappears; TEE adapters report the registry's labels | `tests/capabilities.test.ts` |
 | `npm audit` has no high or critical findings | `security.yml` |
 | No key files or private-key blocks anywhere in the history | `security.yml` |
 | CodeQL | `security.yml` |
@@ -19,7 +22,7 @@ A version of `cool-nwc` is released only when **every** item below holds. The re
 
 ## Manual criteria
 
-- **Claims.** Every claim in `README.md` and `docs/guarantees.md` maps to a test. The feature labels (`docs/tee-support.md`, `docs/milestones-status.md`) are current.
+- **Claims.** Every claim in `README.md` and `docs/guarantees.md` maps to a test. Labels come from `src/platform/capabilities.ts`, and a capability moves to *implemented* only with genuine evidence or a committed validation artifact.
 - **Compatibility.** Schema changes are additive within `v1`. Breaking changes need a new schema id and a migration note. `cool.receipt.v2` stays verifiable (`legacy.receipt`).
 - **Changelog.** `CHANGELOG.md` has an entry with breaking changes called out.
 - **Security.** Changes to the verifier, crypto or the authorization protocol get a second reviewer (`GOVERNANCE.md`).

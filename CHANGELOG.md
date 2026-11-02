@@ -25,6 +25,38 @@ independently (`cool.evidence.v1`, `cool.receipt.v2`).
 - **TEE adapter interface.** `nitroAdapter` and `tdxAdapter` are implemented. Phala dstack is partial. AMD SEV-SNP and NVIDIA CC return `unsupported`.
 - **Legacy compatibility.** `wrapLegacyReceipt` / `verifyWrappedLegacy` bring `cool.receipt.v2` into the envelope unchanged.
 - **17 new event families**, 50 in total (`docs/event-taxonomy.md`). New key purposes: `identity_issuer`, `evaluator`. Algorithm registry entry `hmac-sha-256`.
+- **AMD SEV-SNP: `cool-nwc/snp`** (implemented). This verifies reports offline:
+  - the chain VCEK/VLEK → ASK/ASVK → ARK, with AMD's ARKs for Milan, Genoa and Turin fetched from AMD KDS and pinned
+  - the ECDSA P-384 signature, and canonical unsigned bytes
+  - TCB binding to `REPORTED_TCB`, and VCEK `hwID` = `CHIP_ID`
+  - the DEBUG policy, measurement, `REPORT_DATA`, a TCB minimum and VMPL
+
+  It is validated against a **genuine Milan report**. `snpAdapter` replaces the unsupported stub.
+- **NVIDIA Confidential Computing: `cool-nwc/nvidia`** (experimental). This verifies NRAS attestation results offline:
+  - ES384 signatures, with `x5c` chains to NRAS intermediates pinned from NVIDIA's live JWKS
+  - expiry, issue time and nonce
+  - the overall result and per-GPU `submods` binding
+  - the GPU appraisal claims, and a CPU-TEE binding nonce (`cpuBindingNonce`)
+
+  No result from a real CC GPU yet.
+- **RFC 3161 trusted timestamps** (implemented): `createTimestampRequest`, `requestTimestamp` (opt-in, networked) and `verifyTimestampToken` (offline, pinned TSA anchors, exact CMS checks). Validated against a **genuine DigiCert token**, with an exhaustive single-bit-flip test.
+- **KMS/HSM signing** (experimental):
+  - `AsyncSigner`, `hybridSigner`, and adapters for AWS KMS (`ML_DSA_65` + `ECC_NIST_EDWARDS25519`), Google Cloud KMS (`PQ_SIGN_ML_DSA_65` + `EC_SIGN_ED25519`) and PKCS#11 components. Components can be mixed across providers.
+  - Every remote signature is self-checked before use.
+  - New async paths: `signEnvelopeAsync`, `signObjectAsync`, `decideAsync`. `ToolGateway` accepts an `AsyncSigner`.
+  - `npm run validate:kms` checks against a live provider. Azure Key Vault: unsupported (no Ed25519/ML-DSA).
+- **Replay protection across machines**: `RedisNonceStore`, a dependency-free RESP2 client over TCP/TLS using `SET NX PX`, CI-tested against a real Redis. `SharedNonceStore` takes Postgres and DynamoDB backends (experimental). Every store failure is `unavailable`, so the gateway refuses.
+- **AWS Nitro Enclaves deployment kit** (experimental; not yet run on AWS hardware):
+  - `serveEnclave` and `collectFromEnclave`, producing a `cool.nitro-validation.v1` artifact
+  - `examples/nitro-enclave/`: a Rust NSM helper on `aws-nitro-enclaves-nsm-api`, the enclave image, and `nitro-cli` build/validate scripts
+  - CI builds the image and compiles the helper
+- **Capability registry** (`src/platform/capabilities.ts`, `cool capabilities`, generated `docs/capabilities.md`). Each capability has exactly one label and its evidence. Tests enforce:
+  - the doc matches the registry
+  - adapter labels match the registry
+  - no stale claim reappears
+  - nothing is labelled *implemented* for Nitro-on-hardware or a KMS provider without a committed validation artifact
+- **Security review**: the internal adversarial review of the 4.0 additions (7 findings, all fixed with regression tests) and the package for an independent review, in `docs/security-review/`. **No external review has been commissioned.**
+- **CI**: a `redis` job (real server) and a `nitro-image` job (image build, helper compile).
 - **New schemas and test vectors**: `cool.principal.v1`, `cool.delegation.v1`, `cool.authz-request.v1`, `cool.authz-decision.v1`, `cool.external-confirmation.v1`, and `spec/test-vectors/authz-commitments.v1.json`.
 - **`npm run demo:agent`**: scenarios A–H, self-checking. **`npm run bench`**: microbenchmarks.
 - **Tests**: authorization, the gateway, schema conformance, outcomes, and **egress**, which proves the showcase and demo make zero network calls.

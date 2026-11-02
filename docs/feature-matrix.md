@@ -11,6 +11,10 @@ Each boundary below has a **technical enforcement point**: the place in the code
 | Offline verifier: envelopes, receipts, bundles, Nitro, TDX, consistency, witness signatures, disclosure | ✅ | ✅ | ✅ | `cool-nwc`, Apache-2.0. **Never gated** |
 | Authorization protocol: principals, delegation, requests, deterministic decisions, replay, execution binding | ✅ | ✅ | ✅ | `cool-nwc/authz`, Apache-2.0 |
 | Reference enforcement boundary (`ToolGateway`) | ✅ | ✅ | ✅ | `cool-nwc/authz`, Apache-2.0 |
+| Shared replay stores (Redis built in; Postgres and DynamoDB backends) | ✅ | ✅ | ✅ | `cool-nwc/authz`, Apache-2.0 |
+| KMS / HSM signers (AWS KMS, Google Cloud KMS, PKCS#11; experimental) | ✅ | ✅ | ✅ | `cool-nwc/platform`, Apache-2.0. **Custody stays with the customer** |
+| Verifiers for AMD SEV-SNP, NVIDIA NRAS results, RFC 3161 timestamps | ✅ | ✅ | ✅ | `cool-nwc/snp`, `cool-nwc/nvidia`, `cool-nwc/platform`, Apache-2.0. **Never gated** |
+| Nitro Enclaves deployment kit | ✅ | ✅ | ✅ | `examples/nitro-enclave`, Apache-2.0 |
 | Reference connectors (git, config files); local transparency log | ✅ | ✅ | ✅ | `cool-nwc/platform`, Apache-2.0 |
 | CLI, examples, showcase, agent demo | ✅ | ✅ | ✅ | `cool-nwc`, Apache-2.0 |
 | Managed policy lifecycle, approvals, overrides | — | ✅ | ✅ | private `cool-platform` (`PolicyRegistry`), commercial licence; entitlement check |

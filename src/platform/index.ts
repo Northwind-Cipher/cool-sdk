@@ -26,6 +26,7 @@ export {
   inspectEnvelope,
   localSigner,
   signEnvelope,
+  signEnvelopeAsync,
   verifyEnvelope,
   withCheckpoint,
 } from "./envelope";
@@ -41,6 +42,11 @@ export type {
   VerificationReport,
   VerifyEnvelopeOptions,
 } from "./envelope";
+export { awsKmsComponent, awsKmsSigner, gcpKmsComponent, gcpKmsSigner, hybridSigner, localAsyncSigner, pkcs11Component, rawPublicKeyFromSpki } from "./signers";
+export type { AsyncSigner, AwsKmsClient, ComponentAlgorithm, ComponentSigner, GcpKmsClient, Pkcs11Session } from "./signers";
+export { DerError, parseDer } from "./der";
+export { CAPABILITIES, capabilitiesMarkdown, capability } from "./capabilities";
+export type { Capability, CapabilityLabel } from "./capabilities";
 export { PayloadRegistry } from "./payloads";
 export type { PayloadSchema } from "./payloads";
 export { TrustStore } from "./trust";
@@ -50,7 +56,9 @@ export type { AlgorithmEntry } from "./algorithms";
 export { check, overallOf } from "./status";
 export { classifyOutcome } from "./outcome";
 export { legacyReceiptDigest, verifyWrappedLegacy, wrapLegacyReceipt } from "./legacy";
-export { ADAPTERS, nitroAdapter, tdxAdapter, unsupportedAdapter } from "./tee";
+export { ADAPTERS, nitroAdapter, nvidiaAdapter, snpAdapter, tdxAdapter, unsupportedAdapter } from "./tee";
+export { createTimestampRequest, requestTimestamp, verifyTimestampToken } from "./timestamp";
+export type { TimestampReport, TimestampRequest, TsaTrustAnchor, VerifyTimestampOptions } from "./timestamp";
 export type { AdapterResult, SupportLevel, TeeAdapter, TeePlatform } from "./tee";
 export type { Outcome } from "./outcome";
 export type { Check, CheckStatus, OverallStatus } from "./status";

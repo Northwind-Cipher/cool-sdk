@@ -87,4 +87,4 @@ These are in the commercial platform, or not built at all. See [open-core.md](op
 - managed evidence, log and witness services
 - SaaS connectors
 - multi-tenancy and RBAC
-- RFC 3161 timestamping, which is not implemented anywhere
+- RFC 3161 tokens as an envelope `timestamp_valid` source: verification exists (`verifyTimestampToken`), the envelope wiring does not yet

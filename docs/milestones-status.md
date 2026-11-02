@@ -1,12 +1,12 @@
 # Status of every chapter of the 4.0 master specification
 
-This page is the final report spec chapter 48 asks for. Every capability carries one label.
+This page is the final report spec chapter 48 asks for. Every capability carries one label. The authoritative, generated table is [capabilities.md](capabilities.md) (`cool capabilities`); this page maps it onto the spec chapters.
 
 | Label | Meaning |
 |---|---|
-| **implemented** | the code exists, is tested, and is in the public package or the private platform |
+| **implemented** | the code exists, is tested, and has been validated against genuine evidence or a real service |
 | **partial** | the code exists, with documented gaps |
-| **experimental** | the code exists, but has not been validated in its real environment |
+| **experimental** | the code exists and is tested, but has not been validated in its real environment (hardware, cloud) |
 | **planned** | design only, not built |
 | **unsupported** | explicitly out of scope; the verifier says `unsupported` |
 
@@ -22,23 +22,24 @@ This page is the final report spec chapter 48 asks for. Every capability carries
 | 8 | Signed decisions; `trusted` and `reproducible` assurance | implemented | `src/authz/decision.ts` |
 | 8 | Deterministic policy language `cool.policy.v1` | implemented | `src/platform/policy.ts` |
 | 9 | Replay resistance (atomic nonce store) | implemented | `src/authz/replay.ts`, single host only |
-| 9 | Distributed nonce store (Redis/DynamoDB) | planned | the interface is ready (`NonceStore`) |
+| 9 | Replay protection across machines (Redis) | implemented | `RedisNonceStore`; CI job `redis` against a real server |
+| 9 | Postgres / DynamoDB nonce backends | experimental | emulated backends only |
 | 10 | Execution binding | implemented | `src/authz/execution.ts` |
 | 11–12 | AWS Nitro verifier | implemented | genuine-document fixture plus corruption cases |
-| 11–12 | Nitro in-enclave runtime | experimental | no real enclave run yet |
+| 11–12 | Nitro in-enclave runtime | experimental | deployment kit ready (`examples/nitro-enclave`); not yet run on AWS hardware |
 | 13 | Intel TDX via dstack | implemented | hardware-validated on Phala Cloud |
 | 13 | Phala dstack KMS / runtime evidence | partial | `docs/tee-support.md` |
-| 14 | AMD SEV-SNP | unsupported | the adapter returns `unsupported` |
-| 15 | NVIDIA Confidential Computing | unsupported | GPU evidence commitment only |
+| 14 | AMD SEV-SNP | implemented | genuine Milan report + VCEK; AMD roots pinned (`cool-nwc/snp`) |
+| 15 | NVIDIA Confidential Computing | experimental | NRAS result verifier (`cool-nwc/nvidia`); no real CC GPU result yet |
 | 16 | Unified envelope; legacy `cool.receipt.v2` wrapping | implemented | `src/platform/legacy.ts` |
 | 17 | Event taxonomy (50 families) | implemented | `docs/event-taxonomy.md` |
 | 18 | Privacy: commitments, keyed commitments, disclosure | implemented | — |
 | 19 | Crypto agility (algorithm registry) | implemented | hybrid ML-DSA-65 + Ed25519 |
-| 20 | KMS/HSM signing via the `Signer` interface | partial | interface only; provider adapters planned |
+| 20 | KMS/HSM signing: AWS KMS, Google Cloud KMS, PKCS#11 | experimental | emulator-tested; `npm run validate:kms` for live validation. Azure Key Vault: unsupported (no Ed25519/ML-DSA) |
 | 21 | Transparency log, consistency proofs | implemented | — |
 | 22 | Witness verification (public) / witness service (private) | implemented | — |
 | 22 | OpenTimestamps anchoring | implemented | opt-in, networked |
-| 23 | RFC 3161 timestamping | planned | — |
+| 23 | RFC 3161 timestamping | implemented | genuine DigiCert token; exhaustive bit-flip test |
 | 24 | Enforcement boundary (`ToolGateway`) with signed confirmations | implemented | `src/authz/gateway.ts` |
 | 24 | Enterprise enforcement adapters (cloud IAM, payments, K8s admission) | planned | private coordinator exists |
 | 25 | Completeness: sequence-gap detection | partial | a dropped final event is undetectable until the next one; heartbeats planned |
@@ -60,7 +61,8 @@ This page is the final report spec chapter 48 asks for. Every capability carries
 | 39 | Documentation set | implemented | `docs/` |
 | 40 | Versioning and compatibility | implemented | additive `v1` schemas; RFC process |
 | 41 | Deployment modes | partial | embedded and offline implemented; self-hosted partial; air-gapped and SaaS planned (`docs/deployment-modes.md`) |
-| 42 | Independent security review | planned | not yet commissioned |
+| 42 | Internal adversarial review | implemented | `docs/security-review/internal-review-2026-11.md` (not independent) |
+| 42 | Independent security review | planned | review package ready (`docs/security-review/`); not commissioned |
 | 43 | Compliance mapping | implemented (sample) | `docs/compliance-mapping.md`, not a certification |
 | 44 | No telemetry; egress tested | implemented | `docs/telemetry-and-egress.md` |
 | 45 | OSS governance; RFC process | implemented | `GOVERNANCE.md` |

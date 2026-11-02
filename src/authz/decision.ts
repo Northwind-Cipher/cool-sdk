@@ -37,7 +37,8 @@ import type { TrustStore } from "../platform/trust";
 import { verifyDelegationChain, type Delegation } from "./delegation";
 import type { PrincipalDirectory } from "./principal";
 import { requestDigest, type AuthorizationRequest } from "./request";
-import { digestOf, signObject, verifyTrusted, type Signed } from "./signed";
+import { digestOf, signObject, signObjectAsync, verifyTrusted, type Signed } from "./signed";
+import type { AsyncSigner } from "../platform/signers";
 
 export type AuthzDecisionValue = "permit" | "deny" | "indeterminate" | "error";
 export type Assurance = "trusted" | "reproducible";
@@ -70,14 +71,24 @@ export function decisionFacts(request: AuthorizationRequest, facts: Facts): Fact
 const MAP: Record<string, AuthzDecisionValue> = { allow: "permit", audit_only: "permit", deny: "deny", quarantine: "deny", require_approval: "indeterminate", defer: "indeterminate" };
 
 /** Evaluate and sign. Pure apart from the decision id. */
-export function decide(input: {
+export interface DecideInput {
   readonly request: AuthorizationRequest;
   readonly policy: PolicyDocument;
   readonly facts: Facts;
-  readonly evaluatorKey: KeyPair;
   readonly now?: number;
   readonly decisionId?: string;
-}): Signed<AuthorizationDecision> {
+}
+
+export function decide(input: DecideInput & { readonly evaluatorKey: KeyPair }): Signed<AuthorizationDecision> {
+  return signObject("cool.authz-decision.v1", decisionBody(input), input.evaluatorKey);
+}
+
+/** {@link decide} with a KMS/HSM-backed evaluator key. Identical decision bytes. */
+export function decideAsync(input: DecideInput & { readonly evaluatorKey: KeyPair | AsyncSigner }): Promise<Signed<AuthorizationDecision>> {
+  return signObjectAsync("cool.authz-decision.v1", decisionBody(input), input.evaluatorKey);
+}
+
+function decisionBody(input: DecideInput): AuthorizationDecision {
   const now = input.now ?? Date.now();
   const allFacts = decisionFacts(input.request, input.facts);
   let decision: AuthzDecisionValue;
@@ -98,7 +109,7 @@ export function decide(input: {
     reasons = [`evaluation_error:${(err as Error).message.slice(0, 120)}`];
     pdigest = digestOf("cool.policy.invalid", input.policy);
   }
-  return signObject("cool.authz-decision.v1", {
+  return {
     schema: "cool.authz-decision.v1",
     decision_id: input.decisionId ?? `dec_${toHex(new Uint8Array(randomBytes(12)))}`,
     decision,
@@ -113,7 +124,7 @@ export function decide(input: {
     reasons,
     decided_at: new Date(now).toISOString(),
     valid_until: input.request.expires_at,
-  } satisfies AuthorizationDecision, input.evaluatorKey);
+  } satisfies AuthorizationDecision;
 }
 
 export interface DecisionChecks {

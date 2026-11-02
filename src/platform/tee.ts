@@ -31,9 +31,12 @@ import { normalizeNitro, normalizeTdx, type NormalizedAttestation } from "../nit
 import { verifyReceiptV2 } from "../phala/verify";
 import type { ReceiptV2, VerifyOptionsV2 } from "../phala/types";
 import type { Outcome } from "./outcome";
+import { snpReportDigest, verifySnpReport, type VerifySnpOptions } from "../snp/index";
+import { verifyNrasResult, type VerifyNvidiaOptions } from "../nvidia/index";
 
 export type TeePlatform = "aws-nitro" | "intel-tdx" | "phala-dstack" | "amd-sev-snp" | "nvidia-cc";
-export type SupportLevel = "implemented" | "partial" | "unsupported";
+/** implemented: validated against genuine evidence · experimental: code complete, not yet validated on real hardware · partial · unsupported. */
+export type SupportLevel = "implemented" | "experimental" | "partial" | "unsupported";
 
 export interface AdapterResult {
   readonly platform: TeePlatform;
@@ -109,10 +112,43 @@ export function unsupportedAdapter(platform: TeePlatform, why: string): TeeAdapt
   };
 }
 
+/** AMD SEV-SNP: validated against a genuine Milan report + VCEK (tests/fixtures/snp-milan-virtee.json). */
+export const snpAdapter: TeeAdapter<Uint8Array, VerifySnpOptions> = {
+  platform: "amd-sev-snp",
+  support: "implemented",
+  async verify(report, options) {
+    if (!options) throw new Error("snpAdapter needs options.certificate (the VCEK or VLEK)");
+    const r = verifySnpReport(report, options);
+    return {
+      platform: "amd-sev-snp", support: "implemented", outcome: r.outcome, evidence_digest: snpReportDigest(report),
+      platform_claims: { checks: r.checks, report: r.report, product: r.product, tcb: r.tcb }, normalized: null,
+      verifier: { name: "cool-nwc/snp", version: "1" }, validated_at: new Date(options.now ?? Date.now()).toISOString(),
+      limitations: r.limitations,
+    };
+  },
+};
+
+/** NVIDIA CC via NRAS results: code complete and tested on synthetic tokens; not yet run against a real CC GPU. */
+export const nvidiaAdapter: TeeAdapter<unknown, VerifyNvidiaOptions> = {
+  platform: "nvidia-cc",
+  support: "experimental",
+  async verify(result, options) {
+    if (!options) throw new Error("nvidiaAdapter needs options.jwks (the NRAS JWKS snapshot)");
+    const r = verifyNrasResult(result, options);
+    return {
+      platform: "nvidia-cc", support: "experimental", outcome: r.outcome,
+      evidence_digest: createHash("sha256").update(typeof result === "string" ? result : JSON.stringify(result)).digest("hex"),
+      platform_claims: { checks: r.checks, gpus: r.gpus, issued_at: r.issued_at }, normalized: null,
+      verifier: { name: "cool-nwc/nvidia", version: "1" }, validated_at: new Date(options.now ?? Date.now()).toISOString(),
+      limitations: [...r.limitations, "not yet validated against a result from a real confidential-computing GPU"],
+    };
+  },
+};
+
 export const ADAPTERS: Readonly<Record<TeePlatform, TeeAdapter<never, never>>> = {
   "aws-nitro": nitroAdapter as TeeAdapter<never, never>,
   "intel-tdx": tdxAdapter as TeeAdapter<never, never>,
   "phala-dstack": { ...tdxAdapter, platform: "phala-dstack", support: "partial" } as TeeAdapter<never, never>,
-  "amd-sev-snp": unsupportedAdapter("amd-sev-snp", "SEV-SNP report parsing and VCEK/VLEK chain validation are not implemented") as TeeAdapter<never, never>,
-  "nvidia-cc": unsupportedAdapter("nvidia-cc", "NVIDIA GPU attestation is committed to but not verified (NRAS not integrated)") as TeeAdapter<never, never>,
+  "amd-sev-snp": snpAdapter as TeeAdapter<never, never>,
+  "nvidia-cc": nvidiaAdapter as TeeAdapter<never, never>,
 };

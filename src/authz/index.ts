@@ -16,13 +16,15 @@ export { grantDelegation, scopeExcess, verifyDelegationChain } from "./delegatio
 export type { ChainOptions, ChainRequest, Delegation, Scope } from "./delegation";
 export { commitValue, contextMatches, createAuthorizationRequest, normalize, paramsMatch, requestDigest } from "./request";
 export type { AuthorizationRequest, CommitmentScheme, RequestInput, RequestSecrets } from "./request";
-export { EVALUATOR, decide, decisionFacts, verifyDecision } from "./decision";
+export { EVALUATOR, decide, decideAsync, decisionFacts, verifyDecision } from "./decision";
 export type { Assurance, AuthorizationDecision, AuthzDecisionValue, DecisionChecks, DecisionReport, VerifyDecisionOptions } from "./decision";
 export { FileNonceStore, MemoryNonceStore } from "./replay";
+export { RedisClient, RedisNonceStore, SharedNonceStore, dynamoDbAtomicInsert, postgresAtomicInsert } from "./replay-shared";
+export type { AtomicInsert, RedisOptions } from "./replay-shared";
 export type { ConsumeResult, NonceStore } from "./replay";
 export { compareExecution } from "./execution";
 export type { ExecutionContext } from "./execution";
 export { ToolGateway, verifyConfirmation } from "./gateway";
 export type { ConfirmationOutcome, ExternalConfirmation, GatewayOptions, Invocation, InvocationResult, ToolDefinition } from "./gateway";
-export { digestOf, signObject, verifyIntegrity, verifyTrusted } from "./signed";
+export { digestOf, isAsyncSigner, signObject, signObjectAsync, verifyIntegrity, verifyTrusted } from "./signed";
 export type { Signed } from "./signed";

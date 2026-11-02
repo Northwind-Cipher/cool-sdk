@@ -35,7 +35,7 @@ import {
   verifyCommand,
 } from "./commands";
 import { help } from "./help";
-import { bundleCommand } from "./platform";
+import { bundleCommand, capabilitiesCommand } from "./platform";
 import { walkthrough } from "./walkthrough";
 import { discloseCommand, logCommand, records, witnessCommand } from "./evidence";
 import { complianceCommand, packCommand, policyCommand } from "./governance";
@@ -141,6 +141,8 @@ async function run(name: string, args: string[], workspace: Workspace | null): P
       return doctor(workspace);
     case "bundle":
       return bundleCommand(args);
+    case "capabilities":
+      return capabilitiesCommand(args);
     default:
       out(`  ${c.red(g.fail)} unknown command ${c.bold(name)} — try ${c.brand("cool help")}`);
       return 1;
@@ -263,6 +265,7 @@ async function main(): Promise<void> {
     name === "--help" ||
     name === "-h" ||
     name === "policy" ||
+    name === "capabilities" ||
     name === "update" ||
     name === "upgrade" ||
     // `ui` takes a folder and opens the plane for THAT folder. Booting one here

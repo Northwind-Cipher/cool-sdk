@@ -22,6 +22,14 @@
       "types": "./dist/authz/index.d.ts",
       "default": "./dist/authz/index.js"
     },
+    "./snp": {
+      "types": "./dist/snp/index.d.ts",
+      "default": "./dist/snp/index.js"
+    },
+    "./nvidia": {
+      "types": "./dist/nvidia/index.d.ts",
+      "default": "./dist/nvidia/index.js"
+    },
     "./nitro": {
       "types": "./dist/nitro/index.d.ts",
       "default": "./dist/nitro/index.js"
@@ -105,6 +113,8 @@
     "showcase": "node --import tsx scripts/showcase.ts",
     "demo:agent": "node --import tsx scripts/demo-agent.ts",
     "bench": "node --import tsx scripts/bench.ts",
+    "validate:kms": "node --import tsx scripts/validate-kms.ts",
+    "docs:capabilities": "node --import tsx -e \"import('./src/platform/capabilities.ts').then(m => require('node:fs').writeFileSync('docs/capabilities.md', m.capabilitiesMarkdown()))\"",
     "verify:all": "npm run typecheck && npm run test"
   }
 }

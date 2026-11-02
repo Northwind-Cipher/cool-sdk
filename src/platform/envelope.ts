@@ -24,6 +24,7 @@
  * themselves, so a non-canonical or ambiguous encoding is caught rather than
  * normalised away.
  */
+import type { AsyncSigner } from "./signers";
 import { createHash } from "node:crypto";
 import { decode } from "cbor2";
 import { canonicalCbor } from "../canonical";
@@ -207,6 +208,35 @@ export function signEnvelope(core: EnvelopeCore, keys: Signer | KeyPair | Readon
     digest,
     signatures: list.map((k) => k.sign(message)),
     key_directory: Object.fromEntries(list.map((k) => [k.keyId, k.directoryEntry])),
+    attestation: attestation ? { platform: attestation.platform, document: toBase64(attestation.document) } : undefined,
+  } as SignedEnvelope);
+}
+
+/**
+ * {@link signEnvelope} for KMS/HSM-backed signers (`AsyncSigner`, see
+ * `./signers`). In-memory keys and sync signers may be mixed in. The result is
+ * byte-identical in form to a synchronously signed envelope.
+ */
+export async function signEnvelopeAsync(core: EnvelopeCore, keys: AsyncSigner | Signer | KeyPair | ReadonlyArray<AsyncSigner | Signer | KeyPair>, attestation?: EnvelopeInput["attestation"]): Promise<SignedEnvelope> {
+  const list = Array.isArray(keys) ? keys : [keys as AsyncSigner | Signer | KeyPair];
+  if (list.length === 0) throw new CooLError("COOL_CRYPTOGRAPHY_FAILED", "at least one signing key is required");
+  if (attestation && createHash("sha256").update(attestation.document).digest("hex") !== core.attestation_ref) {
+    throw new CooLError("COOL_EVIDENCE_INVALID", "the attestation document is not the one the core references");
+  }
+  const bytes = canonicalize(core);
+  const digest = commit(bytes);
+  const message = signatureMessage(digest);
+  const signers = list.map((k) => ("providers" in k ? k : asSigner(k as Signer | KeyPair)));
+  const signatures = await Promise.all(signers.map((k) => k.sign(message)));
+  return clean({
+    format: "cool.signed-envelope.v1",
+    core,
+    encoding: "cbor-cde",
+    core_cbor: toBase64(bytes),
+    digest_alg: "sha-256",
+    digest,
+    signatures,
+    key_directory: Object.fromEntries(signers.map((k) => [k.keyId, k.directoryEntry])),
     attestation: attestation ? { platform: attestation.platform, document: toBase64(attestation.document) } : undefined,
   } as SignedEnvelope);
 }

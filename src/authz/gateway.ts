@@ -37,7 +37,8 @@ import { compareExecution, type ExecutionContext } from "./execution";
 import type { PrincipalDirectory } from "./principal";
 import type { NonceStore } from "./replay";
 import { paramsMatch, requestDigest, type AuthorizationRequest } from "./request";
-import { signObject, verifyTrusted, type Signed } from "./signed";
+import { signObjectAsync, verifyTrusted, type Signed } from "./signed";
+import type { AsyncSigner } from "../platform/signers";
 import { check, type Check } from "../platform/status";
 
 export type ConfirmationOutcome = "completed" | "rejected" | "failed";
@@ -68,7 +69,8 @@ export interface ToolDefinition {
 export interface GatewayOptions {
   readonly id: string;
   readonly audience: string;
-  readonly key: KeyPair;
+  /** Signs confirmations: an in-memory key, or a KMS/HSM-backed AsyncSigner. */
+  readonly key: KeyPair | AsyncSigner;
   readonly trust: TrustStore;
   readonly nonces: NonceStore;
   readonly directory?: PrincipalDirectory;
@@ -113,9 +115,9 @@ export class ToolGateway {
     this.#tools.set(name, tool);
   }
 
-  #confirm(inv: Invocation, outcome: ConfirmationOutcome, reason: string, extra: { response_digest?: Multihash; external_ref?: string } = {}): Signed<ExternalConfirmation> {
+  #confirm(inv: Invocation, outcome: ConfirmationOutcome, reason: string, extra: { response_digest?: Multihash; external_ref?: string } = {}): Promise<Signed<ExternalConfirmation>> {
     const now = this.#o.now?.() ?? Date.now();
-    return signObject("cool.external-confirmation.v1", {
+    return signObjectAsync("cool.external-confirmation.v1", {
       schema: "cool.external-confirmation.v1",
       confirmation_id: `conf_${toHex(new Uint8Array(randomBytes(12)))}`,
       target: this.#o.id,
@@ -134,7 +136,7 @@ export class ToolGateway {
     const now = this.#o.now?.() ?? Date.now();
     const r = inv.request;
     const tool = this.#tools.get(inv.tool);
-    const reject = (reason: string, decisionReport?: DecisionReport): InvocationResult => ({ confirmation: this.#confirm(inv, "rejected", reason), ...(decisionReport ? { decisionReport } : {}) });
+    const reject = async (reason: string, decisionReport?: DecisionReport): Promise<InvocationResult> => ({ confirmation: await this.#confirm(inv, "rejected", reason), ...(decisionReport ? { decisionReport } : {}) });
 
     if (!tool) return reject("unknown_tool");
     if (tool.action !== r.action || !covers(tool.resource, r.resource)) return reject("tool_action_mismatch");
@@ -168,12 +170,12 @@ export class ToolGateway {
     try {
       const out = await tool.execute(inv.params);
       return {
-        confirmation: this.#confirm(inv, "completed", "executed", { response_digest: mhSha256(canonicalCbor(JSON.parse(JSON.stringify(out.response ?? null)))), ...(out.external_ref ? { external_ref: out.external_ref } : {}) }),
+        confirmation: await this.#confirm(inv, "completed", "executed", { response_digest: mhSha256(canonicalCbor(JSON.parse(JSON.stringify(out.response ?? null)))), ...(out.external_ref ? { external_ref: out.external_ref } : {}) }),
         decisionReport: report,
         response: out.response,
       };
     } catch (err) {
-      return { confirmation: this.#confirm(inv, "failed", `tool_error:${(err as Error).message.slice(0, 120)}`), decisionReport: report };
+      return { confirmation: await this.#confirm(inv, "failed", `tool_error:${(err as Error).message.slice(0, 120)}`), decisionReport: report };
     }
   }
 }

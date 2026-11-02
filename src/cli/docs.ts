@@ -338,6 +338,18 @@ export const COMMANDS: readonly CommandDoc[] = [
     seeAlso: ["status", "attestation"],
   },
   {
+    name: "capabilities",
+    args: "[--json]",
+    summary: "what CooL can do, each with its label and evidence",
+    description:
+      "Prints every capability with exactly one label — implemented (validated against genuine " +
+      "evidence or a real service), experimental (built and tested, not yet validated on the " +
+      "real thing), partial, planned or unsupported — plus what the label rests on and what " +
+      "would move it up. The same table generates docs/capabilities.md.",
+    examples: [{ run: "cool capabilities", does: "the table" }, { run: "cool capabilities --json", does: "machine-readable" }],
+    seeAlso: ["doctor"],
+  },
+  {
     name: "bundle",
     args: "verify <bundle.json>",
     summary: "verify a portable evidence bundle, offline",

@@ -16,7 +16,7 @@
 [![Intel TDX](https://img.shields.io/badge/verified%20on-Intel%20TDX-7ee2a8?style=for-the-badge&labelColor=0b0f14)](#-proven-on-real-silicon)
 
 [![Node](https://img.shields.io/badge/node-%E2%89%A5%2020-8b949e?style=flat-square&labelColor=0b0f14)](https://nodejs.org)
-[![Tests](https://img.shields.io/badge/tests-203%20passing-8b949e?style=flat-square&labelColor=0b0f14)](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-246%20passing-8b949e?style=flat-square&labelColor=0b0f14)](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-8b949e?style=flat-square&labelColor=0b0f14)](#license)
 
 <br/>
@@ -473,7 +473,7 @@ To reproduce the hardware validation end to end (compose files, deployment and e
 - Measurement pins are only as trustworthy as the process that approves them.
 - A witness demonstrates separation of key custody and process, not organizational independence. In the validation run, both CVMs were deployed from the same account.
 - The documented validation used Intel TDX CPU instances on a development OS image. No GPU attestation is claimed.
-- No third-party certification or security audit is claimed.
+- No third-party certification or security audit is claimed. An internal adversarial review is recorded, and the package for an independent one is ready ([docs/security-review/](docs/security-review/)).
 
 </details>
 
@@ -505,11 +505,15 @@ Independent verification stays open on purpose: you should never need our servic
 | 🔑 | **HMAC-SHA-256** (RFC 2104) | Keyed commitments for low-entropy request parameters |
 | 📐 | **Canonical CBOR** | Deterministic serialization |
 | 🌳 | **RFC 6962** | Merkle transparency log |
+| ⏱️ | **RFC 3161** | Trusted timestamps from a TSA, verified offline against pinned anchors (validated on a genuine DigiCert token) |
 | ⏱️ | **OpenTimestamps** | Bitcoin anchoring of tree heads |
 | 🛡️ | **Intel TDX** · dstack | Confidential execution and attestation |
-| 🛡️ | **AWS Nitro Enclaves** | Offline attestation verification (`cool-nwc/nitro`); the in-enclave runtime is [not built yet](docs/nitro.md#status) |
+| 🛡️ | **AWS Nitro Enclaves** | Attestation verification, **implemented** (`cool-nwc/nitro`); running inside an enclave is **experimental**: the [deployment kit](examples/nitro-enclave/README.md) is ready, not yet run on AWS hardware |
+| 🛡️ | **AMD SEV-SNP** | Report verification to AMD's pinned ARK, TCB and chip binding, **implemented** (`cool-nwc/snp`; validated on a genuine Milan report) |
+| 🛡️ | **NVIDIA CC** · NRAS | Offline verification of NRAS attestation results, **experimental** (`cool-nwc/nvidia`; no real CC GPU result yet) |
+| 🔐 | **AWS KMS · Google Cloud KMS · PKCS#11** | Hybrid signing with provider-held keys, **experimental** (emulator-tested; `npm run validate:kms`) |
 
-<sub>Not implemented, despite appearing in earlier descriptions: ML-KEM-1024, X25519, ChaCha20-Poly1305 and RFC 3161 timestamping.</sub>
+<sub>Not implemented, despite appearing in earlier descriptions: ML-KEM-1024, X25519 and ChaCha20-Poly1305. Every capability's exact label is in [docs/capabilities.md](docs/capabilities.md), or run `cool capabilities`.</sub>
 
 Built on a small set of well-known, dependency-light libraries: [`@noble/curves`](https://github.com/paulmillr/noble-curves), [`@noble/hashes`](https://github.com/paulmillr/noble-hashes), [`@noble/post-quantum`](https://github.com/paulmillr/noble-post-quantum) and [`cbor2`](https://github.com/hildjj/cbor2).
 
@@ -521,8 +525,9 @@ Built on a small set of well-known, dependency-light libraries: [`@noble/curves`
 |---|---|
 | 🚦 [Showcase](docs/showcase.md) | Every capability in one self-checking run |
 | 🤖 [Authorization](docs/authorization.md) · [Demo scenarios A–H](docs/demo-scenarios.md) | Principals, delegation, decisions, the gateway |
-| 🎯 [Guarantees](docs/guarantees.md) · [Status of every feature](docs/milestones-status.md) | Each claim, its test and its limit; implemented / partial / planned |
-| 🗂️ [Event taxonomy](docs/event-taxonomy.md) · [TEE support](docs/tee-support.md) · [Key management](docs/key-management.md) | 50 event families; Nitro / TDX / SNP / NVIDIA labels; key lifecycle |
+| 🎯 [Capabilities](docs/capabilities.md) · [Guarantees](docs/guarantees.md) · [Status by chapter](docs/milestones-status.md) | Every capability with one label and its evidence; each claim, its test and its limit |
+| 🔍 [Security review](docs/security-review/) | Internal review findings and fixes; the package for an independent review |
+| 🗂️ [Event taxonomy](docs/event-taxonomy.md) · [TEE support](docs/tee-support.md) · [Key management](docs/key-management.md) · [Nitro kit](examples/nitro-enclave/README.md) | 50 event families; Nitro / TDX / SNP / NVIDIA; KMS and HSM signers; running in a real enclave |
 | 🚢 [Deployment modes](docs/deployment-modes.md) · [Telemetry & egress](docs/telemetry-and-egress.md) · [Performance](docs/performance.md) | Where CooL runs; no phone-home; benchmarks |
 | 📋 [Compliance mapping](docs/compliance-mapping.md) · [Release criteria](docs/release-criteria.md) · [Governance](GOVERNANCE.md) | Sample control map; SBOM and provenance; the RFC process |
 | 🏁 [Getting started](docs/getting-started.md) | From install to first verified receipt |

@@ -13,6 +13,8 @@
  *   import { verifyNitroAttestation, NitroReceiptSealer } from "cool-nwc/nitro";
  */
 export { CommandNsmSource, NitroReceiptSealer } from "./receipt";
+export { VALIDATION_EVENTS, collectFromEnclave, serveEnclave } from "./kit";
+export type { EnclaveServer, ValidationArtifact } from "./kit";
 export type { EpochAssignment, NsmRequest, NsmSource } from "./receipt";
 export { FRAME_VERSION, FrameDecoder, FrameError, FrameType, MAX_FRAME_BYTES, encodeFrame, forwardFrames } from "./vsock";
 export type { Frame } from "./vsock";

@@ -22,6 +22,7 @@ import { hybridSign, hybridVerify } from "../sign";
 import type { DirectoryEntry, KeyPair, Multihash, SignatureBlock } from "../types";
 import { check, type Check } from "../platform/status";
 import type { KeyPurpose, TrustStore } from "../platform/trust";
+import type { AsyncSigner } from "../platform/signers";
 
 export interface Signed<T> {
   readonly body: T;
@@ -52,6 +53,16 @@ export function signObject<T>(context: string, body: T, key: KeyPair): Signed<T>
   const digest = digestOf(context, b);
   return { body: b, digest, signature: hybridSign(sigMessage(context, digest), key), signer: key.directoryEntry };
 }
+
+/** Sign with an in-memory key or a KMS/HSM-backed {@link AsyncSigner}. Same bytes either way. */
+export async function signObjectAsync<T>(context: string, body: T, key: KeyPair | AsyncSigner): Promise<Signed<T>> {
+  if (!isAsyncSigner(key)) return signObject(context, body, key);
+  const b = clean(body);
+  const digest = digestOf(context, b);
+  return { body: b, digest, signature: await key.sign(sigMessage(context, digest)), signer: key.directoryEntry };
+}
+
+export const isAsyncSigner = (k: KeyPair | AsyncSigner): k is AsyncSigner => typeof (k as AsyncSigner).sign === "function";
 
 const sameKey = (a: DirectoryEntry, b: DirectoryEntry) =>
   bytesEqual(fromBase64Field(a.ed25519_pub), fromBase64Field(b.ed25519_pub)) && bytesEqual(fromBase64Field(a.ml_dsa_pub), fromBase64Field(b.ml_dsa_pub));

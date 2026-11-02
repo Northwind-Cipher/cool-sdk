@@ -75,4 +75,4 @@ This section extends the model above to agents, authorization and the tool-call 
 | policy engine → enforcement | signed decision | evaluator trusted per snapshot | signature, binding, freshness; replay for `reproducible` |
 | control plane → tenant | — | not built | — |
 
-**Security review:** no independent review has taken place yet (spec chapter 42). Production assurance claims wait for one.
+**Security review:** no independent review has taken place yet (spec chapter 42), and production assurance claims wait for one. An internal adversarial review of the 4.0 additions is recorded in `docs/security-review/internal-review-2026-11.md` (it is not independent). The package for an external firm is in `docs/security-review/`.

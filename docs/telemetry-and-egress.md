@@ -10,8 +10,15 @@
 | `CoolTee` with a dstack endpoint | your dstack guest agent (a local socket or URL) | only in TEE mode, to obtain quotes and keys |
 | TDX quote verification via a configured verifier | the verifier URL you configure | only when you pass one |
 | `CoolClient` | the CooL service URL you configure | only when you use the client |
+| `requestTimestamp` (RFC 3161) | the TSA URL you pass | only when you request a timestamp; verification is offline |
+| `RedisNonceStore` | your Redis (TCP or TLS) | on every `consume`; the key is a SHA-256 of scope and nonce, never the nonce itself |
+| `SharedNonceStore` (Postgres, DynamoDB) | the database client you pass | on every `consume` |
+| KMS / HSM signers | the provider client you pass (AWS KMS, Google Cloud KMS, PKCS#11) | on every signature; CooL itself opens no connection |
 
-Everything else, including envelope creation, signing, logging, the authorization protocol, the gateway and every verifier, is local.
+Everything else is local, including:
+- envelope creation, local signing and logging
+- the authorization protocol and the gateway
+- every verifier: SEV-SNP, NVIDIA NRAS results, RFC 3161, Nitro and TDX all verify offline against pinned anchors
 
 ## How this is tested
 

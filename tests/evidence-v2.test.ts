@@ -11,7 +11,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CoolTee, SimulatedDstackClient } from "../src/phala/index";
-import {
+import { unsupportedAdapter,
   ADAPTERS,
   check,
   classifyOutcome,
@@ -57,14 +57,15 @@ test("legacy: a cool.receipt.v2 is wrapped without changing its meaning, and sti
   assert.equal((await verifyWrappedLegacy(env, other)).binding.reason, "legacy_mismatch");
 });
 
-test("TEE adapters: one contract; unsupported platforms say so and are never verified", async () => {
-  for (const p of ["amd-sev-snp", "nvidia-cc"] as const) {
-    const r = await ADAPTERS[p].verify(undefined as never);
-    assert.equal(r.outcome, "unsupported");
-    assert.equal(r.support, "unsupported");
-    assert.ok(r.limitations[0]);
-  }
+test("TEE adapters: one contract; labels match what has been validated; unsupported is never verified", async () => {
+  const r = await unsupportedAdapter("amd-sev-snp", "example").verify(undefined as never);
+  assert.equal(r.outcome, "unsupported");
+  assert.equal(r.support, "unsupported");
+  assert.ok(r.limitations[0]);
   assert.equal(ADAPTERS["aws-nitro"].support, "implemented");
+  assert.equal(ADAPTERS["intel-tdx"].support, "implemented");
+  assert.equal(ADAPTERS["amd-sev-snp"].support, "implemented", "validated against a genuine Milan report");
+  assert.equal(ADAPTERS["nvidia-cc"].support, "experimental", "no real CC GPU result yet");
   assert.equal(ADAPTERS["phala-dstack"].support, "partial");
 });
 

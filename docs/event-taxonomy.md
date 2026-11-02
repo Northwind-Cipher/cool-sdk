@@ -12,7 +12,7 @@ Every envelope separates five kinds of time:
 | observed time | `observed_at` | the collector |
 | signed time | inside the signed objects (`decided_at`, `confirmed_at`, `issued_at`) | the signer |
 | ingestion / checkpoint time | the STH `timestamp` in `checkpoint` | the log operator |
-| trusted time | an OpenTimestamps anchor (RFC 3161 is not implemented) | an external anchor |
+| trusted time | an RFC 3161 TSA token (`verifyTimestampToken`) or an OpenTimestamps anchor | an external time authority |
 
 **Causality comes from references, not timestamps.** `provenance.refs` and `relations` hold digests of earlier envelopes, for example decision → request and confirmation → decision. Timestamps alone are never treated as causal order.
 
