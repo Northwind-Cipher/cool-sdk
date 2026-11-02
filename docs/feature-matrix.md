@@ -22,8 +22,8 @@ Each boundary below has a **technical enforcement point**: the place in the code
 | Incident correlation, timelines, cases | — | ✅ | ✅ | private `cool-platform` (`correlation`, `IncidentCase`) |
 | Operational modules: deployment gate, credential lifecycle, change control, runtime guard | — | ✅ | ✅ | private `cool-platform` |
 | Log server with epochs, gap accounting, acknowledgements; witness service | — | ✅ | ✅ (managed) | private `cool-platform` (`NitroLogServer`, `Witness`) |
-| Multi-tenant control plane, SSO/SAML/OIDC, SCIM, RBAC/ABAC | — | planned | planned | not built |
-| Retention, legal hold, SIEM/SOAR, fleet views, alerting, SLA | — | planned | planned | not built |
+| Multi-tenant control plane: OIDC SSO, SCIM 2.0, RBAC with separation of duties | — | ✅ implemented | planned (not operated) | private `cool-platform` (`src/server/`). SAML: unsupported; ABAC: planned |
+| Retention, legal hold, deletion receipts, crypto-shredding; SIEM feed, OpenMetrics, alert webhook | — | ✅ implemented | planned (not operated) | private `cool-platform`. Native SIEM connectors, OpenTelemetry, fleet views, SLA: planned |
 
 ## What customers keep, whichever tier they use
 

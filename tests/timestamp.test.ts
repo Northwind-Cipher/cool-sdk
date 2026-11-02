@@ -12,7 +12,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { X509Certificate, createHash, randomBytes } from "node:crypto";
+import { X509Certificate, createHash, randomInt } from "node:crypto";
 import { createTimestampRequest, requestTimestamp, verifyTimestampToken } from "../src/platform/timestamp";
 import { parseDer, decodeOid, integerBytes } from "../src/platform/der";
 import { AMD_SNP_ROOTS } from "../src/snp/index";
@@ -88,7 +88,7 @@ test("rfc3161: garbage and random corruption never throw", () => {
   assert.equal(verifyTimestampToken(new Uint8Array(0), opts).checks.status.reason, "malformed");
   for (let i = 0; i < 400; i++) {
     const b = token();
-    for (let k = 0; k < 1 + (i % 4); k++) b[randomBytes(2).readUInt16BE() % b.length] = b[randomBytes(2).readUInt16BE() % b.length]! ^ (1 + (randomBytes(1)[0]! % 255));
+    for (let k = 0; k < 1 + (i % 4); k++) { const at = randomInt(b.length); b[at] = b[at]! ^ randomInt(1, 256); }
     assert.doesNotThrow(() => verifyTimestampToken(b, opts), `fuzz ${i}`);
   }
 });

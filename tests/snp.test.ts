@@ -12,7 +12,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { X509Certificate, createHash, randomBytes } from "node:crypto";
+import { X509Certificate, createHash, randomInt } from "node:crypto";
 import { AMD_SNP_ROOTS, decodeTcb, parseSnpReport, verifySnpReport } from "../src/snp/index";
 import { ADAPTERS } from "../src/platform/index";
 
@@ -102,7 +102,7 @@ test("snp: malformed input never throws", () => {
   assert.equal(verifySnpReport(v, base).outcome, "invalid");
   for (let i = 0; i < 300; i++) {
     const b = report();
-    for (let k = 0; k < 1 + (i % 8); k++) b[randomBytes(2).readUInt16BE() % b.length] = randomBytes(1)[0]!;
+    for (let k = 0; k < 1 + (i % 8); k++) b[randomInt(b.length)] = randomInt(256);
     const changed = Buffer.compare(Buffer.from(b), Buffer.from(report())) !== 0;
     const r = verifySnpReport(b, base);
     if (changed) assert.notEqual(r.outcome, "verified", `fuzz ${i}: an altered report must never verify`);

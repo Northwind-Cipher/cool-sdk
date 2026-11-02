@@ -51,16 +51,17 @@ This page is the final report spec chapter 48 asks for. Every capability carries
 | 29 | Reproducible-build verification | planned | — |
 | 30 | Public/private feature sets | implemented | `docs/feature-matrix.md` |
 | 31 | Packaging and pricing; entitlements | partial | private `cool-platform` (entitlements module) |
-| 32 | Hosted control plane, multi-tenancy | planned | — |
-| 33 | SSO/SAML/OIDC, SCIM, RBAC/ABAC | planned | — |
-| 34 | Observability (metrics, SIEM export) | planned | — |
+| 32 | Multi-tenant control plane, self-hosted | implemented | private `cool-platform` (`src/server/`), end-to-end HTTP tests |
+| 32 | Control plane operated as SaaS | planned | no hosted service is operated |
+| 33 | OIDC SSO (code + PKCE), SCIM 2.0, RBAC with separation of duties | implemented | private; named IdPs (Okta, Entra, Google) experimental; SAML unsupported; ABAC planned |
+| 34 | Observability: OpenMetrics, SIEM JSON Lines feed, alert webhook | implemented | private; OpenTelemetry and native SIEM connectors planned |
 | 35 | Performance measurements | partial | `npm run bench` with a reference run (`docs/performance.md`); no CI regression gate |
-| 36 | Retention, legal hold, deletion | planned | — |
+| 36 | Retention, legal hold, deletion receipts, crypto-shredding | implemented | private control plane |
 | 37 | Supply chain | implemented | trusted publishing, SBOM, history secret scan |
 | 38 | Test strategy (unit, adversarial, fuzz, egress) | implemented | 27 test files |
 | 39 | Documentation set | implemented | `docs/` |
 | 40 | Versioning and compatibility | implemented | additive `v1` schemas; RFC process |
-| 41 | Deployment modes | partial | embedded and offline implemented; self-hosted partial; air-gapped and SaaS planned (`docs/deployment-modes.md`) |
+| 41 | Deployment modes | partial | embedded, offline and self-hosted implemented; air-gapped and SaaS planned (`docs/deployment-modes.md`) |
 | 42 | Internal adversarial review | implemented | `docs/security-review/internal-review-2026-11.md` (not independent) |
 | 42 | Independent security review | planned | review package ready (`docs/security-review/`); not commissioned |
 | 43 | Compliance mapping | implemented (sample) | `docs/compliance-mapping.md`, not a certification |
