@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -17,7 +14,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { RELEASE_POLICY, TransparencyLog, exportBundle, verifyEnvelope } from "../src/platform/index";
+import { TransparencyLog, exportBundle, verifyEnvelope } from "../src/platform/index";
 import { createEnvelope, signEnvelope } from "../src/platform/envelope";
 import { KEYS, T0, commitInput, registry, trust } from "./support/platform";
 
@@ -70,8 +67,7 @@ test("schemas: a published envelope and its verification report conform", () => 
   assert.deepEqual(validate(report, load("cool.verification-report.v1.schema.json")), []);
 });
 
-test("schemas: the release policy, a bundle and a trust snapshot conform", () => {
-  assert.deepEqual(validate(json(RELEASE_POLICY), load("cool.policy.v1.schema.json")), []);
+test("schemas: a bundle and a trust snapshot conform", () => {
   const env = signEnvelope(createEnvelope(commitInput(), registry), KEYS.source);
   const bundle = json(exportBundle({ title: "t", envelopes: [env], trust: trust(), exporter: KEYS.exporter, now: new Date(T0) }));
   assert.deepEqual(validate(bundle, load("cool.bundle.v1.schema.json")), []);
@@ -83,5 +79,4 @@ test("schemas: the validator really rejects non-conforming documents", () => {
   const errs = validate({ ...env, digest: "sha256:nope", surprise: 1 }, load("cool.envelope.v1.schema.json"));
   assert.ok(errs.some((e) => e.includes("pattern")));
   assert.ok(errs.some((e) => e.includes("unexpected surprise")));
-  assert.ok(validate({ ...json(RELEASE_POLICY), default: "maybe" }, load("cool.policy.v1.schema.json")).length > 0);
 });

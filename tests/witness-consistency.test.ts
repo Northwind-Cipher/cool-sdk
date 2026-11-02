@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -15,8 +12,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   CoolTee,
-  Witness,
-  attachWitness,
   consistencyProof,
   leafHash,
   merkleRoot,
@@ -24,10 +19,7 @@ import {
   recordLeafDataV2,
   verifyConsistency,
   verifyLogConsistency,
-  verifyReceiptV2,
-  withTrustedKeys,
 } from "../src/phala/index";
-import { generateKeypair } from "../src/keys";
 import type { ReceiptV2 } from "../src/phala/types";
 
 async function buildLog(name: string, n: number): Promise<ReceiptV2[]> {
@@ -112,115 +104,4 @@ test("consistency: a forged STH signature fails even when the root is right", as
   const r = verifyLogConsistency(bad);
   assert.equal(r.ok, false);
   assert.ok(r.reasons.some((x) => /signature does not verify/.test(x)));
-});
-
-/* ── the observing witness ─────────────────────────────────────────────── */
-
-const accept = async (r: ReceiptV2) => {
-  const v = await verifyReceiptV2(r, {});
-  const ok =
-    v.checks.binding.status === "pass" &&
-    v.checks.signature.status === "pass" &&
-    v.checks.inclusion.status === "pass";
-  return { ok, reasons: v.reasons };
-};
-
-test("witness: signs only after verifying the log; its key is distinct from the log's keys", async () => {
-  const log = await buildLog("w1", 6);
-  const key = generateKeypair("independent-witness");
-  const w = new Witness(key, { verifyReceipt: accept });
-  const d = await w.observe(log, 6);
-  assert.equal(d.ok, true, d.reasons.join("; "));
-  assert.equal(d.checks?.receipts_verified, 6);
-  assert.equal(d.checks?.consistency_pairs_verified, 5);
-
-  for (const id of [log[5]!.record.signature.key_id, log[5]!.sth!.signature.key_id]) {
-    assert.notEqual(key.keyId, id);
-    const e = log[5]!.key_directory[id]!;
-    assert.notEqual(e.ed25519_pub, key.directoryEntry.ed25519_pub);
-    assert.notEqual(e.ml_dsa_pub, key.directoryEntry.ml_dsa_pub);
-  }
-
-  const witnessed = attachWitness(log[5]!, d.statement!);
-  const verdict = await verifyReceiptV2(
-    withTrustedKeys(witnessed, { [key.keyId]: key.directoryEntry }),
-    { witnessThreshold: 1 },
-  );
-  assert.equal(verdict.checks.witnesses.status, "pass");
-
-  // With a DIFFERENT key trusted under that id, the same signature does not count.
-  const other = generateKeypair(key.keyId);
-  const untrusted = await verifyReceiptV2(
-    withTrustedKeys(witnessed, { [key.keyId]: other.directoryEntry }),
-    { witnessThreshold: 1 },
-  );
-  assert.notEqual(untrusted.checks.witnesses.status, "pass");
-});
-
-test("witness: refuses a forged or altered head, a tampered receipt, and a size it cannot see", async () => {
-  const log = await buildLog("w2", 5);
-  const w = new Witness(generateKeypair("w"), { verifyReceipt: accept });
-
-  const forged = clone(log[4]!.sth!);
-  forged.root_hash = flipMh(forged.root_hash) as never;
-  const f = await w.cosignPresented(forged, log);
-  assert.equal(f.ok, false);
-  assert.match(f.reasons.join(" "), /not the head the log actually signed/);
-
-  const retimed = clone(log[4]!.sth!);
-  retimed.timestamp = "2000-01-01T00:00:00.000Z";
-  assert.equal((await w.cosignPresented(retimed, log)).ok, false);
-
-  const tampered = clone(log);
-  tampered[2]!.binding_hash = flipMh(tampered[2]!.binding_hash) as never;
-  const t = await w.observe(tampered, 5);
-  assert.equal(t.ok, false);
-  assert.match(t.reasons.join(" "), /does not verify/);
-
-  assert.equal((await w.observe(log, 99)).ok, false);
-  assert.equal(w.lastWitnessed, null, "nothing was signed by any refused request");
-});
-
-test("witness: signs successive heads, then refuses a rolled-back or forked log", async () => {
-  const log = await buildLog("w3", 6);
-  const w = new Witness(generateKeypair("w"), { verifyReceipt: accept });
-  assert.equal((await w.observe(log.slice(0, 3), 3)).ok, true);
-  const d = await w.observe(log, 6);
-  assert.equal(d.ok, true, d.reasons.join("; "));
-  assert.equal(d.checks?.previous_head_still_in_history, true);
-  assert.equal(d.checks?.previous_head?.tree_size, 3, "the record names the PREVIOUS head, not the one just signed");
-
-  const back = await w.observe(log, 4);
-  assert.equal(back.ok, false, "going backwards is refused");
-
-  const other = await buildLog("w3-other", 7);
-  const fork = await w.observe(other, 7);
-  assert.equal(fork.ok, false);
-  assert.match(fork.reasons.join(" "), /fork or rollback/);
-  assert.equal(w.lastWitnessed?.tree_size, 6);
-});
-
-test("verifier: witnessThreshold is enforced in the overall verdict, not just reported", async () => {
-  const log = await buildLog("thr", 3);
-  const key = generateKeypair("thr-witness");
-  const w = new Witness(key, { verifyReceipt: accept });
-  const d = await w.observe(log, 3);
-  const witnessed = attachWitness(log[2]!, d.statement!);
-  const trusted = withTrustedKeys(witnessed, { [key.keyId]: key.directoryEntry });
-
-  const satisfied = await verifyReceiptV2(trusted, { witnessThreshold: 1 });
-  assert.equal(satisfied.ok, true, satisfied.reasons.join("; "));
-
-  const missing = await verifyReceiptV2(log[2]!, { witnessThreshold: 1 });
-  assert.equal(missing.ok, false, "no witness => not ok when one is required");
-  assert.ok(missing.reasons.some((r) => /witnessThreshold/.test(r)));
-
-  const forgedSig = clone(trusted);
-  forgedSig.sth!.witnesses = forgedSig.sth!.witnesses.map((x) =>
-    x.id === key.keyId ? { ...x, ed25519: `${x.ed25519.slice(0, -6)}AAAAAA` as typeof x.ed25519 } : x,
-  );
-  assert.equal((await verifyReceiptV2(forgedSig, { witnessThreshold: 1 })).ok, false);
-
-  // Default behaviour (no threshold) is unchanged: absent witnesses are reported, not fatal.
-  assert.equal((await verifyReceiptV2(log[2]!, {})).ok, true);
 });

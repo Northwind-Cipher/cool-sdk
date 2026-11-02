@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Northwind-Cipher/cool-sdk/spec/schemas/cool.delegation.v1.schema.json",
+  "title": "cool.delegation.v1",
+  "description": "Signed delegation. A child scope must be a subset of its parent; verifiers enforce depth, cycles, expiry and revocation at event time.",
+  "type": "object",
+  "required": [
+    "body",
+    "digest",
+    "signature",
+    "signer"
+  ],
+  "properties": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "delegation_id",
+        "delegator",
+        "delegate",
+        "scope",
+        "audience",
+        "not_before",
+        "expires_at",
+        "nonce",
+        "issued_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "cool.delegation.v1"
+        },
+        "delegation_id": {
+          "type": "string"
+        },
+        "delegator": {
+          "type": "string"
+        },
+        "delegate": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "object",
+          "required": [
+            "actions",
+            "resources"
+          ],
+          "properties": {
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "max_amount": {
+              "type": "integer"
+            }
+          }
+        },
+        "audience": {
+          "type": "string"
+        },
+        "not_before": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": "string"
+        },
+        "nonce": {
+          "type": "string"
+        },
+        "parent": {
+          "type": "string"
+        },
+        "issued_at": {
+          "type": "string"
+        }
+      }
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^mh:sha256:[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "alg",
+        "key_id",
+        "ml_dsa",
+        "ed25519"
+      ],
+      "properties": {
+        "alg": {
+          "const": "ml-dsa-65+ed25519"
+        }
+      }
+    },
+    "signer": {
+      "type": "object",
+      "required": [
+        "ml_dsa_pub",
+        "ed25519_pub"
+      ]
+    }
+  }
+}

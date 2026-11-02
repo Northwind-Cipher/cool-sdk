@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -264,7 +261,8 @@ test("a receipt from the wrong image fails the pin, even on hardware", async () 
     const verifier = remoteQuoteVerifier({ endpoint: dcap.url, root: "intel-dcap" });
     const cool = await CoolTee.connect({
       dstack: new HttpDstackClient({ endpoint: patched.url }),
-      policy: { verifier },
+      policy: { verifier },
+
       capture: { flushMs: 1 },
     });
     const receipt = await cool.record({ type: "model.execution", metadata: { model: "m@1" }, payloads: { input: "p" } });

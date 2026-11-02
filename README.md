@@ -16,8 +16,8 @@
 [![Intel TDX](https://img.shields.io/badge/verified%20on-Intel%20TDX-7ee2a8?style=for-the-badge&labelColor=0b0f14)](#-proven-on-real-silicon)
 
 [![Node](https://img.shields.io/badge/node-%E2%89%A5%2020-8b949e?style=flat-square&labelColor=0b0f14)](https://nodejs.org)
-[![Tests](https://img.shields.io/badge/tests-226%20passing-8b949e?style=flat-square&labelColor=0b0f14)](docs/status/2026-10-31-implementation-status.md)
-[![License](https://img.shields.io/badge/license-BUSL--1.1-8b949e?style=flat-square&labelColor=0b0f14)](#license)
+[![Tests](https://img.shields.io/badge/tests-246%20passing-8b949e?style=flat-square&labelColor=0b0f14)](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-8b949e?style=flat-square&labelColor=0b0f14)](#license)
 
 <br/>
 
@@ -146,36 +146,81 @@ Two cross-cutting tests also passed:
 npm run showcase
 ```
 
-Twelve chapters, from AI receipts to an incident reconstruction. **The showcase checks itself**: every ✓ is an assertion, a single broken claim exits 1, and CI runs it on every push. Real output, abridged:
+Eight chapters covering the whole open evidence core. **The showcase checks itself**: every ✓ is an assertion, a single broken claim exits 1, and CI runs it on every push. Real output, abridged:
 
 ```text
-05  Supply Chain: a real deployment gate
-    ✓ verified provenance → admitted, and the target confirms the deployed bytes
-    ✓ a tampered artifact is denied and production keeps the approved bytes  — bytes-match:artifact_digest_mismatch
+03  One evidence envelope
+    ✓ a published envelope passes every applicable check
+    ✓ a valid signature from an unknown key is NOT trusted — two different questions
+    ✓ a revoked key is rejected without independent proof the signature predates revocation
 
-10  AWS Nitro: enclave → untrusted host → log (SYNTHETIC test PKI)
-    ✓ the receipt the host dropped becomes a recorded gap
-    ✓ a late copy fills the gap — and the gap stays on record
-    ✓ a receipt the host altered is rejected and nothing is stored  — canonical_encoding_valid: core_mismatch
+06  AWS Nitro: a GENUINE AWS attestation document
+    ✓ COSE signature and 4-certificate chain verify to AWS_NitroEnclaves_Root-G1
+    ✓ this enclave ran in debug mode (PCR0–2 zero), so it fails — whatever else passed
 
-11  Incident Evidence
-    ✓ the spoofed sensor event is labelled source-asserted, not verified
-    ✓ a completion that predates its request is flagged as a contradiction
-    ✓ so the case bundle does not pass — the verifier refuses to paper over gaps
+07  AWS Nitro: sealing receipts in an enclave (SYNTHETIC test PKI)
+    ✓ sealed receipts cross the host unchanged and verify, attestation included
+    ✓ a receipt the host altered fails verification  — canonical_encoding_valid: core_mismatch
 
-all 47 claims held
-limits: TDX ran on the simulator; Nitro receipts ran on a synthetic PKI; enforcement targets are local; no network was used.
+all 24 claims held
+limits: TDX ran on the simulator; Nitro receipts were sealed on a synthetic PKI; no network was used.
 ```
 
 | | Chapters |
 |---|---|
-| **AI evidence** | 01 AI change receipts · 02 selective disclosure and witnesses |
-| **Shared core** | 03 one evidence envelope · 04 a policy engine that does not guess |
-| **Five modules** | 05 supply-chain gate · 06 identity & authority · 07 change control · 08 runtime guard · 11 incident evidence |
-| **Confidential computing** | 09 a genuine AWS Nitro document · 10 the Nitro receipt path |
-| **Portable proof** | 12 an auditor re-verifies everything offline |
+| **AI evidence** | 01 AI change receipts · 02 selective disclosure and witness signatures |
+| **Evidence core** | 03 one evidence envelope · 04 transparency log and witnessed checkpoints · 05 reference capture from git |
+| **Confidential computing** | 06 a genuine AWS Nitro document · 07 sealing receipts in an enclave |
+| **Portable proof** | 08 an auditor re-verifies everything offline |
 
-It leaves `release-bundle.json` and `trust.json` behind, so you can check them yourself: `cool bundle verify release-bundle.json --trust trust.json`. See [docs/showcase.md](docs/showcase.md) for what each chapter proves and what is simulated.
+It leaves `evidence-bundle.json` and `trust.json` behind, so you can check them yourself: `cool bundle verify evidence-bundle.json --trust trust.json`. See [docs/showcase.md](docs/showcase.md).
+
+<br/>
+
+## 🤖 Govern what an agent is allowed to do
+
+```bash
+npm run demo:agent
+```
+
+An AI agent asks to refund a customer. CooL follows that action from start to finish:
+- **who** the agent is, and **who delegated** it authority
+- the **exact request**: parameters committed, never stored in plaintext
+- a **signed, replayable policy decision**
+- a **real enforcement boundary** that owns the tool
+- a **signed confirmation** of what actually happened
+
+Then it attacks the run eight ways. Every ✓ is an assertion:
+
+| | Scenario | Result |
+|:-:|---|---|
+| **A** | refund 200 within a 500 delegation | `permit` → executed → confirmed; the decision **replays identically** offline |
+| **B** | refund 900 | refused **at the boundary**, even when a misconfigured policy says yes |
+| **C** | the policy changes later | the old decision still verifies against its own policy version |
+| **D** | replay, including 3 simultaneous submissions | exactly one refund |
+| **E** | a substituted workload | `execution_mismatch` → refused |
+| **F** | a tampered receipt | `invalid` |
+| **G** | a dropped event | **`incomplete`**, never "verified" |
+| **H** | a stale attestation | **`stale`** |
+
+```ts
+import { createAuthorizationRequest, decide, ToolGateway, FileNonceStore } from "cool-nwc/authz";
+
+const { request, secrets } = createAuthorizationRequest({
+  principal: "agent:refund-bot", action: "refund", resource: "order:4471",
+  audience: "acme-payments", policy_selector: "refunds",
+  params: { order: "4471", amount: 200 }, delegation: grant.body.delegation_id,
+});
+const decision = decide({ request, policy, facts: { "refund.amount": 200 }, evaluatorKey });
+
+// the gateway sits with the tool: it verifies everything, consumes the nonce, then executes
+const gateway = new ToolGateway({ id: "payments-gw", audience: "acme-payments", key: gatewayKey,
+  trust, nonces: new FileNonceStore("./nonces"), directory, roots: ["user:asha"] });
+const { confirmation } = await gateway.invoke({ tool: "issue_refund", request,
+  params: secrets.params, params_salt: secrets.params_salt, decision, delegation: [grant], policy, facts });
+```
+
+Verification gives one of six outcomes: **`verified`**, **`invalid`**, **`unsupported`**, **`stale`**, **`incomplete`** or **`indeterminate`**. A gap is never reported as success. See [docs/authorization.md](docs/authorization.md) and [docs/demo-scenarios.md](docs/demo-scenarios.md).
 
 <br/>
 
@@ -231,14 +276,34 @@ It leaves `release-bundle.json` and `trust.json` behind, so you can check them y
 </td>
 <td valign="top">
 
-**📜 Policy & compliance**<br/>
-<sub>Governance rules, approvals, and a map of which obligations your evidence covers.</sub>
+**📜 Replayable policy**<br/>
+<sub>Deterministic <code>cool.policy.v1</code> decisions anyone can re-run, plus a sample compliance map.</sub>
 
 </td>
 <td valign="top">
 
 **🖥️ Live console**<br/>
 <sub>Watch a real project's changes get sealed in a browser: <code>cool ui</code>.</sub>
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+**🤖 Agent authorization**<br/>
+<sub>Principals, delegation chains without privilege amplification, and committed requests: <code>cool-nwc/authz</code>.</sub>
+
+</td>
+<td valign="top">
+
+**🚧 Enforcement gateway**<br/>
+<sub>Fails closed, consumes nonces atomically, binds execution, and signs what really happened.</sub>
+
+</td>
+<td valign="top">
+
+**🧮 Honest outcomes**<br/>
+<sub><code>incomplete</code>, <code>stale</code> and <code>unsupported</code> are results, never silent passes.</sub>
 
 </td>
 </tr>
@@ -408,25 +473,25 @@ To reproduce the hardware validation end to end (compose files, deployment and e
 - Measurement pins are only as trustworthy as the process that approves them.
 - A witness demonstrates separation of key custody and process, not organizational independence. In the validation run, both CVMs were deployed from the same account.
 - The documented validation used Intel TDX CPU instances on a development OS image. No GPU attestation is claimed.
-- No third-party certification or security audit is claimed.
+- No third-party certification or security audit is claimed. An internal adversarial review is recorded, and the package for an independent one is ready ([docs/security-review/](docs/security-review/)).
 
 </details>
 
 <br/>
 
-## 🧱 Beyond AI: the platform (preview)
+## 🧱 Open core, and the CooL platform
 
-The same cryptographic core now backs a technology-neutral evidence platform, `cool-nwc/platform`. It has:
-- one signed envelope for builds, deployments, credentials, configuration, runtime events and incidents
-- a deterministic policy engine that treats missing facts as unknown, never as safe
-- enforcement that is **off and dry-run by default**, and that only counts as done when the target system confirms it
+**Everything here is open source under Apache-2.0**: what you need to adopt CooL and to verify its evidence without trusting us.
 
-```bash
-cool gate-demo ./demo        # build → signed provenance → policy → deploy; tamper → refused; export → verify
-cool bundle verify ./demo/bundle.json --trust ./demo/trust.json
-```
+| Open source (this repository) | Commercial CooL platform |
+|---|---|
+| Evidence format, schemas, test vectors, specifications, threat model | **Evidence Cloud**: managed ingestion, storage, retention, log and witness operations |
+| SDKs and capture: `CooL`, `CoolTee`, `CoolClient`, reference connectors, the Nitro receipt sealer | **Incident Intelligence**: cross-system correlation and incident reconstruction |
+| Local verification: receipts, envelopes, bundles, Nitro attestation, log consistency, witness signatures, disclosure | **Risk Controls**: managed policy lifecycle, approvals, response and containment integrations |
+| Authorization protocol, **replayable policy evaluation**, and the reference enforcement gateway | **Enterprise** (planned): SSO/SCIM, RBAC, multi-tenant control plane, retention |
+| CLI, audit packs, examples, the hardware validation evidence and its verifiers | **Assurance**: enterprise reporting and evidence packages, plus support and service commitments |
 
-Supply Chain, Identity & Authority, Change Control, Runtime Guard and Incident Evidence are thin modules on that core. The reference enforcement targets are local, so no cluster or SaaS integration ships yet. See [docs/platform.md](docs/platform.md) for the architecture, and the [status report](docs/status/2026-10-31-implementation-status.md) for exactly what is built, what is partial, and what is absent.
+Independent verification stays open on purpose: you should never need our service to check our evidence. See [docs/open-core.md](docs/open-core.md) and the [feature matrix](docs/feature-matrix.md) for the exact split.
 
 <br/>
 
@@ -437,13 +502,18 @@ Supply Chain, Identity & Authority, Change Control, Runtime Guard and Incident E
 | ✍️ | **FIPS 204 · ML-DSA-65** | Post-quantum signatures |
 | ✍️ | **Ed25519** | Classical signatures |
 | #️⃣ | **SHA-256** · multihash | Commitments and hashing |
+| 🔑 | **HMAC-SHA-256** (RFC 2104) | Keyed commitments for low-entropy request parameters |
 | 📐 | **Canonical CBOR** | Deterministic serialization |
 | 🌳 | **RFC 6962** | Merkle transparency log |
+| ⏱️ | **RFC 3161** | Trusted timestamps from a TSA, verified offline against pinned anchors (validated on a genuine DigiCert token) |
 | ⏱️ | **OpenTimestamps** | Bitcoin anchoring of tree heads |
 | 🛡️ | **Intel TDX** · dstack | Confidential execution and attestation |
-| 🛡️ | **AWS Nitro Enclaves** | Offline attestation verification (`cool-nwc/nitro`); the in-enclave runtime is [not built yet](docs/nitro.md#status) |
+| 🛡️ | **AWS Nitro Enclaves** | Attestation verification, **implemented** (`cool-nwc/nitro`); running inside an enclave is **experimental**: the [deployment kit](examples/nitro-enclave/README.md) is ready, not yet run on AWS hardware |
+| 🛡️ | **AMD SEV-SNP** | Report verification to AMD's pinned ARK, TCB and chip binding, **implemented** (`cool-nwc/snp`; validated on a genuine Milan report) |
+| 🛡️ | **NVIDIA CC** · NRAS | Offline verification of NRAS attestation results, **experimental** (`cool-nwc/nvidia`; no real CC GPU result yet) |
+| 🔐 | **AWS KMS · Google Cloud KMS · PKCS#11** | Hybrid signing with provider-held keys, **experimental** (emulator-tested; `npm run validate:kms`) |
 
-<sub>Not implemented, despite appearing in earlier descriptions: ML-KEM-1024, X25519, ChaCha20-Poly1305 and RFC 3161 timestamping.</sub>
+<sub>Not implemented, despite appearing in earlier descriptions: ML-KEM-1024, X25519 and ChaCha20-Poly1305. Every capability's exact label is in [docs/capabilities.md](docs/capabilities.md), or run `cool capabilities`.</sub>
 
 Built on a small set of well-known, dependency-light libraries: [`@noble/curves`](https://github.com/paulmillr/noble-curves), [`@noble/hashes`](https://github.com/paulmillr/noble-hashes), [`@noble/post-quantum`](https://github.com/paulmillr/noble-post-quantum) and [`cbor2`](https://github.com/hildjj/cbor2).
 
@@ -454,12 +524,16 @@ Built on a small set of well-known, dependency-light libraries: [`@noble/curves`
 | | |
 |---|---|
 | 🚦 [Showcase](docs/showcase.md) | Every capability in one self-checking run |
+| 🤖 [Authorization](docs/authorization.md) · [Demo scenarios A–H](docs/demo-scenarios.md) | Principals, delegation, decisions, the gateway |
+| 🎯 [Capabilities](docs/capabilities.md) · [Guarantees](docs/guarantees.md) · [Status by chapter](docs/milestones-status.md) | Every capability with one label and its evidence; each claim, its test and its limit |
+| 🔍 [Security review](docs/security-review/) | Internal review findings and fixes; the package for an independent review |
+| 🗂️ [Event taxonomy](docs/event-taxonomy.md) · [TEE support](docs/tee-support.md) · [Key management](docs/key-management.md) · [Nitro kit](examples/nitro-enclave/README.md) | 50 event families; Nitro / TDX / SNP / NVIDIA; KMS and HSM signers; running in a real enclave |
+| 🚢 [Deployment modes](docs/deployment-modes.md) · [Telemetry & egress](docs/telemetry-and-egress.md) · [Performance](docs/performance.md) | Where CooL runs; no phone-home; benchmarks |
+| 📋 [Compliance mapping](docs/compliance-mapping.md) · [Release criteria](docs/release-criteria.md) · [Governance](GOVERNANCE.md) | Sample control map; SBOM and provenance; the RFC process |
 | 🏁 [Getting started](docs/getting-started.md) | From install to first verified receipt |
-| 🧱 [Platform](docs/platform.md) · [Migration to the envelope](docs/migration-platform.md) | Envelope, policy, enforcement, the five modules |
+| 🧱 [Open core](docs/open-core.md) · [Evidence core](docs/platform.md) · [Migration to the envelope](docs/migration-platform.md) | What is open, the envelope, trust, transparency, bundles |
 | 🛡️ [Trust models](docs/trust-models.md) · [AWS Nitro](docs/nitro.md) | Phala/TDX and Nitro, claim by claim |
 | ⌨️ [CLI exit codes](docs/cli-exit-codes.md) · [Schemas](spec/schemas/) | Stable contracts for pipelines |
-| 🧪 [Adversarial test plan](docs/adversarial-test-plan.md) | Every attack, its expected and observed result |
-| 📋 [Implementation status](docs/status/2026-10-31-implementation-status.md) | What is built, partial and absent |
 | 🏗️ [Architecture](docs/architecture.md) | How the pieces fit together |
 | 🧾 [Evidence format](docs/evidence-format.md) | The receipt, byte by byte |
 | ✅ [Verification](docs/verification.md) | Every domain and what it checks |
@@ -485,14 +559,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately through
 
 ## License
 
-CooL is **source-available** under the **Business Source License 1.1** (BUSL-1.1). BUSL-1.1 is not an open-source license.
+CooL's open core is licensed under the **Apache License 2.0**. See [LICENSE](LICENSE), [NOTICE.txt](NOTICE.txt) and [third-party licenses](docs/THIRD_PARTY_LICENSES.md).
 
-- ✅ **Free for production** if you and your affiliates have combined annual recurring revenue **below US$1,000,000**.
-- 💼 At or above that threshold, production use requires a commercial license from **Northwind Cipher Pvt. Ltd.**
-- 🔓 Each version converts to **Apache-2.0** on **January 1, 2030**, or on the fourth anniversary of its first public release, whichever comes first.
-- Versions published earlier under Apache-2.0, including `cool-nwc@3.0.0`, remain under Apache-2.0.
+- `cool-nwc` **4.0.0 and later**: Apache-2.0.
+- `cool-nwc` **3.1.0–3.1.1** were published under the Business Source License 1.1 and keep those terms. `3.0.0` and earlier are Apache-2.0.
+- The commercial CooL platform is a separate product under separate terms. For licensing, use the contact on the [Northwind Cipher profile](https://github.com/Northwind-Cipher).
 
-See [LICENSE](LICENSE), [NOTICE.txt](NOTICE.txt) and [third-party licenses](docs/THIRD_PARTY_LICENSES.md) for the full terms. For commercial licensing, use the contact on the [Northwind Cipher profile](https://github.com/Northwind-Cipher).
+The names "CooL" and "Northwind Cipher" are not licensed for use as marks.
 
 <br/>
 

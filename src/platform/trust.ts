@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -30,7 +27,7 @@
 import type { DirectoryEntry } from "../types";
 import { check, type Check } from "./status";
 
-export type KeyPurpose = "evidence" | "log" | "witness" | "builder" | "policy" | "enforcement" | "source";
+export type KeyPurpose = "evidence" | "log" | "witness" | "builder" | "policy" | "enforcement" | "source" | "identity_issuer" | "evaluator";
 export type KeyStatus = "active" | "rotated" | "revoked" | "compromised";
 
 export interface KeyRecord {

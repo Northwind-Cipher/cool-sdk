@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -28,6 +25,10 @@
  * Fail-open vs fail-closed is not hardcoded: each policy chooses its own
  * default and on_unknown, so a production-deploy policy can default to deny
  * while a telemetry policy defaults to audit_only.
+ *
+ * Deterministic evaluation is open so anyone can REPLAY a recorded decision:
+ * same policy digest + same facts ⇒ same decision. Managing policies (lifecycle,
+ * approvals, overrides) is part of the commercial platform.
  *
  * Modes: `observe` records what WOULD happen (enforced: false); `enforce`
  * marks the decision for enforcement. Even then the engine enforces nothing
@@ -215,113 +216,4 @@ export function simulatePolicy(p: PolicyDocument, cases: ReadonlyArray<{ readonl
     const r = evaluatePolicy({ ...p, mode: "observe" }, c.facts, { now: new Date(0) });
     return { name: c.name, decision: r.decision, reason_codes: r.reason_codes };
   });
-}
-
-/** Emergency override: attributable, reasoned, and visibly an override. */
-export function overrideDecision(
-  record: PolicyDecisionRecord,
-  override: { readonly actor: string; readonly reason: string; readonly approver?: string; readonly decision: Decision; readonly now?: Date },
-): PolicyDecisionRecord {
-  if (!override.actor || !override.reason) throw new Error("an override needs an actor and a reason");
-  return {
-    ...record,
-    decision: override.decision,
-    reason_codes: [...record.reason_codes, `override:${override.reason}`],
-    override: {
-      actor: override.actor,
-      reason: override.reason,
-      ...(override.approver ? { approver: override.approver } : {}),
-      at: (override.now ?? new Date()).toISOString(),
-      original_decision: record.decision,
-    },
-  };
-}
-
-/* ── lifecycle ────────────────────────────────────────────────────────── */
-
-export type PolicyState = "draft" | "validated" | "approved" | "active" | "suspended" | "retired";
-const TRANSITIONS: Record<PolicyState, readonly PolicyState[]> = {
-  draft: ["validated", "retired"],
-  validated: ["approved", "draft", "retired"],
-  approved: ["active", "retired"],
-  active: ["suspended", "retired"],
-  suspended: ["active", "retired"],
-  retired: [],
-};
-
-export interface PolicyLifecycleEvent {
-  readonly policy_id: string;
-  readonly version: string;
-  readonly from_state: PolicyState | "none";
-  readonly to_state: PolicyState;
-  readonly actor: string;
-  readonly at: string;
-}
-
-/**
- * Versions of policies and their lifecycle. Policy changes are sensitive:
- * every transition is emitted as an event (record it as a `policy.lifecycle`
- * envelope). Activating a version suspends the previously active one, so
- * rollback is "activate the prior version" and leaves a trail.
- */
-export class PolicyRegistry {
-  readonly #versions = new Map<string, { doc: PolicyDocument; state: PolicyState }>();
-  readonly #events: PolicyLifecycleEvent[] = [];
-  readonly #onEvent: ((e: PolicyLifecycleEvent) => void) | undefined;
-  readonly #clock: () => Date;
-
-  constructor(options: { readonly onEvent?: (e: PolicyLifecycleEvent) => void; readonly clock?: () => Date } = {}) {
-    this.#onEvent = options.onEvent;
-    this.#clock = options.clock ?? (() => new Date());
-  }
-
-  #key(id: string, version: string) {
-    return `${id}@${version}`;
-  }
-
-  #emit(doc: PolicyDocument, from: PolicyState | "none", to: PolicyState, actor: string) {
-    const e = { policy_id: doc.id, version: doc.version, from_state: from, to_state: to, actor, at: this.#clock().toISOString() };
-    this.#events.push(e);
-    this.#onEvent?.(e);
-  }
-
-  draft(doc: PolicyDocument, actor: string): void {
-    const key = this.#key(doc.id, doc.version);
-    if (this.#versions.has(key)) throw new Error(`${key} already exists; policy versions are immutable`);
-    this.#versions.set(key, { doc, state: "draft" });
-    this.#emit(doc, "none", "draft", actor);
-  }
-
-  transition(id: string, version: string, to: PolicyState, actor: string): void {
-    const v = this.#versions.get(this.#key(id, version));
-    if (!v) throw new Error(`unknown policy ${id}@${version}`);
-    if (!TRANSITIONS[v.state].includes(to)) throw new Error(`cannot move ${id}@${version} from ${v.state} to ${to}`);
-    if (to === "validated") {
-      const problems = validatePolicy(v.doc);
-      if (problems.length) throw new Error(`validation failed: ${problems.join("; ")}`);
-    }
-    if (to === "active") {
-      for (const other of this.#versions.values()) {
-        if (other.doc.id === id && other.state === "active") {
-          this.#emit(other.doc, "active", "suspended", actor);
-          other.state = "suspended";
-        }
-      }
-    }
-    this.#emit(v.doc, v.state, to, actor);
-    v.state = to;
-  }
-
-  active(id: string): PolicyDocument | undefined {
-    for (const v of this.#versions.values()) if (v.doc.id === id && v.state === "active") return v.doc;
-    return undefined;
-  }
-
-  state(id: string, version: string): PolicyState | undefined {
-    return this.#versions.get(this.#key(id, version))?.state;
-  }
-
-  events(): readonly PolicyLifecycleEvent[] {
-    return [...this.#events];
-  }
 }

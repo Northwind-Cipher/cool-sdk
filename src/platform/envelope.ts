@@ -1,10 +1,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -27,6 +24,7 @@
  * themselves, so a non-canonical or ambiguous encoding is caught rather than
  * normalised away.
  */
+import type { AsyncSigner } from "./signers";
 import { createHash } from "node:crypto";
 import { decode } from "cbor2";
 import { canonicalCbor } from "../canonical";
@@ -42,6 +40,7 @@ import { verifyNitroAttestation, type VerifyNitroOptions } from "../nitro/attest
 import { usableAlgorithm } from "./algorithms";
 import type { PayloadRegistry } from "./payloads";
 import { check, overallOf, type Check, type OverallStatus } from "./status";
+import { classifyOutcome, type Outcome } from "./outcome";
 import type { KeyPurpose, TrustStore } from "./trust";
 
 export const ENVELOPE_SCHEMA = "cool.envelope.v1";
@@ -213,6 +212,35 @@ export function signEnvelope(core: EnvelopeCore, keys: Signer | KeyPair | Readon
   } as SignedEnvelope);
 }
 
+/**
+ * {@link signEnvelope} for KMS/HSM-backed signers (`AsyncSigner`, see
+ * `./signers`). In-memory keys and sync signers may be mixed in. The result is
+ * byte-identical in form to a synchronously signed envelope.
+ */
+export async function signEnvelopeAsync(core: EnvelopeCore, keys: AsyncSigner | Signer | KeyPair | ReadonlyArray<AsyncSigner | Signer | KeyPair>, attestation?: EnvelopeInput["attestation"]): Promise<SignedEnvelope> {
+  const list = Array.isArray(keys) ? keys : [keys as AsyncSigner | Signer | KeyPair];
+  if (list.length === 0) throw new CooLError("COOL_CRYPTOGRAPHY_FAILED", "at least one signing key is required");
+  if (attestation && createHash("sha256").update(attestation.document).digest("hex") !== core.attestation_ref) {
+    throw new CooLError("COOL_EVIDENCE_INVALID", "the attestation document is not the one the core references");
+  }
+  const bytes = canonicalize(core);
+  const digest = commit(bytes);
+  const message = signatureMessage(digest);
+  const signers = list.map((k) => ("providers" in k ? k : asSigner(k as Signer | KeyPair)));
+  const signatures = await Promise.all(signers.map((k) => k.sign(message)));
+  return clean({
+    format: "cool.signed-envelope.v1",
+    core,
+    encoding: "cbor-cde",
+    core_cbor: toBase64(bytes),
+    digest_alg: "sha-256",
+    digest,
+    signatures,
+    key_directory: Object.fromEntries(signers.map((k) => [k.keyId, k.directoryEntry])),
+    attestation: attestation ? { platform: attestation.platform, document: toBase64(attestation.document) } : undefined,
+  } as SignedEnvelope);
+}
+
 /** Attach a transparency checkpoint (from a log the caller published to). */
 export function withCheckpoint(env: SignedEnvelope, checkpoint: Checkpoint): SignedEnvelope {
   return { ...env, checkpoint };
@@ -248,6 +276,8 @@ export interface VerificationReport {
   readonly schema: "cool.verification-report.v1";
   readonly subject: { readonly event_id: string; readonly event_type: string; readonly digest: string } | null;
   readonly overall_status: OverallStatus;
+  /** verified | invalid | unsupported | stale | incomplete | indeterminate */
+  readonly outcome: Outcome;
   readonly checks: EnvelopeChecks;
   readonly reasons: readonly string[];
   readonly verified_at: string;
@@ -301,7 +331,7 @@ export function verifyEnvelope(env: SignedEnvelope, options: VerifyEnvelopeOptio
       signer_trusted: skipped, signer_authorized: skipped, timestamp_valid: skipped, inclusion_proof_valid: skipped,
       checkpoint_trusted: skipped, attestation_valid: skipped, evidence_complete: skipped,
     };
-    return { schema: "cool.verification-report.v1", subject: null, overall_status: "fail", checks, reasons: [`schema_valid: ${schema.reason}`], verified_at };
+    return { schema: "cool.verification-report.v1", subject: null, overall_status: "fail", outcome: classifyOutcome(checks as unknown as Record<string, Check>, ["schema_valid"]).outcome, checks, reasons: [`schema_valid: ${schema.reason}`], verified_at };
   }
 
   // canonical encoding
@@ -451,6 +481,7 @@ export function verifyEnvelope(env: SignedEnvelope, options: VerifyEnvelopeOptio
     schema: "cool.verification-report.v1",
     subject: { event_id: core.event_id, event_type: core.event_type, digest: env.digest },
     overall_status: overall,
+    outcome: classifyOutcome(checks as unknown as Record<string, Check>, required).outcome,
     checks,
     reasons,
     verified_at,

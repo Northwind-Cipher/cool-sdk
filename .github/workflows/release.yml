@@ -35,6 +35,9 @@ jobs:
       - name: Consumer install check
         run: npm run verify:package
 
+      - name: SBOM (CycloneDX)
+        run: npm sbom --sbom-format cyclonedx --omit dev > sbom.cdx.json && node -e "const s=require('./sbom.cdx.json'); console.log('SBOM components:', (s.components||[]).length)"
+
       - name: Tag matches package.json
         run: |
           PKG="v$(node -p "require('./package.json').version")"
@@ -53,3 +56,4 @@ jobs:
         with:
           generate_release_notes: true
           body_path: /dev/null
+          files: sbom.cdx.json

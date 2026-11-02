@@ -2,10 +2,7 @@
 /**
  * CooL
  * Copyright (c) 2026 Northwind Cipher Pvt. Ltd.
- * SPDX-License-Identifier: BUSL-1.1
- *
- * Use of this software is governed by the Business Source License 1.1 in the
- * LICENSE file at the root of this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -38,7 +35,7 @@ import {
   verifyCommand,
 } from "./commands";
 import { help } from "./help";
-import { bundleCommand, decideCommand, gateDemoCommand } from "./platform";
+import { bundleCommand, capabilitiesCommand } from "./platform";
 import { walkthrough } from "./walkthrough";
 import { discloseCommand, logCommand, records, witnessCommand } from "./evidence";
 import { complianceCommand, packCommand, policyCommand } from "./governance";
@@ -144,10 +141,8 @@ async function run(name: string, args: string[], workspace: Workspace | null): P
       return doctor(workspace);
     case "bundle":
       return bundleCommand(args);
-    case "decide":
-      return decideCommand(args);
-    case "gate-demo":
-      return gateDemoCommand(args);
+    case "capabilities":
+      return capabilitiesCommand(args);
     default:
       out(`  ${c.red(g.fail)} unknown command ${c.bold(name)} — try ${c.brand("cool help")}`);
       return 1;
@@ -270,6 +265,7 @@ async function main(): Promise<void> {
     name === "--help" ||
     name === "-h" ||
     name === "policy" ||
+    name === "capabilities" ||
     name === "update" ||
     name === "upgrade" ||
     // `ui` takes a folder and opens the plane for THAT folder. Booting one here

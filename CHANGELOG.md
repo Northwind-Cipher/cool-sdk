@@ -7,6 +7,84 @@ independently (`cool.evidence.v1`, `cool.receipt.v2`).
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-11-01
+
+**CooL's open core, under Apache-2.0.** This package now contains everything needed to adopt CooL and to verify its evidence independently. The operational, enterprise layer moves to the separately licensed commercial CooL platform. See `docs/open-core.md`.
+
+### Added
+- **`cool-nwc/authz`**, the agent authorization protocol:
+  - **Principals.** Issuer-signed records with key binding and status **at event time**.
+  - **Delegation chains.** Scopes must be subsets, with depth and cycle limits, audience and validity checks, revocation, and privilege-amplification detection.
+  - **Canonical authorization requests.** Parameters and context are carried only as salted or **HMAC-keyed commitments**, with NFC normalization.
+  - **Signed decisions.** `permit` / `deny` / `indeterminate` / `error`, with `trusted` or **`reproducible`** assurance. In `reproducible` mode the verifier re-runs the deterministic policy.
+  - **Atomic replay stores.** `MemoryNonceStore` and `FileNonceStore`, which uses O_EXCL.
+  - **Execution binding**, and the reference enforcement boundary **`ToolGateway`**, which fails closed and issues **signed external confirmations**.
+- **Policy evaluation is public again.** `evaluatePolicy`, `validatePolicy`, `policyDigest` and `simulatePolicy` are back in `cool-nwc/platform`, because independent replay must not be paywalled. The managed lifecycle (`PolicyRegistry`, overrides) stays commercial.
+- **Six verification outcomes**: `verified`, `invalid`, `unsupported`, `stale`, `incomplete`, `indeterminate`. `outcome` is on every envelope and bundle report.
+- **Bundles.** Signed protocol objects can travel as attachments (`attachments_bound`). Gaps in sequenced evidence give **`incomplete`** (`sequence_complete`).
+- **TEE adapter interface.** `nitroAdapter` and `tdxAdapter` are implemented. Phala dstack is partial. AMD SEV-SNP and NVIDIA CC return `unsupported`.
+- **Legacy compatibility.** `wrapLegacyReceipt` / `verifyWrappedLegacy` bring `cool.receipt.v2` into the envelope unchanged.
+- **17 new event families**, 50 in total (`docs/event-taxonomy.md`). New key purposes: `identity_issuer`, `evaluator`. Algorithm registry entry `hmac-sha-256`.
+- **AMD SEV-SNP: `cool-nwc/snp`** (implemented). This verifies reports offline:
+  - the chain VCEK/VLEK → ASK/ASVK → ARK, with AMD's ARKs for Milan, Genoa and Turin fetched from AMD KDS and pinned
+  - the ECDSA P-384 signature, and canonical unsigned bytes
+  - TCB binding to `REPORTED_TCB`, and VCEK `hwID` = `CHIP_ID`
+  - the DEBUG policy, measurement, `REPORT_DATA`, a TCB minimum and VMPL
+
+  It is validated against a **genuine Milan report**. `snpAdapter` replaces the unsupported stub.
+- **NVIDIA Confidential Computing: `cool-nwc/nvidia`** (experimental). This verifies NRAS attestation results offline:
+  - ES384 signatures, with `x5c` chains to NRAS intermediates pinned from NVIDIA's live JWKS
+  - expiry, issue time and nonce
+  - the overall result and per-GPU `submods` binding
+  - the GPU appraisal claims, and a CPU-TEE binding nonce (`cpuBindingNonce`)
+
+  No result from a real CC GPU yet.
+- **RFC 3161 trusted timestamps** (implemented): `createTimestampRequest`, `requestTimestamp` (opt-in, networked) and `verifyTimestampToken` (offline, pinned TSA anchors, exact CMS checks). Validated against a **genuine DigiCert token**, with an exhaustive single-bit-flip test.
+- **KMS/HSM signing** (experimental):
+  - `AsyncSigner`, `hybridSigner`, and adapters for AWS KMS (`ML_DSA_65` + `ECC_NIST_EDWARDS25519`), Google Cloud KMS (`PQ_SIGN_ML_DSA_65` + `EC_SIGN_ED25519`) and PKCS#11 components. Components can be mixed across providers.
+  - Every remote signature is self-checked before use.
+  - New async paths: `signEnvelopeAsync`, `signObjectAsync`, `decideAsync`. `ToolGateway` accepts an `AsyncSigner`.
+  - `npm run validate:kms` checks against a live provider. Azure Key Vault: unsupported (no Ed25519/ML-DSA).
+- **Replay protection across machines**: `RedisNonceStore`, a dependency-free RESP2 client over TCP/TLS using `SET NX PX`, CI-tested against a real Redis. `SharedNonceStore` takes Postgres and DynamoDB backends (experimental). Every store failure is `unavailable`, so the gateway refuses.
+- **AWS Nitro Enclaves deployment kit** (experimental; not yet run on AWS hardware):
+  - `serveEnclave` and `collectFromEnclave`, producing a `cool.nitro-validation.v1` artifact
+  - `examples/nitro-enclave/`: a Rust NSM helper on `aws-nitro-enclaves-nsm-api`, the enclave image, and `nitro-cli` build/validate scripts
+  - CI builds the image and compiles the helper
+- **Capability registry** (`src/platform/capabilities.ts`, `cool capabilities`, generated `docs/capabilities.md`). Each capability has exactly one label and its evidence. Tests enforce:
+  - the doc matches the registry
+  - adapter labels match the registry
+  - no stale claim reappears
+  - nothing is labelled *implemented* for Nitro-on-hardware or a KMS provider without a committed validation artifact
+- **Security review**: the internal adversarial review of the 4.0 additions (7 findings, all fixed with regression tests) and the package for an independent review, in `docs/security-review/`. **No external review has been commissioned.**
+- **CI**: a `redis` job (real server) and a `nitro-image` job (image build, helper compile).
+- **New schemas and test vectors**: `cool.principal.v1`, `cool.delegation.v1`, `cool.authz-request.v1`, `cool.authz-decision.v1`, `cool.external-confirmation.v1`, and `spec/test-vectors/authz-commitments.v1.json`.
+- **`npm run demo:agent`**: scenarios A–H, self-checking. **`npm run bench`**: microbenchmarks.
+- **Tests**: authorization, the gateway, schema conformance, outcomes, and **egress**, which proves the showcase and demo make zero network calls.
+- **Release.** A CycloneDX SBOM is attached to every GitHub release.
+- **Docs**: guarantees, feature matrix, repository audit, system threat model, authorization, demo scenarios, event taxonomy, TEE support, key management, deployment modes, telemetry and egress, performance, compliance mapping (sample), release criteria, `GOVERNANCE.md` (RFC process), the CVA/RCVA/ZK research spike, and the status of every feature.
+
+### Changed
+- **License:** Apache-2.0 for 4.0.0 and later. 3.1.0–3.1.1 were published under BUSL-1.1 and keep those terms.
+- `verifyBundle` returns `entries` (envelopes ordered by time) in place of `timeline`. Cross-system correlation is a commercial feature. Bundles carry decision records as generic `DecisionRecord`s, bound by digest exactly as before.
+- `CoolClient` keeps the `evidence`, `trust` and `connectors` namespaces. `policyMode`, `enforcement` and the module namespaces moved to the commercial platform.
+- `NitroReceiptSealer.acceptEpoch()` takes a structural `EpochAssignment`.
+
+### Removed (moved to the commercial CooL platform)
+- `cool-nwc/platform`:
+  - the policy *lifecycle* (`PolicyRegistry`, `overrideDecision`). Evaluation stays public, see Added
+  - `EnforcementCoordinator`, `LocalDirectoryTarget`, `LocalDenylistTarget`
+  - correlation (`correlate`, `buildTimeline`)
+  - the supply-chain, identity, change-control, runtime-guard and incident modules
+- `cool-nwc/nitro`: `NitroLogServer`, `EpochLog`, `verifyEpochRegistration`.
+- `cool-nwc/phala`: the observing `Witness` service class. Co-signing and witness verification (`cosign`, `attachWitness`, `countWitnesses`) stay.
+- CLI: `cool decide`, `cool gate-demo`.
+- `examples/supply-chain-gate`; the validation evidence-plane and witness service deployment files. The verification scripts and `artifacts/` stay.
+- Internal documents: IP reports, ADRs, status reports, research and pricing notes.
+
+### Migration
+- If you used the removed APIs, pin `cool-nwc@3.1.1` (BUSL-1.1) or contact Northwind Cipher about the commercial platform.
+- The evidence formats are unchanged. Receipts, envelopes and bundles produced by 3.x verify with 4.0.0.
+
 ## [3.1.1] — 2026-11-01
 
 The first npm release of the 3.1 line. The code is identical to 3.1.0. That version was tagged but never reached npm, because the release workflow's npm was too old for trusted publishing.

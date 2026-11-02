@@ -59,7 +59,17 @@ these packages into this repository (npm installs them). Container images or bun
 
 | Files | Origin | License | Handling |
 |---|---|---|---|
-| `src/canonical.ts`, `src/codec.ts`, `src/hash.ts`, `src/keys.ts`, `src/log-memory.ts`, `src/merkle.ts`, `src/multihash.ts`, `src/sign.ts` | `cool-sdk` (github.com/KenidoesCode/cool-sdk) | Apache-2.0 (per the header of `src/codec.ts`) | No Northwind header added; original license retained (`LICENSES/Apache-2.0.txt`). `src/codec.ts` documents its one modification. See docs/IP-OWNERSHIP.md. |
+| `src/canonical.ts`, `src/codec.ts`, `src/hash.ts`, `src/keys.ts`, `src/log-memory.ts`, `src/merkle.ts`, `src/multihash.ts`, `src/sign.ts` | `cool-sdk` (github.com/KenidoesCode/cool-sdk) | Apache-2.0 (per the header of `src/codec.ts`) | No Northwind header added; original license retained (`LICENSES/Apache-2.0.txt`). `src/codec.ts` documents its one modification. |
+
+## Test fixtures and pinned public certificates
+
+| Files | Origin | License / terms | Handling |
+|---|---|---|---|
+| `tests/fixtures/snp-milan-virtee.json` (an SEV-SNP report and VCEK certificates) | virtee/sev `tests/certs_data/` (github.com/virtee/sev) | Apache-2.0 | Unmodified bytes, re-encoded as hex/base64; source recorded in the file |
+| `src/snp/roots.ts` (AMD ARK/ASK/ASVK certificates) | AMD Key Distribution Service (kdsintf.amd.com) | Public certificates published by AMD | Fingerprints pinned and re-checked at load |
+| `src/nvidia/anchors.ts`, `tests/fixtures/nras-jwks-2026-11-02.json` | NVIDIA NRAS JWKS (nras.attestation.nvidia.com) | Public certificates and keys published by NVIDIA | Snapshot; fingerprints pinned |
+| `tests/fixtures/rfc3161-digicert.json` | DigiCert public TSA reply and DigiCert Trusted Root G4 (cacerts.digicert.com) | Public certificates; the timestamp token is third-party data | Unmodified bytes |
+| `examples/nitro-enclave/nsm-helper` dependency `aws-nitro-enclaves-nsm-api` | crates.io | Apache-2.0 | Built only in the enclave image; not part of the npm package |
 
 ## Tools and services referenced but not vendored or declared
 

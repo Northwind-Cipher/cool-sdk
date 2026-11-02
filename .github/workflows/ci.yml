@@ -67,5 +67,48 @@ jobs:
         run: cd examples/verification && npm install --no-audit --no-fund && node index.mjs
       - name: agent
         run: cd examples/agent && npm install --no-audit --no-fund && node index.mjs
-      - name: supply-chain-gate
-        run: cd examples/supply-chain-gate && npm install --no-audit --no-fund && node index.mjs
+
+  redis:
+    name: shared replay store (real Redis)
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 2s --health-timeout 2s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: RedisNonceStore against a real server (two connections racing)
+        run: node --import tsx --test tests/replay-shared.test.ts
+        env:
+          COOL_TEST_REDIS_URL: redis://127.0.0.1:6379
+
+  nitro-image:
+    name: nitro enclave image (NSM helper compiles)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci && npm run build
+      - name: Pack this commit into the enclave build context
+        run: npm pack --pack-destination examples/nitro-enclave && mv examples/nitro-enclave/cool-nwc-*.tgz examples/nitro-enclave/cool-nwc.tgz
+      - name: docker build (compiles cool-nsm-helper against aws-nitro-enclaves-nsm-api)
+        run: docker build -t cool-enclave:ci examples/nitro-enclave
+      - name: Outside an enclave the helper fails loudly, never with a document
+        run: |
+          set +e
+          out=$(echo '{"nonce":null,"user_data":null,"public_key":null}' | docker run --rm -i --entrypoint /app/cool-nsm-helper cool-enclave:ci 2>&1)
+          code=$?
+          echo "$out"
+          test $code -ne 0 && echo "$out" | grep -q "/dev/nsm"
+      - name: The enclave server module loads from the packed SDK
+        run: docker run --rm --entrypoint node cool-enclave:ci -e "import('cool-nwc/nitro').then(m => { if (typeof m.serveEnclave !== 'function') process.exit(1); console.log('ok') })"
