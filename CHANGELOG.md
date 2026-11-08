@@ -7,6 +7,9 @@ independently (`cool.evidence.v1`, `cool.receipt.v2`).
 
 ## [Unreleased]
 
+### Fixed
+- **Metadata disclosure.** `disclose(receipt, "metadata", …)` always threw and `verifyDisclosure` always failed for metadata. Metadata is committed as the canonical CBOR of the caller's object, but disclosure hashed the value as UTF-8 text. A metadata disclosure now carries the object as JSON text, which is re-encoded with `canonicalCbor` before hashing.
+
 ## [4.0.0] — 2026-11-01
 
 **CooL's open core, under Apache-2.0.** This package now contains everything needed to adopt CooL and to verify its evidence independently. The operational, enterprise layer moves to the separately licensed commercial CooL platform. See `docs/open-core.md`.
