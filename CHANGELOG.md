@@ -7,6 +7,9 @@ independently (`cool.evidence.v1`, `cool.receipt.v2`).
 
 ## [Unreleased]
 
+### Fixed
+- **Docs.** `CONTRIBUTING.md` and `docs/THIRD_PARTY_LICENSES.md` still described the project as BUSL-1.1 and gave a BUSL source header; both now say Apache-2.0, matching `LICENSE` and the 4.0.0 source headers. Fixed a dead link (`README.md#api`) in `docs/getting-started.md`.
+
 ## [4.0.0] — 2026-11-01
 
 **CooL's open core, under Apache-2.0.** This package now contains everything needed to adopt CooL and to verify its evidence independently. The operational, enterprise layer moves to the separately licensed commercial CooL platform. See `docs/open-core.md`.
