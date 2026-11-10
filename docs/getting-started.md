@@ -73,7 +73,7 @@ process.on("SIGTERM", async () => {
 
 ## Next
 
-- [configuration and the `CooL` options](../README.md#api)
+- [configuration and the `CooL` options](../src/client.ts) (documented inline on `CooLOptions`)
 - [the evidence record, field by field](evidence-format.md)
 - [what the verifier checks](verification.md)
 - [running inside Phala dstack](dstack.md)

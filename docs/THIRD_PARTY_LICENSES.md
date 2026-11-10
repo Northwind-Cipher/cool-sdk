@@ -1,9 +1,9 @@
 # Third-party licenses
 
 Generated from `package-lock.json` and the installed packages on 2026-09-24. This file is an inventory, not legal advice. The code that Northwind Cipher owns is licensed
-under the Business Source License 1.1 (see `LICENSE`); the components below keep their own licenses and copyright notices, and none of them is relicensed by this repository.
+under the Apache License 2.0 (see `LICENSE`); the components below keep their own licenses and copyright notices, and none of them is relicensed by this repository.
 
-Result of the license audit: every package in the lockfile (37 entries: 5 runtime, 32 development) declares MIT or Apache-2.0. No copyleft (GPL/AGPL/LGPL/MPL), unknown or missing licenses were found. Both licenses are permissive and compatible with distributing CooL under the Business Source License 1.1.
+Result of the license audit: every package in the lockfile (37 entries: 5 runtime, 32 development) declares MIT or Apache-2.0. No copyleft (GPL/AGPL/LGPL/MPL), unknown or missing licenses were found. Both licenses are permissive and compatible with distributing CooL under the Apache License 2.0.
 
 Attribution: MIT and Apache-2.0 require the copyright notice and license text to accompany copies or substantial portions of the software. CooL does not copy
 these packages into this repository (npm installs them). Container images or bundles that include `node_modules` must keep each package's license file.
@@ -78,4 +78,3 @@ these packages into this repository (npm installs them). Container images or bun
 | `@phala/dcap-qvl` | Apache-2.0 | Optional; installed with `npm i --no-save` for the local DCAP check in `phala-validation/`. Not a declared dependency |
 | Docker base image `node:22-slim` | Node.js (MIT) and Debian packages under their own licenses | Base of the validation images |
 | Phala Cloud attestation API, OpenTimestamps calendars | Third-party services under their own terms | Online verification and anchoring; responses archived under `artifacts/` are third-party data |
-| Business Source License 1.1 text | (c) 2024 MariaDB plc; "Business Source License" is a trademark of MariaDB plc | Used as the license text permits |
