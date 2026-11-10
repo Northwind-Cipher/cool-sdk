@@ -523,6 +523,7 @@ Built on a small set of well-known, dependency-light libraries: [`@noble/curves`
 
 | | |
 |---|---|
+| 📄 [Whitepaper (PDF)](docs/whitepaper/cool-whitepaper.pdf) | CooL: A Verifiable Evidence System for Consequential Actions: the design in nine pages |
 | 🚦 [Showcase](docs/showcase.md) | Every capability in one self-checking run |
 | 🤖 [Authorization](docs/authorization.md) · [Demo scenarios A–H](docs/demo-scenarios.md) | Principals, delegation, decisions, the gateway |
 | 🎯 [Capabilities](docs/capabilities.md) · [Guarantees](docs/guarantees.md) · [Status by chapter](docs/milestones-status.md) | Every capability with one label and its evidence; each claim, its test and its limit |
