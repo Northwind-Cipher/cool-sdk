@@ -26,6 +26,7 @@
  *     record, but it does permanently open that one.
  */
 import type { HexField, Multihash } from "../types";
+import { canonicalCbor } from "../canonical";
 import { saltedCommit } from "../hash";
 import type { ReceiptV2 } from "./types";
 
@@ -44,6 +45,7 @@ export interface Disclosure {
   readonly record_id: string;
   readonly binding_hash: Multihash;
   readonly field: DisclosableField;
+  /** The plaintext. For `metadata`, the JSON text of the metadata object. */
   readonly value: string;
   readonly salt: HexField;
   /** The commitment as it appears in the receipt, copied for convenience. */
@@ -89,6 +91,24 @@ function fieldOf(
 }
 
 /**
+ * The bytes a field was committed over.
+ *
+ * Text fields are committed as UTF-8. Metadata is committed as the canonical
+ * CBOR of the caller's object (see the engine), so a metadata disclosure carries
+ * that object as JSON text and is re-encoded here. Key order and whitespace in
+ * the JSON do not matter; the values do. Returns null for metadata that is not
+ * JSON, so the verifier can return a failed verdict instead of throwing.
+ */
+function committedBytes(field: DisclosableField, value: string): string | Uint8Array | null {
+  if (field !== "metadata") return value;
+  try {
+    return canonicalCbor(JSON.parse(value));
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Build a disclosure for one field.
  *
  * Refuses to produce one whose commitment does not match the value handed in —
@@ -104,7 +124,11 @@ export function disclose(
   if (!found) {
     throw new Error(`this record has no '${field}' field to disclose`);
   }
-  const recomputed = saltedCommit(found.salt, value);
+  const bytes = committedBytes(field, value);
+  if (bytes === null) {
+    throw new Error("metadata is disclosed as the JSON text of the metadata object, and this value is not valid JSON");
+  }
+  const recomputed = saltedCommit(found.salt, bytes);
   if (recomputed !== found.commitment) {
     throw new Error(
       `the value supplied does not match the sealed commitment for '${field}' — ` +
@@ -153,7 +177,11 @@ export function verifyDisclosure(
   if (found.salt !== disclosure.salt) {
     return { ok: false, field: disclosure.field, detail: "salt does not match the receipt" };
   }
-  const recomputed = saltedCommit(disclosure.salt, disclosure.value);
+  const bytes = committedBytes(disclosure.field, disclosure.value);
+  if (bytes === null) {
+    return { ok: false, field: disclosure.field, detail: "metadata value is not valid JSON" };
+  }
+  const recomputed = saltedCommit(disclosure.salt, bytes);
   if (recomputed !== found.commitment) {
     return {
       ok: false,

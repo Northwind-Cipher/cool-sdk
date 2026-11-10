@@ -206,6 +206,29 @@ test("disclosure: a disclosure for one record does not open another", async () =
   await cool.close();
 });
 
+test("disclosure: metadata opens with its JSON, and wrong metadata cannot", async () => {
+  const cool = await plane();
+  const metadata = { model: "m@1", customer: "ACME-42" };
+  const receipt = await cool.record({ type: "model.execution", metadata });
+  assert.ok(disclosableFields(receipt).includes("metadata"));
+
+  // Committed as canonical CBOR, so key order in the JSON does not matter.
+  const disclosure = disclose(receipt, "metadata", JSON.stringify({ customer: "ACME-42", model: "m@1" }));
+  assert.equal(verifyDisclosure(receipt, disclosure).ok, true);
+
+  const wrong = JSON.stringify({ ...metadata, customer: "ACME-43" });
+  assert.throws(() => disclose(receipt, "metadata", wrong), /does not match/);
+  assert.throws(() => disclose(receipt, "metadata", "model=m@1"), /not valid JSON/);
+
+  assert.equal(verifyDisclosure(receipt, { ...disclosure, value: wrong }).ok, false);
+  // Malformed input gets a failed verdict, never a throw.
+  assert.equal(verifyDisclosure(receipt, { ...disclosure, value: "{" }).ok, false);
+
+  // The receipt itself still contains no plaintext metadata.
+  assert.ok(!JSON.stringify(receipt).includes("ACME-42"));
+  await cool.close();
+});
+
 /* ── witnesses ────────────────────────────────────────────────────────── */
 
 test("witnesses: an independent co-signature makes the domain pass", async () => {
