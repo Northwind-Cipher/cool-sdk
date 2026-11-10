@@ -325,7 +325,7 @@ export interface SimulatedDstackOptions {
 }
 
 function reg(tag: string, ...parts: string[]): HexField {
-  return toHexField(sha384(utf8([tag, ...parts].join(" ")))) as HexField;
+  return toHexField(sha384(utf8([tag, ...parts].join("\u0000")))) as HexField;
 }
 
 /**
@@ -347,15 +347,15 @@ export class SimulatedDstackClient implements DstackClient {
   constructor(options: SimulatedDstackOptions) {
     this.options = options;
     this.clock = options.clock ?? (() => new Date().toISOString());
-    this.appId = toHexField(sha256(utf8(`dstack/app-id ${options.appName}`)))
+    this.appId = toHexField(sha256(utf8(`dstack/app-id\u0000${options.appName}`)))
       .slice("hex:".length, "hex:".length + 40);
     this.instanceId =
       options.instanceId ??
-      toHexField(sha256(utf8(`dstack/instance ${options.imageDigest}`))).slice(
+      toHexField(sha256(utf8(`dstack/instance\u0000${options.imageDigest}`))).slice(
         "hex:".length,
         "hex:".length + 32,
       );
-    const rootSeed = sha256(utf8(`cool/sim-attestation-root ${options.rootSeed ?? "cool"}`));
+    const rootSeed = sha256(utf8(`cool/sim-attestation-root\u0000${options.rootSeed ?? "cool"}`));
     this.rootKey = generateKeypair(SIM_ROOT_KEY_ID, { seed: rootSeed });
   }
 
@@ -434,7 +434,7 @@ export class SimulatedDstackClient implements DstackClient {
           m.rtmr3,
           this.appId,
           path,
-        ].join(" "),
+        ].join("\u0000"),
       ),
     );
   }
