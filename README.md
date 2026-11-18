@@ -6,202 +6,360 @@
 
 <h3>The flight recorder for AI.</h3>
 
-**Every prompt change, model swap and AI decision becomes a signed, tamper-evident receipt<br/>that anyone can verify offline: no account, no network, no trust in us.**
+**Every prompt change, model swap and agent action becomes a signed, tamper-evident receipt<br/>that anyone can verify offline: no account, no network, no trust in us.**
 
 <br/>
 
 [![npm](https://img.shields.io/npm/v/cool-nwc?style=for-the-badge&labelColor=0b0f14&color=7ee2a8&label=npm)](https://www.npmjs.com/package/cool-nwc)
 [![CI](https://img.shields.io/github/actions/workflow/status/Northwind-Cipher/cool-sdk/ci.yml?branch=main&style=for-the-badge&labelColor=0b0f14&label=CI)](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml)
-[![Post-quantum](https://img.shields.io/badge/signatures-ML--DSA--65%20%2B%20Ed25519-7ee2a8?style=for-the-badge&labelColor=0b0f14)](#standards--primitives)
-[![Intel TDX](https://img.shields.io/badge/verified%20on-Intel%20TDX-7ee2a8?style=for-the-badge&labelColor=0b0f14)](#-proven-on-real-silicon)
+[![Post-quantum](https://img.shields.io/badge/signatures-ML--DSA--65%20%2B%20Ed25519-7ee2a8?style=for-the-badge&labelColor=0b0f14)](#-standards-and-primitives)
+[![MCP](https://img.shields.io/badge/MCP-Claude%20%C2%B7%20Codex%20%C2%B7%20Cursor%20%C2%B7%20Gemini-7ee2a8?style=for-the-badge&labelColor=0b0f14)](#1-ai-coding-tools-mcp)
 
 [![Node](https://img.shields.io/badge/node-%E2%89%A5%2020-8b949e?style=flat-square&labelColor=0b0f14)](https://nodejs.org)
-[![Tests](https://img.shields.io/badge/tests-246%20passing-8b949e?style=flat-square&labelColor=0b0f14)](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-248%20core%20%2B%2023%20MCP-8b949e?style=flat-square&labelColor=0b0f14)](https://github.com/Northwind-Cipher/cool-sdk/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-8b949e?style=flat-square&labelColor=0b0f14)](#license)
+[![Whitepaper](https://img.shields.io/badge/whitepaper-PDF-8b949e?style=flat-square&labelColor=0b0f14)](CooL-Whitepaper.pdf)
 
 <br/>
 
-[**Full showcase**](#-everything-in-one-run) &nbsp;·&nbsp;
-[**Quick start**](#-quick-start) &nbsp;·&nbsp;
-[**See it catch a forgery**](#-watch-it-catch-a-forgery) &nbsp;·&nbsp;
-[**Proof on real hardware**](#-proven-on-real-silicon) &nbsp;·&nbsp;
-[**Features**](#-what-you-get) &nbsp;·&nbsp;
 [**How it works**](#-how-it-works) &nbsp;·&nbsp;
+[**Works with**](#-works-with) &nbsp;·&nbsp;
+[**Quick start**](#-quick-start) &nbsp;·&nbsp;
+[**See it catch a forgery**](#-see-it-catch-a-forgery) &nbsp;·&nbsp;
+[**Proof on hardware**](#-proven-on-real-silicon) &nbsp;·&nbsp;
 [**Docs**](#-documentation)
 
 </div>
 
 <br/>
 
-```bash
-npm install -g cool-nwc
+## 🧭 Why CooL
 
-cool seal prompt billing/refund-agent#system "Approve refunds up to \$500."   # seal a change
-cool verify last                                                              # prove it, offline
-```
+AI systems change constantly: a prompt is edited, a model is swapped, an agent calls a tool that moves money or deletes data. When something goes wrong, the question is always the same: **what actually ran, who changed it, and was the record altered afterwards?** Ordinary logs can't answer the last part, because whoever runs the system can edit them.
+
+CooL turns each of those moments into **cryptographic evidence** that a third party can check without trusting you, us or your cloud.
+
+| 🔏 Tamper-evident | 🙈 Private by default | 🧊 Verifiable by anyone |
+|---|---|---|
+| Every record is signed twice, with **ML-DSA-65** (post-quantum) **and Ed25519**, and appended to an **RFC 6962** Merkle log. Change one byte, drop one record or reorder them, and verification fails. | Inputs, outputs and prompts are stored as **salted or keyed digests**, and the raw content is discarded. You can later reveal a single field and prove that it matches. | A bundle is **self-contained**. An auditor, customer or regulator verifies it **offline** and gets a verdict with a reason for every check, never a single green tick. |
+
+> **CooL records what happened. It does not judge whether it was correct, fair or safe.** That boundary is deliberate.
 
 <br/>
 
-## 🧭 Why CooL
+## ⚙️ How it works
 
-AI systems change constantly: a prompt gets edited, a model gets swapped, a temperature gets nudged. When something goes wrong, the question is always the same: **what was actually running, and who changed it?** Logs can't answer that, because logs can be edited.
+<div align="center">
+  <img src="assets/architecture.svg" alt="CooL architecture: capture from AI agents, apps and the CLI; commit, envelope, hybrid signature and transparency log; anchored by keys, hardware attestation, witnesses and time; exported as a portable bundle and verified offline" width="100%" />
+</div>
 
-CooL turns each of those moments into **cryptographic evidence**:
+<br/>
+
+1. **Capture.** An AI agent (through MCP), your application (through the SDK) or the CLI reports an action.
+2. **Commit.** Sensitive values become salted or keyed digests. The raw content never leaves your system.
+3. **Envelope and sign.** The record is encoded deterministically, numbered, linked to the previous one, and signed with both a post-quantum and a classical key.
+4. **Log and anchor.** It is appended to a Merkle transparency log. Witnesses can co-sign the log head, Bitcoin or a timestamp authority can date it, and on confidential hardware the signing key is bound to the measured code.
+5. **Verify anywhere.** Everything is exported as one portable bundle. Anyone checks it offline and gets **VALID**, **INVALID** or **INDETERMINATE** (six finer outcomes in the core SDK), with a reason for each check.
+
+<details>
+<summary><b>🧬 What is inside one receipt</b></summary>
+
+<br/>
+
+```text
+cool.envelope (one agent action)
+├── payload            agent.execution: tool, target, outcome, duration
+│   ├── actors         agent id · initiator · capture mode (tool | proxy | hook)
+│   └── digests        HMAC-SHA-256 of the input and output, never the content
+├── sequence           epoch · number   (a missing number shows up as a gap)
+├── previous           digest of the previous envelope   (reordering breaks the chain)
+├── signatures         ML-DSA-65 + Ed25519   (both must verify)
+└── checkpoint         Merkle inclusion proof · signed tree head
+```
+
+Schema: [`spec/schemas/cool.agent-receipt.v1.schema.json`](spec/schemas/cool.agent-receipt.v1.schema.json) · format guide: [docs/agent-receipt.md](docs/agent-receipt.md)
+
+</details>
+
+<br/>
+
+## 🤝 Works with
 
 <table>
 <tr>
-<td width="33%" valign="top">
-
-### 🔏 Unforgeable
-Every record is hybrid-signed with **ML-DSA-65** (post-quantum) **and Ed25519**, then appended to an **RFC 6962** Merkle log. Change one byte and verification fails.
-
-</td>
-<td width="33%" valign="top">
-
-### 🙈 Private by default
-Inputs, outputs and prompts are committed as **salted hashes** and the plaintext is discarded. You can later **reveal a single field** and prove that it matches.
-
-</td>
-<td width="33%" valign="top">
-
-### 🧊 Trust nothing
-A receipt is **self-contained**. Anyone can verify it offline, without an account and without trusting CooL, the operator or the cloud. On real hardware it also proves **where** it ran.
-
-</td>
+<td align="center" width="12.5%"><img src="https://cdn.simpleicons.org/claude" height="36" alt="Claude"/><br/><sub><b>Claude Code</b><br/>tested · plugin</sub></td>
+<td align="center" width="12.5%"><img src="https://cdn.simpleicons.org/claude" height="36" alt="Claude"/><br/><sub><b>Claude Desktop</b><br/><code>.mcpb</code> bundle</sub></td>
+<td align="center" width="12.5%"><img src="https://github.com/openai.png?size=72" height="36" alt="OpenAI"/><br/><sub><b>OpenAI Codex</b><br/>CLI config</sub></td>
+<td align="center" width="12.5%"><picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.simpleicons.org/cursor/white"/><img src="https://cdn.simpleicons.org/cursor" height="36" alt="Cursor"/></picture><br/><sub><b>Cursor</b><br/>config</sub></td>
+<td align="center" width="12.5%"><img src="https://cdn.simpleicons.org/googlegemini" height="36" alt="Gemini"/><br/><sub><b>Gemini CLI</b><br/>config</sub></td>
+<td align="center" width="12.5%"><picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.simpleicons.org/githubcopilot/white"/><img src="https://cdn.simpleicons.org/githubcopilot" height="36" alt="GitHub Copilot"/></picture><br/><sub><b>VS Code</b><br/>Copilot agent</sub></td>
+<td align="center" width="12.5%"><picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.simpleicons.org/windsurf/white"/><img src="https://cdn.simpleicons.org/windsurf" height="36" alt="Windsurf"/></picture><br/><sub><b>Windsurf</b><br/>config</sub></td>
+<td align="center" width="12.5%"><picture><source media="(prefers-color-scheme: dark)" srcset="https://cdn.simpleicons.org/modelcontextprotocol/white"/><img src="https://cdn.simpleicons.org/modelcontextprotocol" height="36" alt="Model Context Protocol"/></picture><br/><sub><b>Any MCP client</b><br/>Zed · Cline · Continue</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="https://cdn.simpleicons.org/nvidia" height="36" alt="NVIDIA"/><br/><sub><b>NVIDIA CC</b><br/>NRAS · experimental</sub></td>
+<td align="center"><img src="https://cdn.simpleicons.org/intel" height="36" alt="Intel"/><br/><sub><b>Intel TDX</b><br/>validated on hardware</sub></td>
+<td align="center"><img src="https://github.com/Phala-Network.png?size=72" height="36" alt="Phala"/><br/><sub><b>Phala Cloud</b><br/>dstack · TDX host</sub></td>
+<td align="center"><img src="https://cdn.simpleicons.org/amd" height="36" alt="AMD"/><br/><sub><b>AMD SEV-SNP</b><br/>implemented</sub></td>
+<td align="center"><img src="https://github.com/aws.png?size=72" height="36" alt="AWS"/><br/><sub><b>AWS Nitro</b><br/>attestation · KMS*</sub></td>
+<td align="center"><img src="https://cdn.simpleicons.org/googlecloud" height="36" alt="Google Cloud"/><br/><sub><b>Google Cloud</b><br/>KMS*</sub></td>
+<td align="center"><img src="https://cdn.simpleicons.org/bitcoin" height="36" alt="Bitcoin"/><br/><sub><b>Bitcoin</b><br/>OpenTimestamps</sub></td>
+<td align="center"><img src="https://cdn.simpleicons.org/opentelemetry" height="36" alt="OpenTelemetry"/><br/><sub><b>SIEM</b><br/>Splunk · Elastic · Datadog</sub></td>
 </tr>
 </table>
 
-> **CooL records what happened. It does not judge whether it was correct, fair or safe.** That is a deliberate boundary, not a missing feature.
+**Easy to add next** (no built-in integration yet; they can call the SDK directly or sit behind the MCP proxy): <img src="https://cdn.simpleicons.org/langchain/1C3C3C" height="16" alt=""/> LangChain · <img src="https://cdn.simpleicons.org/huggingface" height="16" alt=""/> Hugging Face · <img src="https://cdn.simpleicons.org/ollama/808080" height="16" alt=""/> Ollama · <img src="https://cdn.simpleicons.org/mistralai" height="16" alt=""/> Mistral AI · <img src="https://cdn.simpleicons.org/jetbrains/808080" height="16" alt=""/> JetBrains AI
+
+<sub>**Tested** means we ran it in that product; **config** means a standard MCP configuration we document but have not yet run there; \* means experimental (built and tested, not yet validated on the real service). Exact labels for every capability: [docs/capabilities.md](docs/capabilities.md). Logos and product names belong to their owners and show compatibility only, not endorsement or partnership.</sub>
 
 <br/>
 
-## 🎬 Watch it catch a forgery
+## 🚀 Quick start
 
-This is real output from the `cool` CLI (trimmed to fit). First, an honest receipt:
+Requires **Node.js 20+**. Pick the path that fits you.
+
+### 1. AI coding tools (MCP)
+
+CooL ships as an MCP server, so any AI tool that speaks the Model Context Protocol can leave signed receipts of what it did. The agent gets four tools:
+
+| Tool | What it does |
+|---|---|
+| `cool_record_change` | Record one action as a signed receipt. Input and output are hashed, never stored |
+| `cool_seal_log` | Seal all receipts into a bundle; returns the path and the **fingerprint** |
+| `cool_verify_receipt` | Verify a bundle: **VALID / INVALID / INDETERMINATE**, with a reason per check |
+| `cool_status` | Receipt count, last receipt, any problem in the log |
+
+There are **three ways to capture**. *Tool* mode records what the agent chooses to record. *Proxy* mode wraps another MCP server and records **every** call to it automatically, which is the strongest mode. *Hook* mode (Claude Code plugin) records edits to prompt, agent and policy files.
+
+CooL writes only inside the project folder you name (`<project>/.cool/`). Replace `/path/to/project` below with an absolute path.
+
+<details open>
+<summary><b><img src="https://cdn.simpleicons.org/claude" height="14" alt=""/> Claude Code</b>: one command, or the plugin</summary>
+
+<br/>
+
+```bash
+cd /path/to/project
+claude mcp add cool -- npx -y @northwindcipher/mcp-server-cool --workspace "$PWD"
+```
+
+Or install the **plugin**, which adds the server, the automatic hook and the `/cool-audit` command:
+
+```
+/plugin install cool --marketplace Northwind-Cipher/cool-sdk
+```
+
+On older Claude Code versions: `/plugin marketplace add Northwind-Cipher/cool-sdk`, then `/plugin install cool@northwindcipher`.
+
+</details>
+
+<details>
+<summary><b><img src="https://cdn.simpleicons.org/claude" height="14" alt=""/> Claude Desktop</b>: install the <code>.mcpb</code> or edit the config</summary>
+
+<br/>
+
+Install `cool-0.1.0.mcpb` (Settings → Extensions → install from file; it asks for your project folder), or add this to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "cool": { "command": "npx", "args": ["-y", "@northwindcipher/mcp-server-cool", "--workspace", "/path/to/project"] }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b><img src="https://github.com/openai.png?size=28" height="14" alt=""/> OpenAI Codex CLI</b>: <code>~/.codex/config.toml</code></summary>
+
+<br/>
+
+```toml
+[mcp_servers.cool]
+command = "npx"
+args = ["-y", "@northwindcipher/mcp-server-cool", "--workspace", "/path/to/project"]
+```
+
+</details>
+
+<details>
+<summary><b>Cursor · Windsurf · Gemini CLI</b>: the same <code>mcpServers</code> block</summary>
+
+<br/>
+
+Put this in `.cursor/mcp.json` (Cursor), `~/.codeium/windsurf/mcp_config.json` (Windsurf) or `.gemini/settings.json` (Gemini CLI):
+
+```json
+{
+  "mcpServers": {
+    "cool": { "command": "npx", "args": ["-y", "@northwindcipher/mcp-server-cool", "--workspace", "/path/to/project"] }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>VS Code (GitHub Copilot agent mode)</b>: <code>.vscode/mcp.json</code></summary>
+
+<br/>
+
+```json
+{
+  "servers": {
+    "cool": { "type": "stdio", "command": "npx", "args": ["-y", "@northwindcipher/mcp-server-cool", "--workspace", "${workspaceFolder}"] }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>Proxy mode</b>: record every call to another MCP server</summary>
+
+<br/>
+
+Put CooL's proxy in front of the other server's command. The agent sees exactly the same tools, and every call becomes a receipt:
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@northwindcipher/mcp-server-cool", "proxy", "--workspace", "/path/to/project", "--name", "github", "--",
+               "npx", "-y", "@modelcontextprotocol/server-github"]
+    }
+  }
+}
+```
+
+</details>
+
+Then seal and verify, from the agent or the terminal:
+
+```bash
+npx -y @northwindcipher/mcp-server-cool seal   --workspace /path/to/project      # → bundle + fingerprint
+npx -y @northwindcipher/mcp-server-cool verify .cool/bundles/<time> --fingerprint sha256:…
+```
+
+**Send the fingerprint separately from the bundle** (a call, a signed email, your website). A bundle cannot vouch for its own keys, so without the fingerprint the best result is INDETERMINATE.
+
+> **Status:** experimental, version 0.1.0. Until `@northwindcipher/mcp-server-cool` is published on npm, [build it from source](docs/mcp.md#build-from-source). It proves the recorded history was not altered, pruned, reordered or replayed; it cannot prove that every action went through CooL. Full guide for every client, SIEM export and benchmarks: [docs/mcp.md](docs/mcp.md) · scope: [mcp/MVP_SCOPE.md](mcp/MVP_SCOPE.md).
+
+### 2. Your own application (SDK)
+
+```bash
+npm install cool-nwc
+```
+
+```ts
+import { CooL, verifyEvidence } from "cool-nwc";
+
+const cool = new CooL({ applicationId: "my-app" });
+try {
+  const { evidence } = await cool.record({
+    type: "model.execution",
+    metadata: { model: "my-model", version: "1.0.0" },
+    payloads: { input: "the request", output: "the response" }, // committed, never stored
+  });
+  console.log((await verifyEvidence(evidence)).ok); // true
+} finally {
+  await cool.close();
+}
+```
+
+Runnable examples: [basic](examples/basic) · [AI agent](examples/agent) · [Express](examples/express) · [standalone verification](examples/verification) · [dstack / TDX](examples/dstack).
+
+### 3. The command line
+
+```bash
+npm install -g cool-nwc
+
+cool walkthrough                       # learn the model hands-on (~3 min)
+cool seal prompt billing/agent#system "Approve refunds up to \$500."
+cool verify last                       # prove it, offline
+cool pack build --out audit.json       # hand an auditor everything
+cool ui                                # watch changes get sealed, live
+```
+
+<details>
+<summary><b>All CLI commands</b></summary>
+
+<br/>
+
+```bash
+cool status                            # enclave, key, channel, log at a glance
+cool doctor                            # what this environment can and cannot prove
+cool seal model credit/underwriting#scorer "deepseek-v4-pro" --approvers a@x,b@x
+cool verify all                        # every record; exit 1 if any fails
+cool verify receipt.json --require-hardware
+cool records --kind prompt --env prod  # search the evidence
+cool disclose last change.after "…"    # reveal one field, with proof
+cool witness cosign --key auditor      # independent co-signature
+cool anchor submit                     # timestamp the head on Bitcoin
+cool compliance --gaps                 # which obligations have no evidence
+cool capabilities                      # every capability and its exact label
+```
+
+`cool help <command>` gives the full manual for any command.
+
+</details>
+
+<br/>
+
+## 🎬 See it catch a forgery
+
+Real output from the `cool` CLI, trimmed. An honest receipt:
 
 ```console
-$ cool seal prompt billing/refund-agent#system "Approve refunds up to \$500."
-  ✓ sealed 01M690BDZ3FQSW64GNHZEBY29P 13ms
-  kind       prompt billing/refund-agent#system
-  binding    mh:sha256:676e67d62f4a331572fe47b61f49cfff3fef667d6cfa182bc3398c1fd1d92187
-  leaf       0 of 1
-  signature  ml-dsa-65+ed25519 cool-enclave-6cbb6e7066
-
 $ cool verify last
     ✓ pass        binding      recomputed from record, matches
     ✓ pass        signature    ML-DSA-65 + Ed25519 valid (key cool-enclave-6cbb6e7066)
     ✓ pass        inclusion    leaf 0 ∈ tree(1); STH signature valid
     · absent      witnesses    0 independent (1 self-signature, not counted)
     ~ simulated   attestation  simulated quote: NOT evidence that any hardware protected the run
-    · absent      anchor       NONE: this head was never submitted to a public chain
   ✓ receipt verifies
 ```
 
-Now someone quietly edits a single field in the receipt (`#system` → `#system-v2`):
+Someone quietly edits one field (`#system` → `#system-v2`):
 
 ```console
 $ cool verify tampered.json
     ✗ fail        binding      FAILED: recomputed mh:sha256:2b11ea16… ≠ stored mh:sha256:676e67d6…
     ✗ fail        signature    FAILED: ML-DSA-65 and Ed25519 do not verify over core‖binding_hash
-    ✓ pass        inclusion    leaf 0 ∈ tree(1); STH signature valid
   ✗ receipt REJECTED
-    binding: recomputed binding_hash does not match the receipt
-    signature: ML-DSA-65 and Ed25519 did not verify (record altered or wrong key)
 ```
 
-Notice the verdict. CooL **never collapses everything into one green tick**. A laptop run reports `simulated`, a missing witness reports `absent`, and neither is ever counted as a pass. Pass `--require-hardware` and anything not backed by real silicon is refused.
+CooL never collapses everything into one green tick. A laptop run says `simulated`, a missing witness says `absent`, and neither counts as a pass. With `--require-hardware`, anything not backed by real silicon is refused.
+
+Want the full tour? `npm run showcase` runs eight self-checking chapters (every ✓ is an assertion, and CI runs it on every push). See [docs/showcase.md](docs/showcase.md).
 
 <br/>
 
-## 🔬 Proven on real silicon
+## 🤖 Control what an agent is allowed to do
 
-CooL is not only tested against fixtures. It was deployed to **two Intel TDX confidential VMs** (Phala Cloud `tdx.small`, on separate physical nodes), and every receipt was then verified **from outside the enclave** by independent scripts.
+Recording is half the story. CooL can also sit **in front of** the tool, so an agent action only runs if it is authorised:
 
-<div align="center">
+**principal → delegation → signed request → replayable policy decision → gateway that owns the tool → signed confirmation**
 
-| | Domain | What was proven on hardware | Result |
-|:-:|---|---|:-:|
-| 🧬 | **Binding** | 8 receipts recomputed with an independent CBOR + `node:crypto` implementation | ✅ VERIFIED |
-| ✍️ | **Signature** | ML-DSA-65 and Ed25519 each checked directly over the exact signed bytes | ✅ VERIFIED |
-| 🌳 | **Inclusion** | Every root rebuilt from all leaves by a second RFC 6962 implementation | ✅ VERIFIED |
-| 🔗 | **Consistency** | **36 / 36** head pairs verify; **28 / 28** forged histories rejected per class | ✅ VERIFIED |
-| 👁️ | **Witness** | Separate CVM with its own sealed, attested key, which refused forged heads and a replaced log | ✅ VERIFIED |
-| 🛡️ | **Attestation** | Raw TDX v4 quotes parsed; `report_data` binds the CooL signing key | ✅ VERIFIED |
-| 🏛️ | **Enclave** | Runtime status observed inside the CVM: `intel-tdx · REAL`; a wrong pin fails closed | ✅ VERIFIED |
-
-</div>
-
-Two cross-cutting tests also passed:
-
-- **Tamper matrix:** 11 single-field forgeries, covering binding hash, metadata, both signatures, root, STH, audit path, witness signature, quote and `report_data`. **Every one was rejected**, each by the domain that should catch it.
-- **Workload change:** redeploying different code changed `RTMR3` and nothing else. The new build was **rejected against the old pin** and accepted against its own.
-
-📂 All raw evidence (receipts, quotes, verifier output and negative controls) is in [`artifacts/`](artifacts). Start with the [**closure verification matrix**](artifacts/closure-verification-matrix.md). <sub>These are records of specific validation runs, not a certification, audit or vendor endorsement.</sub>
-
-<br/>
-
-## 🚦 Everything in one run
-
-```bash
-npm run showcase
-```
-
-Eight chapters covering the whole open evidence core. **The showcase checks itself**: every ✓ is an assertion, a single broken claim exits 1, and CI runs it on every push. Real output, abridged:
-
-```text
-03  One evidence envelope
-    ✓ a published envelope passes every applicable check
-    ✓ a valid signature from an unknown key is NOT trusted — two different questions
-    ✓ a revoked key is rejected without independent proof the signature predates revocation
-
-06  AWS Nitro: a GENUINE AWS attestation document
-    ✓ COSE signature and 4-certificate chain verify to AWS_NitroEnclaves_Root-G1
-    ✓ this enclave ran in debug mode (PCR0–2 zero), so it fails — whatever else passed
-
-07  AWS Nitro: sealing receipts in an enclave (SYNTHETIC test PKI)
-    ✓ sealed receipts cross the host unchanged and verify, attestation included
-    ✓ a receipt the host altered fails verification  — canonical_encoding_valid: core_mismatch
-
-all 24 claims held
-limits: TDX ran on the simulator; Nitro receipts were sealed on a synthetic PKI; no network was used.
-```
-
-| | Chapters |
-|---|---|
-| **AI evidence** | 01 AI change receipts · 02 selective disclosure and witness signatures |
-| **Evidence core** | 03 one evidence envelope · 04 transparency log and witnessed checkpoints · 05 reference capture from git |
-| **Confidential computing** | 06 a genuine AWS Nitro document · 07 sealing receipts in an enclave |
-| **Portable proof** | 08 an auditor re-verifies everything offline |
-
-It leaves `evidence-bundle.json` and `trust.json` behind, so you can check them yourself: `cool bundle verify evidence-bundle.json --trust trust.json`. See [docs/showcase.md](docs/showcase.md).
-
-<br/>
-
-## 🤖 Govern what an agent is allowed to do
-
-```bash
-npm run demo:agent
-```
-
-An AI agent asks to refund a customer. CooL follows that action from start to finish:
-- **who** the agent is, and **who delegated** it authority
-- the **exact request**: parameters committed, never stored in plaintext
-- a **signed, replayable policy decision**
-- a **real enforcement boundary** that owns the tool
-- a **signed confirmation** of what actually happened
-
-Then it attacks the run eight ways. Every ✓ is an assertion:
+`npm run demo:agent` runs an agent refund through that chain, then attacks it eight ways:
 
 | | Scenario | Result |
 |:-:|---|---|
-| **A** | refund 200 within a 500 delegation | `permit` → executed → confirmed; the decision **replays identically** offline |
-| **B** | refund 900 | refused **at the boundary**, even when a misconfigured policy says yes |
+| **A** | refund 200 within a 500 delegation | `permit` → executed → confirmed; the decision replays identically offline |
+| **B** | refund 900 | refused **at the gateway**, even if a misconfigured policy says yes |
 | **C** | the policy changes later | the old decision still verifies against its own policy version |
 | **D** | replay, including 3 simultaneous submissions | exactly one refund |
 | **E** | a substituted workload | `execution_mismatch` → refused |
 | **F** | a tampered receipt | `invalid` |
 | **G** | a dropped event | **`incomplete`**, never "verified" |
 | **H** | a stale attestation | **`stale`** |
+
+<details>
+<summary><b>Show the code</b></summary>
+
+<br/>
 
 ```ts
 import { createAuthorizationRequest, decide, ToolGateway, FileNonceStore } from "cool-nwc/authz";
@@ -220,255 +378,38 @@ const { confirmation } = await gateway.invoke({ tool: "issue_refund", request,
   params: secrets.params, params_salt: secrets.params_salt, decision, delegation: [grant], policy, facts });
 ```
 
-Verification gives one of six outcomes: **`verified`**, **`invalid`**, **`unsupported`**, **`stale`**, **`incomplete`** or **`indeterminate`**. A gap is never reported as success. See [docs/authorization.md](docs/authorization.md) and [docs/demo-scenarios.md](docs/demo-scenarios.md).
+</details>
+
+See [docs/authorization.md](docs/authorization.md) and [docs/demo-scenarios.md](docs/demo-scenarios.md).
 
 <br/>
 
-## 🔌 Use it from your AI tools (MCP)
+## 🔬 Proven on real silicon
 
-```bash
-claude mcp add cool -- npx -y @northwindcipher/mcp-server-cool --workspace "$PWD"
-```
+CooL was deployed to **two Intel TDX confidential VMs** on Phala Cloud (separate physical nodes), and every receipt was verified **from outside the enclave** by independent scripts.
 
-Claude Code, Claude Desktop, Cursor, Windsurf, VS Code, Codex CLI, Gemini CLI and any other MCP client can record what the agent does as **signed, numbered receipts**. Raw inputs and outputs are never stored, only keyed digests. CooL seals the receipts into a bundle that anyone can verify offline: **VALID**, **INVALID** or **INDETERMINATE**, with a reason for every check. The `proxy` mode records **every** call to another MCP server, without the agent having to ask.
+| Domain | What was proven on hardware | Result |
+|---|---|:-:|
+| **Binding** | 8 receipts recomputed with an independent CBOR + `node:crypto` implementation | ✅ |
+| **Signature** | ML-DSA-65 and Ed25519 each checked directly over the exact signed bytes | ✅ |
+| **Inclusion** | Every root rebuilt from all leaves by a second RFC 6962 implementation | ✅ |
+| **Consistency** | 36 / 36 head pairs verify; 28 / 28 forged histories rejected per class | ✅ |
+| **Witness** | A separate CVM with its own sealed key refused forged heads and a replaced log | ✅ |
+| **Attestation** | Raw TDX v4 quotes parsed; `report_data` binds the CooL signing key | ✅ |
+| **Enclave** | Runtime status inside the CVM: `intel-tdx · REAL`; a wrong pin fails closed | ✅ |
 
-Claude Code plugin (the server, a hook for prompt, agent and policy edits, and `/cool-audit`):
-
-```
-/plugin install cool --marketplace Northwind-Cipher/cool-sdk
-```
-
-On older Claude Code: `/plugin marketplace add Northwind-Cipher/cool-sdk`, then `/plugin install cool@northwindcipher`.
-
-It proves the recorded history was not altered, pruned from the middle, reordered or replayed. It does not prove that every action went through CooL. See [docs/mcp.md](docs/mcp.md) (every client), [the receipt format](docs/agent-receipt.md) and [the scope and threat boundary](mcp/MVP_SCOPE.md). *Experimental, 0.1.0.*
+All 11 single-field forgeries in the tamper matrix were rejected, each by the check that should catch it, and redeploying different code was rejected against the old measurement pin. Raw evidence is in [`artifacts/`](artifacts); start with the [closure verification matrix](artifacts/closure-verification-matrix.md). <sub>Records of specific validation runs, not a certification, audit or vendor endorsement.</sub>
 
 <br/>
 
 ## 🧰 What you get
 
-<table>
-<tr>
-<td width="33%" valign="top">
-
-**🔏 Hybrid PQ signatures**<br/>
-<sub>ML-DSA-65 (FIPS 204) + Ed25519 on every record. Both must verify.</sub>
-
-</td>
-<td width="33%" valign="top">
-
-**🌳 Append-only log**<br/>
-<sub>RFC 6962 Merkle tree, signed tree heads, inclusion and consistency proofs. Forks and rollbacks are detected.</sub>
-
-</td>
-<td width="33%" valign="top">
-
-**👁️ Independent witnesses**<br/>
-<sub>A separate observer verifies the log before it co-signs, and refuses forks.</sub>
-
-</td>
-</tr>
-<tr>
-<td valign="top">
-
-**🛡️ Hardware attestation**<br/>
-<sub>Intel TDX quotes via dstack, measurement pinning, and a fail-closed `--require-hardware` mode.</sub>
-
-</td>
-<td valign="top">
-
-**🙈 Selective disclosure**<br/>
-<sub>Reveal one committed field later, with a proof anyone can check: <code>cool disclose</code>.</sub>
-
-</td>
-<td valign="top">
-
-**⛓️ Bitcoin anchoring**<br/>
-<sub>Timestamp the log head on Bitcoin through OpenTimestamps. Free, and no key needed: <code>cool anchor</code>.</sub>
-
-</td>
-</tr>
-<tr>
-<td valign="top">
-
-**📦 Audit packs**<br/>
-<sub>Bundle every record for an auditor and check it in one command: <code>cool pack</code>.</sub>
-
-</td>
-<td valign="top">
-
-**📜 Replayable policy**<br/>
-<sub>Deterministic <code>cool.policy.v1</code> decisions anyone can re-run, plus a sample compliance map.</sub>
-
-</td>
-<td valign="top">
-
-**🖥️ Live console**<br/>
-<sub>Watch a real project's changes get sealed in a browser: <code>cool ui</code>.</sub>
-
-</td>
-</tr>
-<tr>
-<td valign="top">
-
-**🤖 Agent authorization**<br/>
-<sub>Principals, delegation chains without privilege amplification, and committed requests: <code>cool-nwc/authz</code>.</sub>
-
-</td>
-<td valign="top">
-
-**🚧 Enforcement gateway**<br/>
-<sub>Fails closed, consumes nonces atomically, binds execution, and signs what really happened.</sub>
-
-</td>
-<td valign="top">
-
-**🧮 Honest outcomes**<br/>
-<sub><code>incomplete</code>, <code>stale</code> and <code>unsupported</code> are results, never silent passes.</sub>
-
-</td>
-</tr>
-</table>
-
-<br/>
-
-## 🚀 Quick start
-
-Requires **Node.js 20+** (ESM).
-
-```bash
-npm install cool-nwc
-```
-
-```ts
-import { CooL, verifyEvidence } from "cool-nwc";
-
-const cool = new CooL({ applicationId: "my-app" });
-
-try {
-  const { evidence } = await cool.record({
-    type: "model.execution",
-    metadata: { model: "my-model", version: "1.0.0" },
-    payloads: { input: "the request", output: "the response" }, // committed, never stored
-  });
-
-  const verdict = await verifyEvidence(evidence);
-  console.log(verdict.ok); // true
-} finally {
-  await cool.close();
-}
-```
-
-```text
-ok: true
-binding      pass
-signature    pass
-inclusion    pass
-witnesses    absent
-attestation  simulated     ← honest: this ran on a laptop, not in an enclave
-enclave      simulated
-anchor       absent
-plaintext leaked? false
-```
-
-New to the model? Run **`cool walkthrough`**. It teaches the whole thing hands-on in about three minutes.
-
-More runnable integrations live in [`examples/`](examples): [basic](examples/basic), [AI agent](examples/agent), [Express server](examples/express), [standalone verification](examples/verification) and [dstack / TDX](examples/dstack).
-
-<br/>
-
-## ⌨️ The CLI
-
-```bash
-cool walkthrough                       # learn the model by doing it (~3 min)
-cool status                            # enclave, key, channel, log at a glance
-cool doctor                            # what this environment can and cannot prove
-
-cool seal prompt billing/agent#system "Approve refunds up to \$500."
-cool seal model credit/underwriting#scorer "deepseek-v4-pro" --approvers a@x,b@x
-
-cool verify all                        # every record; exit 1 if any fails
-cool verify receipt.json --require-hardware
-
-cool records --kind prompt --env prod  # search the evidence
-cool disclose last change.after "…"    # reveal one field, with proof
-cool witness cosign --key auditor      # independent co-signature
-cool anchor submit                     # timestamp the head on Bitcoin
-cool pack build --out audit.json       # hand an auditor everything
-cool compliance --gaps                 # which obligations have no evidence
-cool ui                                # live browser console
-```
-
-`cool help <command>` gives the full manual for any command, and `cool help attestation` explains the concept behind it.
-
-<br/>
-
-## ⚙️ How it works
-
-```mermaid
-flowchart LR
-    A["🤖 AI event<br/>or change"] --> B["Canonical CBOR<br/>+ salted commitments"]
-    B --> C["Binding hash"]
-    C --> D["Hybrid sign<br/>ML-DSA-65 + Ed25519"]
-    D --> E["RFC 6962 log<br/>signed tree head"]
-    E --> F["Witness<br/>co-signature"]
-    E --> G["Bitcoin anchor<br/>(optional)"]
-    H["🛡️ Intel TDX quote<br/>binds the signing key"] -.-> D
-    D --> R(["📜 Receipt"])
-    F --> R
-    G --> R
-    R --> V{{"Independent verifier<br/>offline · per-domain verdict"}}
-```
-
-1. **Record.** Your app records an event or a change. Sensitive values become salted hashes, and the plaintext is discarded.
-2. **Bind.** The record is serialized deterministically (canonical CBOR) and hashed into a single binding.
-3. **Sign.** The binding is signed twice, once post-quantum and once classical. Inside a TEE, the signing key is sealed to the enclave and bound into the hardware quote.
-4. **Log.** The receipt is appended to an append-only Merkle log. Witnesses co-sign heads, and heads can be anchored to Bitcoin.
-5. **Verify.** Anyone checks each domain separately and gets a structured verdict rather than a single boolean.
-
-<details>
-<summary><b>🧬 Receipt anatomy</b></summary>
-
-<br/>
-
-```text
-cool.receipt.v2
-├── record                    signed cool.evidence.v1 / cool.change.v2
-│   ├── identity              application · software · model
-│   ├── commitments           input · output · before/after (salted hashes)
-│   ├── runtime               TEE vendor · mode · MRTD / RTMR0-3
-│   └── time                  issued_at · sequence
-├── binding_hash              multihash over the canonical record
-├── signature                 ML-DSA-65 + Ed25519
-├── inclusion + sth           Merkle audit path · signed tree head
-├── attestation               TDX quote · report_data ↔ signing key
-├── anchor                    OpenTimestamps / Bitcoin (optional)
-└── key_directory             keys needed to verify offline
-```
-
-</details>
-
-<details>
-<summary><b>🛡️ Running inside a confidential VM</b></summary>
-
-<br/>
-
-In production, CooL runs inside an **Intel TDX** confidential VM through the open-source [dstack](https://github.com/Dstack-TEE/dstack) guest agent. The signing key is derived inside the enclave and bound into the hardware quote, so a receipt proves *which measured code* signed it.
-
-```bash
-# mount the guest agent socket
-/var/run/dstack.sock
-
-# configure fail-closed hardware mode
-QUOTE_VERIFIER_URL=<verifier>
-COOL_EXPECTED_MEASUREMENT=<approved-measurement>
-COOL_REQUIRE_HARDWARE=1
-```
-
-Runtime status is derived from evidence: `REAL`, `UNVERIFIED`, `SIMULATED`, `UNAVAILABLE` or `FAILED`. With `COOL_REQUIRE_HARDWARE=1`, anything other than `REAL` is refused, and CooL never silently downgrades to simulation.
-
-To reproduce the hardware validation end to end (compose files, deployment and external verification), see the [**reproduction guide**](COOL_PHALA_REPRODUCTION.md) and [`examples/dstack`](examples/dstack).
-
-</details>
+| | | |
+|---|---|---|
+| **🔏 Hybrid post-quantum signatures**<br/><sub>ML-DSA-65 (FIPS 204) + Ed25519 on every record; both must verify.</sub> | **🌳 Append-only log**<br/><sub>RFC 6962 Merkle tree, signed heads, inclusion and consistency proofs.</sub> | **👁️ Independent witnesses**<br/><sub>A separate observer checks the log before co-signing and refuses forks.</sub> |
+| **🛡️ Hardware attestation**<br/><sub>Intel TDX via dstack, AMD SEV-SNP, AWS Nitro; fail-closed `--require-hardware`.</sub> | **🙈 Selective disclosure**<br/><sub>Reveal one committed field later, with a proof: <code>cool disclose</code>.</sub> | **⛓️ Bitcoin anchoring**<br/><sub>Timestamp the log head through OpenTimestamps, free: <code>cool anchor</code>.</sub> |
+| **🔌 MCP server, proxy and plugin**<br/><sub>Receipts from Claude, Codex, Cursor, Gemini and any MCP client.</sub> | **🤖 Agent authorization**<br/><sub>Principals, delegation without privilege amplification, a fail-closed gateway.</sub> | **🧮 Honest outcomes**<br/><sub><code>incomplete</code>, <code>stale</code> and <code>unsupported</code> are results, never silent passes.</sub> |
+| **📦 Audit packs**<br/><sub>Everything an auditor needs, checked in one command: <code>cool pack</code>.</sub> | **📜 Replayable policy**<br/><sub>Deterministic decisions anyone can re-run, plus a sample compliance map.</sub> | **📤 SIEM export**<br/><sub>One flat JSON line per receipt for Splunk, Elastic, Datadog or OpenTelemetry.</sub> |
 
 <br/>
 
@@ -478,104 +419,91 @@ To reproduce the hardware validation end to end (compose files, deployment and e
 |---|---|
 | **Which** software, model and version ran | That the output was correct, fair or safe |
 | **What** input and output were committed | That the application supplied truthful data |
-| The record is **unaltered** since signing | That a signer is trustworthy (you pin trusted keys) |
-| It sits in an **append-only** log that was never forked | That a witness is a separate organization |
-| On TDX: **which measured code** held the signing key | GPU or confidential-GPU attestation |
+| The record is **unaltered** since signing | That a signer is trustworthy (you pin the keys you trust) |
+| Nothing was **removed, reordered or replayed** | That every action went through CooL |
+| On TDX: **which measured code** held the signing key | GPU attestation on real confidential-computing GPUs (experimental) |
 
 <details>
-<summary><b>Full trust boundaries & limitations</b></summary>
+<summary><b>Full trust boundaries and limitations</b></summary>
 
 <br/>
 
-- Binding, signature and inclusion can be verified fully offline.
-- Hardware quote verification uses the configured verifier unless local collateral is supplied.
-- CooL records TCB status as `Unknown`; it does not independently evaluate TCB quality or quote freshness.
+- Binding, signature and inclusion are verified fully offline. Hardware quote verification uses the configured verifier unless local collateral is supplied.
+- CooL records TCB status as `Unknown`; it does not independently judge TCB quality or quote freshness.
 - Measurement pins are only as trustworthy as the process that approves them.
-- A witness demonstrates separation of key custody and process, not organizational independence. In the validation run, both CVMs were deployed from the same account.
-- The documented validation used Intel TDX CPU instances on a development OS image. No GPU attestation is claimed.
+- A witness shows separate key custody and process, not organisational independence. In the validation run both CVMs came from the same account.
 - No third-party certification or security audit is claimed. An internal adversarial review is recorded, and the package for an independent one is ready ([docs/security-review/](docs/security-review/)).
 
 </details>
 
 <br/>
 
-## 🧱 Open core, and the CooL platform
+## 🧱 Open core
 
-**Everything here is open source under Apache-2.0**: what you need to adopt CooL and to verify its evidence without trusting us.
+**Everything in this repository is Apache-2.0**: the format, the SDKs, the MCP server and the verifier. You should never need our service to check our evidence.
 
 | Open source (this repository) | Commercial CooL platform |
 |---|---|
 | Evidence format, schemas, test vectors, specifications, threat model | **Evidence Cloud**: managed ingestion, storage, retention, log and witness operations |
-| SDKs and capture: `CooL`, `CoolTee`, `CoolClient`, reference connectors, the Nitro receipt sealer | **Incident Intelligence**: cross-system correlation and incident reconstruction |
-| Local verification: receipts, envelopes, bundles, Nitro attestation, log consistency, witness signatures, disclosure | **Risk Controls**: managed policy lifecycle, approvals, response and containment integrations |
-| Authorization protocol, **replayable policy evaluation**, and the reference enforcement gateway | **Enterprise** (planned): SSO/SCIM, RBAC, multi-tenant control plane, retention |
-| CLI, audit packs, examples, the hardware validation evidence and its verifiers | **Assurance**: enterprise reporting and evidence packages, plus support and service commitments |
+| SDKs, MCP server, proxy, Claude Code plugin, reference connectors | **Incident Intelligence**: cross-system correlation and incident reconstruction |
+| Offline verification of receipts, envelopes, bundles, attestation and logs | **Risk Controls**: managed policy lifecycle, approvals, response integrations |
+| Authorization protocol, replayable policy, reference enforcement gateway | **Enterprise** (planned): SSO/SCIM, RBAC, multi-tenant control plane |
+| CLI, audit packs, examples, hardware validation evidence | **Assurance**: enterprise reporting, evidence packages, support |
 
-Independent verification stays open on purpose: you should never need our service to check our evidence. See [docs/open-core.md](docs/open-core.md) and the [feature matrix](docs/feature-matrix.md) for the exact split.
+Details: [docs/open-core.md](docs/open-core.md) · [feature matrix](docs/feature-matrix.md).
 
 <br/>
 
-## Standards & primitives
+## 📐 Standards and primitives
 
-| | Standard | Role |
-|:-:|---|---|
-| ✍️ | **FIPS 204 · ML-DSA-65** | Post-quantum signatures |
-| ✍️ | **Ed25519** | Classical signatures |
-| #️⃣ | **SHA-256** · multihash | Commitments and hashing |
-| 🔑 | **HMAC-SHA-256** (RFC 2104) | Keyed commitments for low-entropy request parameters |
-| 📐 | **Canonical CBOR** | Deterministic serialization |
-| 🌳 | **RFC 6962** | Merkle transparency log |
-| ⏱️ | **RFC 3161** | Trusted timestamps from a TSA, verified offline against pinned anchors (validated on a genuine DigiCert token) |
-| ⏱️ | **OpenTimestamps** | Bitcoin anchoring of tree heads |
-| 🛡️ | **Intel TDX** · dstack | Confidential execution and attestation |
-| 🛡️ | **AWS Nitro Enclaves** | Attestation verification, **implemented** (`cool-nwc/nitro`); running inside an enclave is **experimental**: the [deployment kit](examples/nitro-enclave/README.md) is ready, not yet run on AWS hardware |
-| 🛡️ | **AMD SEV-SNP** | Report verification to AMD's pinned ARK, TCB and chip binding, **implemented** (`cool-nwc/snp`; validated on a genuine Milan report) |
-| 🛡️ | **NVIDIA CC** · NRAS | Offline verification of NRAS attestation results, **experimental** (`cool-nwc/nvidia`; no real CC GPU result yet) |
-| 🔐 | **AWS KMS · Google Cloud KMS · PKCS#11** | Hybrid signing with provider-held keys, **experimental** (emulator-tested; `npm run validate:kms`) |
+| Standard | Role | Status |
+|---|---|---|
+| **FIPS 204 · ML-DSA-65** + **Ed25519** | Hybrid signatures | implemented |
+| **SHA-256** · **HMAC-SHA-256** (RFC 2104) | Commitments and keyed digests | implemented |
+| **Canonical CBOR** | Deterministic encoding | implemented |
+| **RFC 6962** | Merkle transparency log | implemented |
+| **RFC 3161** | Trusted timestamps, verified offline (genuine DigiCert token) | implemented |
+| **OpenTimestamps** | Bitcoin anchoring of log heads | implemented |
+| **Model Context Protocol** | Server, proxy and Claude Code hook | experimental (0.1.0) |
+| **Intel TDX** · dstack | Confidential execution and attestation (validated on Phala Cloud) | implemented |
+| **AMD SEV-SNP** | Report verification to AMD's pinned roots (genuine Milan report) | implemented |
+| **AWS Nitro Enclaves** | Attestation verification implemented; running inside an enclave is experimental | implemented / experimental |
+| **NVIDIA CC** · NRAS | Offline verification of NRAS results (no real CC GPU result yet) | experimental |
+| **AWS KMS · Google Cloud KMS · PKCS#11** | Signing with provider-held keys (emulator-tested) | experimental |
 
-<sub>Not implemented, despite appearing in earlier descriptions: ML-KEM-1024, X25519 and ChaCha20-Poly1305. Every capability's exact label is in [docs/capabilities.md](docs/capabilities.md), or run `cool capabilities`.</sub>
-
-Built on a small set of well-known, dependency-light libraries: [`@noble/curves`](https://github.com/paulmillr/noble-curves), [`@noble/hashes`](https://github.com/paulmillr/noble-hashes), [`@noble/post-quantum`](https://github.com/paulmillr/noble-post-quantum) and [`cbor2`](https://github.com/hildjj/cbor2).
+<sub>Not implemented, despite appearing in earlier descriptions: ML-KEM-1024, X25519 and ChaCha20-Poly1305. Built on [`@noble/curves`](https://github.com/paulmillr/noble-curves), [`@noble/hashes`](https://github.com/paulmillr/noble-hashes), [`@noble/post-quantum`](https://github.com/paulmillr/noble-post-quantum) and [`cbor2`](https://github.com/hildjj/cbor2).</sub>
 
 <br/>
 
 ## 📚 Documentation
 
-| | |
+| Start here | |
 |---|---|
-| 📄 [Whitepaper (PDF)](CooL-Whitepaper.pdf) · [HTML](docs/whitepaper/cool-whitepaper.html) | CooL: A Verifiable Evidence System for Software and AI Agents: the full design in 15 pages, 16 figures, with calculations, measured performance, regulatory context and status |
-| 🚦 [Showcase](docs/showcase.md) | Every capability in one self-checking run |
-| 🔌 [AI tools / MCP](docs/mcp.md) · [Agent Execution Receipt](docs/agent-receipt.md) · [MVP scope](mcp/MVP_SCOPE.md) · [Demo script](docs/demo-mcp.md) | Claude Code, Cursor, Codex, Gemini and more; the receipt format; what is and is not covered |
-| 🤖 [Authorization](docs/authorization.md) · [Demo scenarios A–H](docs/demo-scenarios.md) | Principals, delegation, decisions, the gateway |
-| 🎯 [Capabilities](docs/capabilities.md) · [Guarantees](docs/guarantees.md) · [Status by chapter](docs/milestones-status.md) | Every capability with one label and its evidence; each claim, its test and its limit |
-| 🔍 [Security review](docs/security-review/) | Internal review findings and fixes; the package for an independent review |
-| 🗂️ [Event taxonomy](docs/event-taxonomy.md) · [TEE support](docs/tee-support.md) · [Key management](docs/key-management.md) · [Nitro kit](examples/nitro-enclave/README.md) | 51 event families; Nitro / TDX / SNP / NVIDIA; KMS and HSM signers; running in a real enclave |
-| 🚢 [Deployment modes](docs/deployment-modes.md) · [Telemetry & egress](docs/telemetry-and-egress.md) · [Performance](docs/performance.md) | Where CooL runs; no phone-home; benchmarks |
-| 📋 [Compliance mapping](docs/compliance-mapping.md) · [Release criteria](docs/release-criteria.md) · [Governance](GOVERNANCE.md) | Sample control map; SBOM and provenance; the RFC process |
-| 🏁 [Getting started](docs/getting-started.md) | From install to first verified receipt |
-| 🧱 [Open core](docs/open-core.md) · [Evidence core](docs/platform.md) · [Migration to the envelope](docs/migration-platform.md) | What is open, the envelope, trust, transparency, bundles |
-| 🛡️ [Trust models](docs/trust-models.md) · [AWS Nitro](docs/nitro.md) | Phala/TDX and Nitro, claim by claim |
-| ⌨️ [CLI exit codes](docs/cli-exit-codes.md) · [Schemas](spec/schemas/) | Stable contracts for pipelines |
-| 🏗️ [Architecture](docs/architecture.md) | How the pieces fit together |
-| 🧾 [Evidence format](docs/evidence-format.md) | The receipt, byte by byte |
-| ✅ [Verification](docs/verification.md) | Every domain and what it checks |
-| 🛡️ [Attestation](docs/attestation.md) · [dstack](docs/dstack.md) | Hardware evidence and TEE integration |
-| 🧨 [Threat model](docs/threat-model.md) · [Security model](docs/security-model.md) | What CooL defends against, and what it doesn't |
-| 🔧 [Troubleshooting](docs/troubleshooting.md) · [Migration](docs/migration.md) | When things go sideways |
-| 📝 [Changelog](CHANGELOG.md) | Release history |
+| 📄 [**Whitepaper (PDF)**](CooL-Whitepaper.pdf) · [HTML](docs/whitepaper/cool-whitepaper.html) | The full design in 14 pages and 16 figures: protocol, calculations, measured performance, regulation, status |
+| 🏁 [Getting started](docs/getting-started.md) · [Showcase](docs/showcase.md) | From install to first verified receipt; every capability in one run |
+| 🔌 [AI tools / MCP](docs/mcp.md) · [Agent receipt](docs/agent-receipt.md) · [Demo script](docs/demo-mcp.md) | Every client, the receipt format, a five-minute demo |
+
+| Go deeper | |
+|---|---|
+| 🏗️ [Architecture](docs/architecture.md) · [Evidence format](docs/evidence-format.md) · [Evidence core](docs/platform.md) | How the pieces fit, byte by byte |
+| ✅ [Verification](docs/verification.md) · [CLI exit codes](docs/cli-exit-codes.md) · [Schemas](spec/schemas/) | Every check, and stable contracts for pipelines |
+| 🤖 [Authorization](docs/authorization.md) · [Demo scenarios](docs/demo-scenarios.md) | Principals, delegation, decisions, the gateway |
+| 🛡️ [Attestation](docs/attestation.md) · [TEE support](docs/tee-support.md) · [Trust models](docs/trust-models.md) · [Key management](docs/key-management.md) | TDX, SEV-SNP, Nitro, NVIDIA; KMS and HSM signers |
+| 🎯 [Capabilities](docs/capabilities.md) · [Guarantees](docs/guarantees.md) · [Threat model](docs/threat-model.md) | Every claim, its test and its limit |
+| 📋 [Compliance mapping](docs/compliance-mapping.md) · [Deployment modes](docs/deployment-modes.md) · [Performance](docs/performance.md) | Sample control map; where CooL runs; benchmarks |
+| 🔍 [Security review](docs/security-review/) · [Troubleshooting](docs/troubleshooting.md) · [Changelog](CHANGELOG.md) | Findings and fixes; when things go sideways; releases |
 
 <br/>
 
 ## 🛠️ Development
 
 ```bash
-git clone https://github.com/Northwind-Cipher/cool-sdk.git
-cd cool-sdk
+git clone https://github.com/Northwind-Cipher/cool-sdk.git && cd cool-sdk
 npm install
 npm run typecheck && npm run build && npm test
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately through [SECURITY.md](SECURITY.md), not in public issues.
+The MCP server lives in [`mcp/`](mcp) with its own build and tests ([docs/mcp.md#build-from-source](docs/mcp.md#build-from-source)). See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately through [SECURITY.md](SECURITY.md), not in public issues.
 
 <br/>
 
@@ -599,6 +527,6 @@ The names "CooL" and "Northwind Cipher" are not licensed for use as marks.
 
 <a href="https://phala.com/"><img src="https://img.shields.io/badge/powered%20by-Phala-7ee2a8?style=flat-square&labelColor=0b0f14" alt="Powered by Phala" /></a>
 
-<sub>© 2026 Northwind Cipher Pvt. Ltd.</sub>
+<sub>© 2026 Northwind Cipher Pvt. Ltd. · Chennai, India</sub>
 
 </div>
