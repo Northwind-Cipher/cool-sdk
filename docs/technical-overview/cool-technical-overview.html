@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>CooL Technical Overview</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  @page { size: A4; margin: 20mm 18mm 22mm 18mm; }
+  :root {
+    --ink: #17202a; --muted: #5a6573; --rule: #d8dde3; --soft: #f3f5f7;
+    --accent: #0b5cad; --ok: #1d7a46; --bad: #b42318; --warn: #9a6700;
+  }
+  * { box-sizing: border-box; }
+  html { background: #fff; }
+  body { margin: 0 auto; max-width: 820px; padding: 0 16px; color: var(--ink); background: #fff;
+         font: 10.5pt/1.55 "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+  h1, h2, h3 { line-height: 1.25; color: #0d1b2a; }
+  h1 { font-size: 26pt; margin: 0 0 6px; letter-spacing: -0.3px; }
+  h2 { font-size: 15pt; margin: 26px 0 8px; padding-top: 6px; border-top: 2px solid var(--ink); break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 16px 0 4px; break-after: avoid; }
+  p { margin: 6px 0 8px; }
+  ul, ol { margin: 4px 0 8px 0; padding-left: 20px; }
+  li { margin: 2px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  code, .mono { font-family: Consolas, "SFMono-Regular", Menlo, monospace; font-size: 9pt; }
+  pre { background: var(--soft); border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px;
+        font: 8.6pt/1.45 Consolas, Menlo, monospace; white-space: pre-wrap; word-break: break-word; break-inside: avoid; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; font-size: 9.3pt; break-inside: auto; }
+  th, td { text-align: left; vertical-align: top; padding: 5px 7px; border-bottom: 1px solid var(--rule); }
+  th { background: var(--soft); font-weight: 600; border-bottom: 1px solid #b9c1ca; }
+  tr { break-inside: avoid; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  .plain { background: #eef5fc; border-left: 4px solid var(--accent); padding: 8px 12px; margin: 10px 0; break-inside: avoid; }
+  .plain b:first-child { color: var(--accent); }
+  .eng { background: var(--soft); border-left: 4px solid #7a8794; padding: 8px 12px; margin: 10px 0; font-size: 9.6pt; break-inside: avoid; }
+  .eng b:first-child { color: #3d4955; }
+  .limit { background: #fdf6e7; border-left: 4px solid var(--warn); padding: 8px 12px; margin: 10px 0; break-inside: avoid; }
+  .legal { background: #fbeeee; border: 1px solid #e7c3c0; padding: 8px 12px; margin: 10px 0; font-size: 9.6pt; break-inside: avoid; }
+  .tag { display: inline-block; font-size: 8pt; font-weight: 600; padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+  .t-impl { background: #e3f3e9; color: var(--ok); }
+  .t-exp { background: #fff3d6; color: var(--warn); }
+  .t-part { background: #e8eef7; color: #2a4f86; }
+  .t-plan { background: #eceff2; color: #4b5563; }
+  .t-uns { background: #fbe4e2; color: var(--bad); }
+  .v-ok { color: var(--ok); font-weight: 700; } .v-bad { color: var(--bad); font-weight: 700; } .v-ind { color: var(--warn); font-weight: 700; }
+  .cover { min-height: 245mm; display: flex; flex-direction: column; justify-content: space-between; break-after: page; padding-top: 28mm; }
+  .cover .kicker { font-size: 10pt; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  .cover .sub { font-size: 14pt; color: var(--muted); margin: 6px 0 22px; max-width: 600px; }
+  .cover .facts { border-top: 1px solid var(--rule); padding-top: 10px; font-size: 9.5pt; color: var(--muted); }
+  .cover .facts td { border: none; padding: 2px 10px 2px 0; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+  .card { border: 1px solid var(--rule); border-radius: 6px; padding: 8px 12px; break-inside: avoid; }
+  .card h3 { margin-top: 2px; }
+  .toc { columns: 2; column-gap: 28px; font-size: 10pt; padding-left: 18px; }
+  .toc li { break-inside: avoid; }
+  figure { margin: 10px 0 14px; break-inside: avoid; }
+  figcaption { font-size: 8.8pt; color: var(--muted); margin-top: 4px; }
+  svg { width: 100%; height: auto; display: block; }
+  .small { font-size: 8.8pt; color: var(--muted); }
+  .pagebreak { break-before: page; }
+  @media (max-width: 640px) {
+    body { font-size: 11pt; } .summary-grid { grid-template-columns: 1fr; } .toc { columns: 1; }
+    table { display: block; overflow-x: auto; } .cover { min-height: auto; padding-top: 20px; }
+  }
+  @media print { body { max-width: none; padding: 0; } a { color: var(--ink); } }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ COVER ═══════════════════════════ -->
+<section class="cover">
+  <div>
+    <div class="kicker">Technical overview · Version 1.0 · November 2026</div>
+    <h1>CooL: verifiable records of what software and AI agents do</h1>
+    <p class="sub">How CooL turns each consequential action into a signed, numbered receipt that anyone can check, offline and without trusting the company that produced it. What it proves, what it does not, and how to use it.</p>
+    <table style="max-width:560px">
+      <tr><th style="width:38%">If you have…</th><th>Read</th></tr>
+      <tr><td>5 minutes</td><td>§1 Executive summary</td></tr>
+      <tr><td>20 minutes, non-technical</td><td>§1–§5, §9, §12 and §15</td></tr>
+      <tr><td>Legal, risk or compliance role</td><td>§1, §5, §9, §12, §15</td></tr>
+      <tr><td>An engineering or security role</td><td>All, especially §6–§11 and §13</td></tr>
+    </table>
+  </div>
+  <div class="facts">
+    <table>
+      <tr><td><b>Publisher</b></td><td>Northwind Cipher Pvt. Ltd.</td></tr>
+      <tr><td><b>Software covered</b></td><td><code>cool-nwc</code> 4.1.0 (open core, Apache-2.0) · <code>@northwindcipher/mcp-server-cool</code> 0.1.0 (experimental)</td></tr>
+      <tr><td><b>Source</b></td><td>github.com/Northwind-Cipher/cool-sdk</td></tr>
+      <tr><td><b>Status labels</b></td><td>Every capability carries one label, <span class="tag t-impl">implemented</span> <span class="tag t-exp">experimental</span> <span class="tag t-part">partial</span> <span class="tag t-plan">planned</span> <span class="tag t-uns">unsupported</span>, taken from the project's capability registry (§13)</td></tr>
+      <tr><td><b>Numbers</b></td><td>All performance figures are measured, with the machine stated (§11). None are estimates.</td></tr>
+      <tr><td><b>Language</b></td><td>British English. Technical terms are explained in the glossary (§16).</td></tr>
+    </table>
+  </div>
+</section>
+
+<h2 style="border-top:none;margin-top:0">Contents</h2>
+<ol class="toc">
+  <li>Executive summary</li>
+  <li>The problem</li>
+  <li>What CooL is, and is not</li>
+  <li>How it works, in five steps</li>
+  <li>A worked example</li>
+  <li>Architecture</li>
+  <li>The Agent Execution Receipt</li>
+  <li>Verification</li>
+  <li>Threat model and the capture boundary</li>
+  <li>Cryptography and standards</li>
+  <li>Measured performance</li>
+  <li>Regulatory context: UK, Switzerland, Denmark and the EU, India, United States</li>
+  <li>Status of every capability</li>
+  <li>How CooL compares with other approaches</li>
+  <li>Getting started and running a pilot</li>
+  <li>Glossary</li>
+  <li>References</li>
+</ol>
+
+<!-- ═══════════════════════════ 1 ═══════════════════════════ -->
+<h2>1. Executive summary</h2>
+<p>Software, and increasingly AI agents, now take actions that matter: they change code and configuration, deploy systems, move money, and edit the instructions that steer other AI systems. When something goes wrong, or when a regulator, customer or court asks what happened, the usual answer is a log file. A log is written and stored by the same organisation whose conduct is in question. It can be edited, and nobody outside can tell.</p>
+<p><b>CooL makes such records checkable by anyone.</b> Each action becomes a <i>receipt</i>: a small record of what was done, to what, by whom, on whose request and with what result. The receipt is digitally signed and given a sequence number. Receipts are then <i>sealed</i> into a bundle that another party can verify on their own computer, without a network connection and without trusting the producer. The verifier gives one of three answers:</p>
+<table>
+  <tr><th style="width:22%">Answer</th><th>Meaning</th></tr>
+  <tr><td class="v-ok">VALID</td><td>The record has not been altered, nothing was removed from the middle, nothing was reordered or duplicated, and it was signed by the key the verifier was told to expect.</td></tr>
+  <tr><td class="v-bad">INVALID</td><td>Something was checked and found wrong, and the verifier says what.</td></tr>
+  <tr><td class="v-ind">INDETERMINATE</td><td>Nothing wrong was found, but something could not be decided. Usually the verifier was not told independently which key to trust.</td></tr>
+</table>
+<div class="summary-grid">
+  <div class="card"><h3>What CooL proves</h3><ul><li>The recorded history was not changed after the fact.</li><li>Records were not silently removed from the middle, reordered or replayed.</li><li>Who signed them, using post-quantum cryptography.</li></ul></div>
+  <div class="card"><h3>What it does not prove</h3><ul><li>That <i>every</i> action was recorded: only those that passed through CooL.</li><li>That declared identities (which agent, which person) are true.</li><li>That a policy was followed. CooL records it; it does not enforce it, unless its enforcement component is used.</li></ul></div>
+</div>
+<p><b>Where it stands.</b> The open core library is published on npm under Apache-2.0, and its hardware attestation verifiers are validated against genuine evidence from AWS Nitro, Intel TDX and AMD SEV-SNP. The integration for AI tools, released in November 2026, works with any client that supports the Model Context Protocol, including Claude Code, Claude Desktop, Cursor, Windsurf, VS Code, Codex CLI and Gemini CLI. It is labelled <span class="tag t-exp">experimental</span> until it has been run in more clients. No independent security audit has been carried out yet; the review package is ready.</p>
+
+<!-- ═══════════════════════════ 2 ═══════════════════════════ -->
+<h2>2. The problem</h2>
+<p>Three things have changed at the same time.</p>
+<ol>
+  <li><b>Software acts on its own.</b> AI agents write and deploy code, answer customers, approve refunds and call other systems. They act quickly, often, and without a person checking each step.</li>
+  <li><b>Records are asked for more often.</b> Regulators in many countries now expect organisations to keep logs of how automated and AI systems behave (§12). Customers and auditors ask for evidence, not assurances.</li>
+  <li><b>Ordinary logs cannot settle a dispute.</b> A log proves only what its keeper says it proves. An administrator, an attacker, or a well-meaning cleanup script can change or delete entries. Nobody outside the organisation can tell.</li>
+</ol>
+<div class="plain"><b>In plain words.</b> Today, "our logs show the agent did nothing wrong" is a claim you have to take on trust. CooL turns it into something the other side can check for themselves.</div>
+<p>Existing tools address parts of this. Write-once storage stops casual deletion, but the storage owner can still rewrite it, and nobody outside can check. Monitoring tools show behaviour but sign nothing. Blockchains are public, slow and expensive, and they disclose more than most organisations can share. §14 compares the approaches.</p>
+
+<!-- ═══════════════════════════ 3 ═══════════════════════════ -->
+<h2>3. What CooL is, and is not</h2>
+<table>
+  <tr><th style="width:50%">CooL is</th><th>CooL is not</th></tr>
+  <tr><td>A way to make records <b>tamper-evident</b>: any change is detected</td><td>Tamper-<i>proof</i>. Nothing stops someone changing a file; CooL makes the change visible</td></tr>
+  <tr><td>Verifiable <b>offline by anyone</b>, with free, open-source software</td><td>A service you have to trust, or an account you need</td></tr>
+  <tr><td><b>Private by default</b>: inputs and outputs are kept only as keyed fingerprints (digests)</td><td>A store of prompts, customer data or file contents</td></tr>
+  <tr><td>A recorder of what passes through it: MCP tools, the CooL proxy, hooks, the SDK</td><td>A complete record of everything an agent did by any route</td></tr>
+  <tr><td>A carrier of <b>declared</b> facts (which agent, which person, which approval) that it proves were not changed</td><td>A proof that those declarations were true</td></tr>
+  <tr><td>An open standard format with JSON Schemas and test vectors</td><td>A blockchain, a cryptocurrency, or a public ledger</td></tr>
+  <tr><td>Optionally, an enforcement point (<code>ToolGateway</code>) that refuses unauthorised actions</td><td>An enforcement point in the MCP integration. That integration records; it does not block</td></tr>
+</table>
+
+<!-- ═══════════════════════════ 4 ═══════════════════════════ -->
+<h2>4. How it works, in five steps</h2>
+<figure>
+<svg viewBox="0 0 800 170" role="img" aria-label="Five steps: record, sign, number, seal, verify">
+  <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#5a6573"/></marker></defs>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="13" text-anchor="middle">
+    <g><rect x="8" y="30" width="136" height="80" rx="8" fill="#eef5fc" stroke="#0b5cad"/><text x="76" y="62" font-weight="700" fill="#0b5cad">1 · Record</text><text x="76" y="82" font-size="11" fill="#17202a">an action happens</text><text x="76" y="97" font-size="11" fill="#17202a">through CooL</text></g>
+    <g><rect x="166" y="30" width="136" height="80" rx="8" fill="#eef5fc" stroke="#0b5cad"/><text x="234" y="62" font-weight="700" fill="#0b5cad">2 · Sign</text><text x="234" y="82" font-size="11" fill="#17202a">two signatures:</text><text x="234" y="97" font-size="11" fill="#17202a">post-quantum + classic</text></g>
+    <g><rect x="324" y="30" width="136" height="80" rx="8" fill="#eef5fc" stroke="#0b5cad"/><text x="392" y="62" font-weight="700" fill="#0b5cad">3 · Number</text><text x="392" y="82" font-size="11" fill="#17202a">0, 1, 2, …</text><text x="392" y="97" font-size="11" fill="#17202a">a gap shows</text></g>
+    <g><rect x="482" y="30" width="136" height="80" rx="8" fill="#eef5fc" stroke="#0b5cad"/><text x="550" y="62" font-weight="700" fill="#0b5cad">4 · Seal</text><text x="550" y="82" font-size="11" fill="#17202a">Merkle tree + signed</text><text x="550" y="97" font-size="11" fill="#17202a">head → bundle</text></g>
+    <g><rect x="640" y="30" width="152" height="80" rx="8" fill="#e3f3e9" stroke="#1d7a46"/><text x="716" y="62" font-weight="700" fill="#1d7a46">5 · Verify</text><text x="716" y="82" font-size="11" fill="#17202a">anyone, offline</text><text x="716" y="97" font-size="11" fill="#17202a">VALID / INVALID / ?</text></g>
+    <g stroke="#5a6573" stroke-width="1.5" marker-end="url(#ar)"><line x1="144" y1="70" x2="164" y2="70"/><line x1="302" y1="70" x2="322" y2="70"/><line x1="460" y1="70" x2="480" y2="70"/><line x1="618" y1="70" x2="638" y2="70"/></g>
+    <text x="400" y="145" font-size="11" fill="#5a6573">Steps 1–4 happen where the work happens. Step 5 happens wherever the reader is: an auditor, a customer, a regulator, a court.</text>
+  </g>
+</svg>
+<figcaption>Figure 1. The life of a receipt.</figcaption>
+</figure>
+<ol>
+  <li><b>Record.</b> When an agent acts through CooL, CooL writes down what was done (for example "edited CLAUDE.md" or "deployed payments-api"), to what, by which agent, on whose request, under which approval, and the outcome. The actual content (the prompt, the file, the customer data) is <b>not</b> stored. Only a keyed fingerprint of it is.</li>
+  <li><b>Sign.</b> The receipt is signed twice: once with ML-DSA-65, the post-quantum standard published by NIST in 2024, and once with Ed25519, the widely deployed classic algorithm. Both must check out, so the receipt stays secure even if one algorithm is broken in future.</li>
+  <li><b>Number.</b> Receipts are numbered without gaps. If one is later removed from the middle, the gap is visible.</li>
+  <li><b>Seal.</b> Receipts are placed in a <i>Merkle tree</i>, the structure used by Certificate Transparency, which protects the web's security certificates. The tree's summary (its "root") is signed. Each receipt gets a short proof that it is in that tree. Everything is written to a <i>bundle</i>: a folder of plain files.</li>
+  <li><b>Verify.</b> Anyone with the bundle and the producer's <i>fingerprint</i> (a short code obtained separately, for example on a call) runs one command. The answer is VALID, INVALID or INDETERMINATE, with a reason for every check.</li>
+</ol>
+<div class="plain"><b>In plain words.</b> It works like a numbered, signed receipt book whose pages are bound together. You can still tear out a page or write over one, but the reader will see it.</div>
+
+<!-- ═══════════════════════════ 5 ═══════════════════════════ -->
+<h2>5. A worked example</h2>
+<p>A developer uses an AI coding assistant on a payments service. Over an afternoon, the assistant:</p>
+<ul>
+  <li>edits <code>CLAUDE.md</code>, the file of standing instructions for the assistant;</li>
+  <li>opens a pull request through a GitHub tool, which is routed through the CooL proxy;</li>
+  <li>deploys the service under change ticket CHG-2026-0142.</li>
+</ul>
+<p>CooL writes three receipts, numbered 0, 1 and 2. At the end of the day the team lead runs <i>seal</i>. Weeks later an incident review asks: "Did the assistant change its own instructions before the deployment, and was the deployment approved?" The reviewer receives the bundle by email and the fingerprint on a call. One command answers <span class="v-ok">VALID</span>, with the three receipts in order, the instruction change before the deployment, and the ticket reference attached.</p>
+<p>Now suppose someone had quietly changed the deployment's outcome from "failure" to "success" in the bundle, and even updated the file checksum to hide it. The same command answers <span class="v-bad">INVALID</span>: the receipt's signature no longer matches its content. The project's demo does exactly this, live, in under three minutes.</p>
+<div class="limit"><b>What the reviewer still cannot know from CooL alone:</b> whether the assistant also did something that did not pass through CooL, such as a shell command; whether "user:alice" really was Alice; and whether the change ticket was genuinely approved. Each verification result states these limits in writing (§9).</div>
+
+<!-- ═══════════════════════════ 6 ═══════════════════════════ -->
+<h2>6. Architecture</h2>
+<figure>
+<svg viewBox="0 0 800 300" role="img" aria-label="Architecture: AI tools connect to CooL capture, which writes receipts, sealed bundles, verified by the offline verifier">
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="12">
+    <rect x="10" y="10" width="200" height="280" rx="8" fill="#f3f5f7" stroke="#b9c1ca"/>
+    <text x="110" y="32" text-anchor="middle" font-weight="700">AI tools (MCP clients)</text>
+    <text x="110" y="58" text-anchor="middle">Claude Code · Claude Desktop</text>
+    <text x="110" y="78" text-anchor="middle">Cursor · Windsurf · VS Code</text>
+    <text x="110" y="98" text-anchor="middle">Codex CLI · Gemini CLI · …</text>
+    <rect x="30" y="130" width="160" height="60" rx="6" fill="#fff" stroke="#b9c1ca"/>
+    <text x="110" y="155" text-anchor="middle" font-weight="600">Other MCP servers</text>
+    <text x="110" y="173" text-anchor="middle" font-size="11">GitHub, tickets, databases</text>
+    <rect x="30" y="210" width="160" height="60" rx="6" fill="#fff" stroke="#b9c1ca"/>
+    <text x="110" y="235" text-anchor="middle" font-weight="600">Your services (SDK)</text>
+    <text x="110" y="253" text-anchor="middle" font-size="11">payments, deploys, models</text>
+
+    <rect x="260" y="10" width="250" height="280" rx="8" fill="#eef5fc" stroke="#0b5cad"/>
+    <text x="385" y="32" text-anchor="middle" font-weight="700" fill="#0b5cad">CooL capture (where the work happens)</text>
+    <rect x="280" y="48" width="210" height="44" rx="5" fill="#fff" stroke="#0b5cad"/><text x="385" y="68" text-anchor="middle" font-weight="600">MCP server: 4 tools</text><text x="385" y="84" text-anchor="middle" font-size="10.5">record · seal · verify · status</text>
+    <rect x="280" y="100" width="210" height="44" rx="5" fill="#fff" stroke="#0b5cad"/><text x="385" y="120" text-anchor="middle" font-weight="600">Proxy</text><text x="385" y="136" text-anchor="middle" font-size="10.5">records every call to a wrapped server</text>
+    <rect x="280" y="152" width="210" height="44" rx="5" fill="#fff" stroke="#0b5cad"/><text x="385" y="172" text-anchor="middle" font-weight="600">Hook (Claude Code)</text><text x="385" y="188" text-anchor="middle" font-size="10.5">prompt, agent, policy file edits</text>
+    <rect x="280" y="204" width="210" height="44" rx="5" fill="#fff" stroke="#0b5cad"/><text x="385" y="224" text-anchor="middle" font-weight="600">Open core library</text><text x="385" y="240" text-anchor="middle" font-size="10.5">envelopes · signatures · log · bundles</text>
+    <text x="385" y="275" text-anchor="middle" font-size="10.5" fill="#5a6573">project/.cool/ (keys stay here)</text>
+
+    <rect x="560" y="10" width="230" height="130" rx="8" fill="#fff" stroke="#b9c1ca"/>
+    <text x="675" y="32" text-anchor="middle" font-weight="700">Sealed bundle (plain files)</text>
+    <text x="675" y="56" text-anchor="middle" font-size="11">bundle.json: receipts + proofs</text>
+    <text x="675" y="74" text-anchor="middle" font-size="11">trust.json: public keys only</text>
+    <text x="675" y="92" text-anchor="middle" font-size="11">MANIFEST.json: file hashes</text>
+    <text x="675" y="110" text-anchor="middle" font-size="11">VERIFY.txt: instructions</text>
+    <rect x="560" y="160" width="230" height="130" rx="8" fill="#e3f3e9" stroke="#1d7a46"/>
+    <text x="675" y="184" text-anchor="middle" font-weight="700" fill="#1d7a46">Offline verifier (anyone)</text>
+    <text x="675" y="208" text-anchor="middle" font-size="11">+ fingerprint received separately</text>
+    <text x="675" y="232" text-anchor="middle" font-size="12" font-weight="700">VALID · INVALID · INDETERMINATE</text>
+    <text x="675" y="256" text-anchor="middle" font-size="11">a reason for every check</text>
+    <text x="675" y="274" text-anchor="middle" font-size="11">no network, no account</text>
+    <g stroke="#5a6573" stroke-width="1.5" fill="none" marker-end="url(#ar)">
+      <line x1="210" y1="80" x2="278" y2="70"/><line x1="190" y1="160" x2="278" y2="122"/><line x1="190" y1="240" x2="278" y2="226"/>
+      <line x1="510" y1="120" x2="558" y2="80"/><line x1="675" y1="140" x2="675" y2="158"/>
+    </g>
+  </g>
+</svg>
+<figcaption>Figure 2. Components. Everything on the left and in the middle runs on your infrastructure. Nothing is sent to Northwind Cipher.</figcaption>
+</figure>
+<table>
+  <tr><th style="width:26%">Component</th><th>Role</th><th style="width:16%">Licence</th></tr>
+  <tr><td><b>Open core</b> (<code>cool-nwc</code>)</td><td>Evidence envelope, hybrid signatures, transparency log, bundles, verifiers for hardware attestation (Nitro, TDX, SEV-SNP), trust snapshots, the authorisation protocol and <code>ToolGateway</code> enforcement</td><td>Apache-2.0</td></tr>
+  <tr><td><b>MCP integration</b> (<code>mcp-server-cool</code>)</td><td>MCP server, proxy, Claude Code hook and plugin, Claude Desktop extension, offline verifier CLI, SIEM export</td><td>Apache-2.0</td></tr>
+  <tr><td><b>Commercial platform</b></td><td>Operating CooL across an organisation: control plane, policy lifecycle, cross-system correlation, retention, and a planned independent witness service</td><td>Commercial</td></tr>
+</table>
+<p><b>The open-core boundary.</b> Everything needed to <i>produce</i> and to <i>independently verify</i> evidence is open source. A verifier must never depend on a paid product, or the evidence would not be independent. The commercial layer adds operation at scale, not trust.</p>
+<div class="eng"><b>For engineers.</b> Capture writes one signed <code>cool.envelope.v1</code> per line to <code>.cool/mcp/receipts.jsonl</code>, using <code>O_APPEND</code> plus <code>fsync</code> under a cross-process lock file. The lock is PID-aware, so a lock left by a crashed writer is broken. Sealing builds an RFC 6962 tree over envelope leaves, signs one tree head, and attaches an inclusion proof to every envelope. Then <code>exportBundle</code> signs a manifest over the sorted envelope digests. The MCP server uses the official TypeScript MCP SDK over stdio. The proxy is a low-level MCP <code>Server</code> that forwards <code>tools/list</code> and <code>tools/call</code> to a downstream <code>Client</code>.</div>
+
+<!-- ═══════════════════════════ 7 ═══════════════════════════ -->
+<h2>7. The Agent Execution Receipt</h2>
+<p>The receipt format, <code>cool.agent-receipt.v1</code>, is published as a JSON Schema with an example and a sealed test bundle. Its fields:</p>
+<table>
+  <tr><th style="width:28%">Field</th><th>What it says</th><th style="width:20%">Trust level</th></tr>
+  <tr><td><code>event_id</code>, <code>timestamp</code></td><td>A unique identifier, and when the action was recorded</td><td>clock of the recording machine</td></tr>
+  <tr><td><code>agent_id</code></td><td>Which agent acted, e.g. <code>agent:claude-code</code></td><td><b>declared</b></td></tr>
+  <tr><td><code>initiator_id</code></td><td>Who asked for it, or the literal <code>unknown</code></td><td><b>declared</b></td></tr>
+  <tr><td><code>authority_ref</code></td><td>The approval or ticket relied on</td><td><b>declared</b></td></tr>
+  <tr><td><code>policy_version</code></td><td>The policy said to be in force</td><td><b>declared</b>; not enforced</td></tr>
+  <tr><td><code>tool_name</code>, <code>target_resource</code></td><td>What was done, and to what</td><td>recorded</td></tr>
+  <tr><td><code>outcome</code></td><td>success, failure, denied, error or unknown</td><td>recorded</td></tr>
+  <tr><td><code>sequence_number</code></td><td>Its position: epoch.number, without gaps</td><td>signed</td></tr>
+  <tr><td><code>capture</code></td><td>How it was captured: tool, proxy, hook, SDK, command line</td><td>recorded</td></tr>
+  <tr><td><code>payload</code></td><td>Keyed digests of input and output; <code>raw_payload_stored: false</code></td><td>computed</td></tr>
+  <tr><td><code>signer</code></td><td>Key, algorithm (ML-DSA-65 + Ed25519), fingerprint</td><td>cryptographic</td></tr>
+  <tr><td><code>evidence</code></td><td>Digest of the signed envelope behind this view</td><td>cryptographic</td></tr>
+</table>
+<div class="plain"><b>"Declared" matters.</b> If the agent says it acted for Alice, the receipt proves the agent <i>said</i> so at the time, and that nobody changed it since. It does not prove Alice asked. To bind identity strongly, use CooL's authorisation protocol, which has issuer-signed principals and delegation, or connect your identity provider.</div>
+<h3>Privacy by design</h3>
+<p>Prompts, inputs, outputs and file contents never enter a receipt. Each is reduced to an HMAC-SHA-256 digest under a random key that never leaves the workspace. Someone holding a bundle cannot test a guess ("was the input X?") without that key. The workspace owner can later prove that a particular input matched by disclosing it, and the key, to the person who needs to see it. This supports data-minimisation duties under data protection law (§12), but it is not a complete privacy assessment.</p>
+<div class="eng"><b>For engineers.</b> <code>digest = HMAC-SHA-256(commit_key, "cool.mcp.input.v1\0" ‖ canonical_json(value))</code>. Canonical JSON sorts keys and drops whitespace. The envelope is canonical CBOR and is the signed object; the receipt is a derived view carrying <code>evidence.envelope_digest</code>.<br><b>Versioning rule:</b> v1 is frozen. Adding a field creates v2, which v1 verifiers report as <i>unsupported</i>, never as verified. Verifiers keep accepting every older version. Every change ships with a schema, an example and a golden test vector.</div>
+
+<!-- ═══════════════════════════ 8 ═══════════════════════════ -->
+<h2>8. Verification</h2>
+<p>Verification recomputes everything from the bytes. It needs no network and trusts nothing in the bundle that the bundle cannot prove about itself.</p>
+<table>
+  <tr><th style="width:30%">Check</th><th>Question it answers</th><th style="width:22%">If it fails</th></tr>
+  <tr><td>Components present</td><td>Are all files there and readable?</td><td>missing / corrupt component</td></tr>
+  <tr><td>File hashes</td><td>Has any file changed since sealing?</td><td>file hash mismatch</td></tr>
+  <tr><td>Trust source</td><td>Which keys should be trusted, according to someone other than the bundle?</td><td>fingerprint mismatch, or INDETERMINATE</td></tr>
+  <tr><td>Bundle manifest and exporter</td><td>Do the contents match the signed list, and was it exported by the pinned key?</td><td>manifest mismatch; exporter untrusted</td></tr>
+  <tr><td>Receipt signatures and proofs</td><td>Does every receipt's signature verify, and is every receipt in the signed tree?</td><td>envelope failed</td></tr>
+  <tr><td>Sequence</td><td>Are the numbers contiguous?</td><td>sequence gap</td></tr>
+  <tr><td>Duplicates</td><td>Is anything included twice (a replay)?</td><td>duplicate evidence</td></tr>
+  <tr><td>Order</td><td>Does the numbering agree with the order in the tree?</td><td>order mismatch</td></tr>
+  <tr><td>Tree head</td><td>Do all receipts prove membership of the same tree the manifest names?</td><td>tree head mismatch</td></tr>
+</table>
+<h3>Why the fingerprint is sent separately</h3>
+<p>A forger can create a perfectly consistent bundle signed with their own key. What they cannot do is make it match the fingerprint the genuine producer gave you. That is why the fingerprint travels by a different channel (a call, a signed letter, a published web page), and why, without it, the honest answer is <span class="v-ind">INDETERMINATE</span>, not VALID. Organisations that distribute key lists can supply a trust file instead.</p>
+<p>Every result also states, in words, what the receipts cover and what they cannot show (§9). That text is part of the output, so it travels with the verdict.</p>
+
+<!-- ═══════════════════════════ 9 ═══════════════════════════ -->
+<h2>9. Threat model and the capture boundary</h2>
+<h3>Detected</h3>
+<p>Each row below is an automated test in the project, run on every change.</p>
+<table>
+  <tr><th>Attack on a sealed bundle</th><th style="width:16%">Result</th></tr>
+  <tr><td>A receipt's content is changed, even if the file checksum is updated to hide it</td><td class="v-bad">INVALID</td></tr>
+  <tr><td>A receipt is removed from the middle</td><td class="v-bad">INVALID</td></tr>
+  <tr><td>Receipts are reordered (proofs swapped)</td><td class="v-bad">INVALID</td></tr>
+  <tr><td>A receipt is duplicated or replayed</td><td class="v-bad">INVALID</td></tr>
+  <tr><td>A signature is forged or corrupted</td><td class="v-bad">INVALID</td></tr>
+  <tr><td>A proof of inclusion is removed</td><td class="v-bad">INVALID</td></tr>
+  <tr><td>A file is missing or corrupt</td><td class="v-bad">INVALID</td></tr>
+  <tr><td>The bundle comes from a different producer than expected</td><td class="v-bad">INVALID</td></tr>
+  <tr><td>The verifier was not told which key to trust</td><td class="v-ind">INDETERMINATE</td></tr>
+</table>
+<h3>Not detected: the capture boundary</h3>
+<p>These are not defects. They are the limits of any recorder that runs beside the system it records, and CooL states them rather than hiding them.</p>
+<ol>
+  <li><b>Actions that bypass CooL.</b> If an agent runs a shell command or calls a service that is not routed through the CooL proxy, there is no receipt. The proxy is the strongest capture mode because the agent does not have to choose to record.</li>
+  <li><b>The hook sees selected files and tools.</b> By default it records edits to prompt, agent, policy and model-configuration files made through the editor's file tools. A file changed by a shell command is not seen.</li>
+  <li><b>CooL not running.</b> Nothing is recorded while CooL is stopped.</li>
+  <li><b>The last receipts removed before sealing.</b> Removing receipts from the end leaves no gap. Detecting it needs a tree size held by someone else, such as an earlier bundle or a witness.</li>
+  <li><b>A producer that rewrites its whole history.</b> Keys live on the recording machine. Someone with full control of it can create a new, consistent history. An independent witness that keeps earlier tree heads closes this gap; it is <span class="tag t-plan">planned</span>. The core library already verifies witness co-signatures and RFC 3161 timestamps, which give independent proof of time.</li>
+  <li><b>Declared facts</b> may be untrue (§7).</li>
+  <li><b>Clock.</b> Times come from the recording machine unless a trusted timestamp is added.</li>
+</ol>
+<div class="limit"><b>Words to avoid.</b> CooL is not "tamper-proof", does not produce a "complete audit trail", and is not "compliance certified". The accurate words are <b>tamper-evident</b>, <b>covering actions recorded through CooL</b>, and <b>independently verifiable</b>.</div>
+<h3>Raising assurance</h3>
+<p>Each step below closes one of the gaps listed above:</p>
+<ul>
+  <li>Route tools through the proxy rather than relying on the agent to record.</li>
+  <li>Keep or publish fingerprints and earlier tree sizes outside the producing organisation.</li>
+  <li>Add RFC 3161 timestamps from a trusted authority.</li>
+  <li>Hold keys in a cloud KMS or HSM (signers are available; their status is in §13).</li>
+  <li>Run the recorder in a hardware-isolated enclave whose attestation CooL verifies.</li>
+  <li>Use <code>ToolGateway</code> so that actions which bypass approval cannot execute at all.</li>
+</ul>
+
+<!-- ═══════════════════════════ 10 ═══════════════════════════ -->
+<h2>10. Cryptography and standards</h2>
+<table>
+  <tr><th style="width:26%">Element</th><th>Choice</th><th style="width:30%">Why</th></tr>
+  <tr><td>Signatures</td><td>ML-DSA-65 (NIST FIPS 204) <b>and</b> Ed25519 (RFC 8032); both must verify</td><td>Remains secure if either is broken, including by a future quantum computer</td></tr>
+  <tr><td>Hashing</td><td>SHA-256; multihash-labelled digests</td><td>Universal, conservative, self-describing</td></tr>
+  <tr><td>Transparency log</td><td>RFC 6962 Merkle tree, signed tree heads, inclusion and consistency proofs, witness co-signatures</td><td>The design proven by Certificate Transparency</td></tr>
+  <tr><td>Encoding</td><td>Deterministic CBOR (RFC 8949) for the signed envelope; JSON for readable views</td><td>One byte-exact form to sign; readable forms for people</td></tr>
+  <tr><td>Payload privacy</td><td>HMAC-SHA-256 (RFC 2104) keyed digests, domain-separated</td><td>Prevents guess-testing of payloads</td></tr>
+  <tr><td>Trusted time</td><td>RFC 3161 timestamp tokens, verified offline against pinned authorities; OpenTimestamps optional</td><td>Independent proof that evidence existed by a given time</td></tr>
+  <tr><td>Hardware attestation</td><td>AWS Nitro, Intel TDX (via Phala dstack), AMD SEV-SNP; NVIDIA CC <span class="tag t-exp">experimental</span></td><td>Proves which code ran, in which isolated environment</td></tr>
+</table>
+<p class="small">Implementations use widely used open-source libraries (the noble cryptography suite). CooL does not implement its own cryptographic primitives.</p>
+
+<!-- ═══════════════════════════ 11 ═══════════════════════════ -->
+<h2>11. Measured performance</h2>
+<p>Measured on 18 November 2026 with Node.js 24.18 on Windows 11, Intel Core i7-14650HX. Commands: <code>npm run bench</code> (core) and <code>cd mcp &amp;&amp; npm run bench</code> (MCP). Your figures will differ; run the benchmarks on your own hardware before relying on them.</p>
+<h3>Core operations (median of 50 runs)</h3>
+<table>
+  <tr><th>Operation</th><th class="num">Median</th><th class="num">95th percentile</th></tr>
+  <tr><td>Create and sign an evidence envelope (ML-DSA-65 + Ed25519)</td><td class="num">6.1 ms</td><td class="num">20.4 ms</td></tr>
+  <tr><td>Verify an envelope (all checks)</td><td class="num">4.3 ms</td><td class="num">5.1 ms</td></tr>
+  <tr><td>Evaluate a policy and sign the decision</td><td class="num">7.7 ms</td><td class="num">22.6 ms</td></tr>
+  <tr><td>Enforcement point, end to end (request, decide, every check, replay protection, execute, signed confirmation)</td><td class="num">26.2 ms</td><td class="num">40.4 ms</td></tr>
+</table>
+<h3>AI-tool integration (record, seal, verify)</h3>
+<table>
+  <tr><th class="num">Receipts</th><th class="num">Record, median</th><th class="num">Record, p95</th><th class="num">Seal</th><th class="num">Verify bundle</th><th class="num">Per receipt</th><th class="num">Bundle size</th></tr>
+  <tr><td class="num">10</td><td class="num">11.6 ms</td><td class="num">22.7 ms</td><td class="num">49 ms</td><td class="num">75 ms</td><td class="num">7.5 ms</td><td class="num">211 KiB</td></tr>
+  <tr><td class="num">100</td><td class="num">11.5 ms</td><td class="num">22.3 ms</td><td class="num">63 ms</td><td class="num">459 ms</td><td class="num">4.6 ms</td><td class="num">2.0 MiB</td></tr>
+  <tr><td class="num">1,000</td><td class="num">12.3 ms</td><td class="num">24.4 ms</td><td class="num">2.5 s</td><td class="num">4.6 s</td><td class="num">4.6 ms</td><td class="num">19.9 MiB</td></tr>
+</table>
+<div class="plain"><b>In plain words.</b> Recording an action adds about a hundredth of a second, including writing it safely to disk, and this does not grow as the log grows. Checking a thousand receipts takes a few seconds on a laptop. Bundles are about 20 KB per receipt, mostly post-quantum signatures, which are larger than classic ones.</div>
+
+<!-- ═══════════════════════════ 12 ═══════════════════════════ -->
+<h2>12. Regulatory context</h2>
+<div class="legal"><b>Not legal advice.</b> This section summarises, at a high level, public rules that ask for records of automated or AI activity, as understood by Northwind Cipher on 18 November 2026. Laws and timetables change, and several items below were changing during 2025–2026. Confirm the current text with qualified counsel in each jurisdiction. Using CooL does not by itself make any organisation compliant with any law or standard.</div>
+<p>Across jurisdictions, the same three needs recur. CooL addresses the first and the third directly, and the second partly:</p>
+<ol>
+  <li><b>Keep records</b> of how automated systems behaved.</li>
+  <li><b>Protect personal data</b> while doing so.</li>
+  <li><b>Be able to show</b> those records are reliable when asked.</li>
+</ol>
+
+<h3>United Kingdom</h3>
+<ul>
+  <li><b>UK GDPR and the Data Protection Act 2018</b> require accountability: being able to demonstrate compliance (Article 5(2)), data minimisation, and appropriate security. The <b>Data (Use and Access) Act 2025</b> amended rules on automated decision-making.</li>
+  <li>The UK regulates AI largely through existing sector regulators (the ICO, the FCA, the CMA, Ofcom) applying cross-sector principles, rather than through a single AI statute. Financial firms are also subject to FCA record-keeping and operational-resilience requirements.</li>
+</ul>
+<p><b>Where CooL helps:</b> evidence that records of automated actions were not altered, and receipts that hold digests rather than personal data. <b>What remains yours:</b> lawful basis, data protection impact assessments, retention schedules, human review.</p>
+
+<h3>Switzerland</h3>
+<ul>
+  <li>The <b>revised Federal Act on Data Protection (revFADP)</b> has applied since 1 September 2023. It covers privacy by design and default, and information about automated individual decisions.</li>
+  <li>In February 2025 the Federal Council chose sector-specific adjustments over a horizontal "AI Act", and on 27 March 2025 it signed the <b>Council of Europe Framework Convention on AI</b>. A consultation draft of the implementing legislation was expected around the end of 2026; a more recent official page indicates spring 2027.</li>
+  <li><b>FINMA Guidance 08/2024</b> sets out expectations for governance and risk management when supervised institutions use AI, including documentation and traceability.</li>
+</ul>
+<p><b>Where CooL helps:</b> traceability of AI-driven actions that a supervisor or auditor can check independently. Hosting is on your own infrastructure; nothing is sent to Northwind Cipher.</p>
+
+<h3>Denmark and the European Union</h3>
+<ul>
+  <li>The <b>EU AI Act (Regulation (EU) 2024/1689)</b> requires high-risk AI systems to allow automatic recording of events (Article 12), and requires providers and deployers to keep those logs, generally for at least six months (Articles 19 and 26). Following the <b>Digital Omnibus on AI</b>, which entered into force in July 2026, the high-risk obligations for stand-alone (Annex III) systems are reported to apply from 2 December 2027, and those for AI in regulated products (Annex I) from 2 August 2028. Most transparency duties under Article 50 applied from 2 August 2026. Check the Official Journal text for exact dates.</li>
+  <li>The <b>GDPR</b> applies throughout. <b>NIS2</b> (Directive (EU) 2022/2555, implemented in Danish law) covers security and incident handling for essential and important entities. <b>DORA</b> (Regulation (EU) 2022/2554) has applied to financial entities since 17 January 2025 and covers ICT risk and incident records.</li>
+  <li>Denmark adopted national rules in 2025 designating its AI Act authorities. The Danish Data Protection Agency (Datatilsynet) supervises the GDPR.</li>
+</ul>
+<p><b>Where CooL helps:</b> Article 12-style event records that are tamper-evident and verifiable by a notified body, a market surveillance authority or a customer. <b>What remains yours:</b> risk management, conformity assessment, retention for the required period, and human oversight. CooL records; it does not classify your system's risk.</p>
+
+<h3>India</h3>
+<ul>
+  <li>The <b>Digital Personal Data Protection Act 2023</b> is being brought into force in phases by the <b>DPDP Rules 2025</b>, notified in November 2025. Most obligations on data fiduciaries apply 18 months after notification, in around May 2027.</li>
+  <li><b>CERT-In Directions of 28 April 2022</b> require covered entities to keep ICT system logs securely for 180 days within India, and to report specified cyber incidents within six hours.</li>
+  <li>The Ministry of Electronics and Information Technology published India AI Governance Guidelines in November 2025. Sector regulators, including the Reserve Bank of India, have issued their own expectations on responsible AI.</li>
+</ul>
+<p><b>Where CooL helps:</b> logs whose integrity can be shown during an incident inquiry, stored wherever you run CooL, including within India, and holding digests rather than personal data.</p>
+
+<h3>United States</h3>
+<ul>
+  <li>There is no single federal AI law. The <b>NIST AI Risk Management Framework</b> (AI RMF 1.0, 2023) and its Generative AI Profile (NIST AI 600-1, 2024) are widely used voluntary frameworks that emphasise documentation and traceability.</li>
+  <li>Sector rules require reliable records: <b>SEC Rule 17a-4</b> for broker-dealer records, including an audit-trail alternative to write-once storage since the 2022 amendments; <b>HIPAA</b> audit controls (45 CFR 164.312(b)); and <b>Sarbanes-Oxley</b> internal controls.</li>
+  <li>States are active. Colorado's AI Act (SB 24-205) was postponed in 2025 to 30 June 2026, with further changes debated; check its current status. Federal policy on state AI laws was also changing in 2025–2026.</li>
+  <li>NIST's post-quantum standards (FIPS 204, ML-DSA) and the federal migration timelines are a reason to sign long-lived records with post-quantum algorithms now.</li>
+</ul>
+
+<h3>International standards</h3>
+<p><b>ISO/IEC 42001:2023</b> (AI management systems) and <b>ISO/IEC 27001:2022</b> (control 8.15, Logging) ask for logs to be produced, protected and reviewed. SOC 2 asks for evidence that controls operated. CooL supplies evidence for such controls; certification remains a matter between you and your auditor.</p>
+
+<!-- ═══════════════════════════ 13 ═══════════════════════════ -->
+<h2>13. Status of every capability</h2>
+<p>Each capability carries exactly one label from the project's registry, which is checked automatically against the documentation on every change. <span class="tag t-impl">implemented</span> means built, tested, and validated against genuine evidence or a real service. <span class="tag t-exp">experimental</span> means built and tested, but not yet validated against the real thing.</p>
+<table>
+  <tr><th>Capability</th><th style="width:15%">Label</th><th style="width:38%">What it rests on / limits</th></tr>
+  <tr><td>Evidence envelope, hybrid signatures, bundles, six verification outcomes</td><td><span class="tag t-impl">implemented</span></td><td>test vectors; adversarial tests</td></tr>
+  <tr><td>Agent Execution Receipt (schema, example, golden bundle)</td><td><span class="tag t-impl">implemented</span></td><td>schema-conformance and golden-vector tests; declared fields not authenticated</td></tr>
+  <tr><td>MCP server (4 tools over stdio)</td><td><span class="tag t-impl">implemented</span></td><td>official MCP SDK client over real stdio; Claude Code reports it connected; npm publication pending</td></tr>
+  <tr><td>MCP proxy (records every call)</td><td><span class="tag t-impl">implemented</span></td><td>real downstream server; bypassing calls not recorded</td></tr>
+  <tr><td>Offline verifier (VALID / INVALID / INDETERMINATE)</td><td><span class="tag t-impl">implemented</span></td><td>tamper fixtures; network disabled in tests</td></tr>
+  <tr><td>SIEM export (JSONL)</td><td><span class="tag t-impl">implemented</span></td><td>local file; a forwarder ships it</td></tr>
+  <tr><td>Claude Code plugin and marketplace</td><td><span class="tag t-exp">experimental</span></td><td>passes <code>claude plugin validate</code>; end-to-end install awaits npm publication</td></tr>
+  <tr><td>Claude Desktop extension (.mcpb)</td><td><span class="tag t-exp">experimental</span></td><td>validated and packed; not yet installed in Claude Desktop; unsigned</td></tr>
+  <tr><td>Cursor, Windsurf, VS Code, Codex CLI, Gemini CLI configs</td><td><span class="tag t-exp">experimental</span></td><td>standard MCP; documented, not yet run in each client</td></tr>
+  <tr><td>Authorisation protocol, <code>ToolGateway</code> enforcement</td><td><span class="tag t-impl">implemented</span></td><td>actions outside the gateway not covered</td></tr>
+  <tr><td>Replay protection, one host / across hosts (Redis)</td><td><span class="tag t-impl">implemented</span></td><td>tested against a real Redis server</td></tr>
+  <tr><td>AWS Nitro attestation verification</td><td><span class="tag t-impl">implemented</span></td><td>genuine AWS document plus 600 corruption cases</td></tr>
+  <tr><td>Intel TDX via Phala dstack</td><td><span class="tag t-impl">implemented</span></td><td>hardware validation on Phala Cloud</td></tr>
+  <tr><td>AMD SEV-SNP report verification</td><td><span class="tag t-impl">implemented</span></td><td>genuine Milan report; pinned AMD roots</td></tr>
+  <tr><td>NVIDIA Confidential Computing</td><td><span class="tag t-exp">experimental</span></td><td>no result from a real CC GPU yet</td></tr>
+  <tr><td>CooL running inside a Nitro Enclave</td><td><span class="tag t-exp">experimental</span></td><td>kit built and tested; not yet run on AWS hardware</td></tr>
+  <tr><td>AWS KMS, Google Cloud KMS, PKCS#11 HSM signers</td><td><span class="tag t-exp">experimental</span></td><td>tested against provider emulators</td></tr>
+  <tr><td>Azure Key Vault signer</td><td><span class="tag t-uns">unsupported</span></td><td>Key Vault offers neither Ed25519 nor ML-DSA</td></tr>
+  <tr><td>RFC 3161 trusted timestamps</td><td><span class="tag t-impl">implemented</span></td><td>genuine DigiCert token</td></tr>
+  <tr><td>OpenTelemetry export</td><td><span class="tag t-plan">planned</span></td><td>use JSONL with a collector meanwhile</td></tr>
+  <tr><td>Independent witness service</td><td><span class="tag t-plan">planned</span></td><td>needed to detect a producer rewriting its whole history</td></tr>
+  <tr><td>Independent third-party security audit</td><td><span class="tag t-plan">planned</span></td><td>review package ready; no audit is claimed</td></tr>
+</table>
+
+<!-- ═══════════════════════════ 14 ═══════════════════════════ -->
+<h2>14. How CooL compares with other approaches</h2>
+<table>
+  <tr><th style="width:20%">Approach</th><th>Strength</th><th>Limit, compared with CooL</th></tr>
+  <tr><td>Application logs and SIEM</td><td>Universal, searchable, operationally essential</td><td>Trust the operator; edits are invisible to outsiders. CooL complements a SIEM by exporting to it</td></tr>
+  <tr><td>Write-once (WORM) storage</td><td>Stops ordinary deletion</td><td>The storage owner can still replace data; outsiders cannot check; no signer identity</td></tr>
+  <tr><td>Observability and LLM tracing tools</td><td>Rich detail for debugging</td><td>Not signed, so not evidence; often store prompts and data</td></tr>
+  <tr><td>Public blockchains</td><td>No single operator</td><td>Cost, latency, and public disclosure; correctness still depends on what was recorded</td></tr>
+  <tr><td>Signed transparency logs for software (e.g. Sigstore)</td><td>Same foundations as CooL; excellent for builds and releases</td><td>Built for artefacts, not for the actions of running systems and agents</td></tr>
+</table>
+<p>CooL is designed to sit alongside these tools: it exports to your SIEM, verifies hardware attestation, and anchors in transparency logs. What it adds is a record of consequential actions that a third party can check.</p>
+
+<!-- ═══════════════════════════ 15 ═══════════════════════════ -->
+<h2>15. Getting started and running a pilot</h2>
+<h3>In an AI tool, in one line</h3>
+<pre>claude mcp add cool -- npx -y @northwindcipher/mcp-server-cool --workspace "$PWD"</pre>
+<p>Equivalent configurations for Claude Desktop, Cursor, Windsurf, VS Code, Codex CLI and Gemini CLI are in <code>docs/mcp.md</code>. Until the npm package is published, the same commands work from a source checkout.</p>
+<h3>Verify a bundle someone sent you</h3>
+<pre>npx -y @northwindcipher/mcp-server-cool verify ./bundle --fingerprint sha256:…</pre>
+<h3>A four-week pilot</h3>
+<table>
+  <tr><th style="width:14%">Week</th><th>Activity</th><th style="width:30%">Outcome</th></tr>
+  <tr><td>1</td><td>Choose one team and one consequential workflow (AI-assisted changes to a payments or production repository). Install CooL with the proxy in front of the tools that matter.</td><td>Receipts flowing; capture boundary written down</td></tr>
+  <tr><td>2</td><td>Seal daily. A second team (security or internal audit) verifies independently, with fingerprints exchanged out of band.</td><td>Independent VALID results</td></tr>
+  <tr><td>3</td><td>Exercise: tamper with a copy and confirm INVALID; walk through an incident review using only the bundle.</td><td>Evidence the process works under pressure</td></tr>
+  <tr><td>4</td><td>Map receipts to your control framework (AI Act Article 12, ISO 27001 8.15, NIST AI RMF). Decide on KMS keys, timestamps and the commercial platform.</td><td>Go / no-go with measured costs</td></tr>
+</table>
+<p class="small">A runnable pilot environment, with a console, scenarios and a reset, is available from Northwind Cipher on request. Contact details are in the source repository.</p>
+
+<!-- ═══════════════════════════ 16 ═══════════════════════════ -->
+<h2>16. Glossary</h2>
+<table>
+  <tr><th style="width:24%">Term</th><th>Meaning</th></tr>
+  <tr><td>Agent</td><td>Software, usually AI, that takes actions on someone's behalf.</td></tr>
+  <tr><td>Attestation</td><td>A statement signed by hardware about which code is running inside an isolated environment.</td></tr>
+  <tr><td>Bundle</td><td>A folder of files holding sealed receipts, their proofs and public keys.</td></tr>
+  <tr><td>Digest / fingerprint</td><td>A short value computed from data. Any change to the data changes it. A <i>keyed</i> digest also needs a secret key to compute.</td></tr>
+  <tr><td>Digital signature</td><td>Proof, checkable by anyone with the public key, that the holder of a private key approved exactly these bytes.</td></tr>
+  <tr><td>Ed25519</td><td>A widely used classic signature algorithm.</td></tr>
+  <tr><td>Envelope</td><td>CooL's signed record format; a receipt is a readable view of one.</td></tr>
+  <tr><td>Hybrid signature</td><td>Two signatures with different algorithms, both required.</td></tr>
+  <tr><td>INDETERMINATE</td><td>The verifier found nothing wrong but could not decide, usually because no trusted key was supplied.</td></tr>
+  <tr><td>MCP (Model Context Protocol)</td><td>An open protocol through which AI tools connect to external tools and data.</td></tr>
+  <tr><td>Merkle tree</td><td>A structure that summarises many records in one value (the root), with short proofs that a record is included.</td></tr>
+  <tr><td>ML-DSA-65</td><td>A post-quantum signature algorithm standardised by NIST in FIPS 204 (2024).</td></tr>
+  <tr><td>Post-quantum</td><td>Designed to resist attack by future quantum computers.</td></tr>
+  <tr><td>Proxy</td><td>A component placed between an AI tool and another tool server that records every call passing through.</td></tr>
+  <tr><td>Receipt</td><td>The record of one action.</td></tr>
+  <tr><td>Seal</td><td>To put receipts in a Merkle tree, sign its root and export a bundle.</td></tr>
+  <tr><td>Tamper-evident</td><td>Changes are detectable. Not the same as tamper-proof, where changes are impossible.</td></tr>
+  <tr><td>TEE / enclave</td><td>A hardware-isolated environment whose code can be attested.</td></tr>
+  <tr><td>Witness</td><td>An independent party that co-signs a log's tree heads so the log cannot show different histories to different people.</td></tr>
+</table>
+
+<!-- ═══════════════════════════ 17 ═══════════════════════════ -->
+<h2>17. References</h2>
+<ol class="small">
+  <li>CooL source, documentation, capability registry, schemas and test vectors: github.com/Northwind-Cipher/cool-sdk (<code>docs/mcp.md</code>, <code>docs/agent-receipt.md</code>, <code>mcp/MVP_SCOPE.md</code>, <code>docs/capabilities.md</code>, <code>docs/whitepaper/</code>).</li>
+  <li>NIST FIPS 204, <i>Module-Lattice-Based Digital Signature Standard</i> (ML-DSA), August 2024.</li>
+  <li>IETF RFC 8032 (EdDSA), RFC 6962 (Certificate Transparency), RFC 8949 (CBOR), RFC 2104 (HMAC), RFC 3161 (Time-Stamp Protocol).</li>
+  <li>Model Context Protocol specification: modelcontextprotocol.io.</li>
+  <li>Regulation (EU) 2024/1689 (Artificial Intelligence Act), Articles 12, 19, 26, 50; the Digital Omnibus on AI amending its application dates (2026); Regulation (EU) 2016/679 (GDPR); Directive (EU) 2022/2555 (NIS2); Regulation (EU) 2022/2554 (DORA).</li>
+  <li>UK GDPR; Data Protection Act 2018; Data (Use and Access) Act 2025.</li>
+  <li>Swiss Federal Act on Data Protection (revFADP, in force 1 September 2023); Federal Council decisions of 12 February 2025 on AI regulation; Council of Europe Framework Convention on Artificial Intelligence; FINMA Guidance 08/2024.</li>
+  <li>India: Digital Personal Data Protection Act 2023 and DPDP Rules 2025; CERT-In Directions under section 70B(6) of the IT Act, 28 April 2022; India AI Governance Guidelines (MeitY, 2025).</li>
+  <li>United States: NIST AI RMF 1.0 (2023) and NIST AI 600-1 (2024); SEC Rule 17a-4 as amended in 2022; 45 CFR 164.312(b); Colorado SB 24-205 and SB25B-004.</li>
+  <li>ISO/IEC 42001:2023; ISO/IEC 27001:2022.</li>
+</ol>
+<p class="small">© 2026 Northwind Cipher Pvt. Ltd. This document may be shared freely in unmodified form. Software is licensed as stated in §6. Product names are the property of their owners and are used only to describe compatibility.</p>
+</body>
+</html>

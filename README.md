@@ -543,6 +543,7 @@ Built on a small set of well-known, dependency-light libraries: [`@noble/curves`
 
 | | |
 |---|---|
+| 📘 [Technical overview (PDF)](docs/technical-overview/cool-technical-overview.pdf) · [HTML](docs/technical-overview/cool-technical-overview.html) | For everyone, technical or not: what CooL proves and does not, how it works, measured performance, regulatory context (UK, CH, DK/EU, IN, US), status of every capability |
 | 📄 [Whitepaper (PDF)](docs/whitepaper/cool-whitepaper.pdf) | CooL: A Verifiable Evidence System for Consequential Actions: the design in nine pages |
 | 🚦 [Showcase](docs/showcase.md) | Every capability in one self-checking run |
 | 🔌 [AI tools / MCP](docs/mcp.md) · [Agent Execution Receipt](docs/agent-receipt.md) · [MVP scope](mcp/MVP_SCOPE.md) · [Demo script](docs/demo-mcp.md) | Claude Code, Cursor, Codex, Gemini and more; the receipt format; what is and is not covered |
