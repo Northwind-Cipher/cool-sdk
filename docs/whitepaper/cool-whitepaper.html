@@ -1,14 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="utf-8">
-<title>CooL: A Verifiable Evidence System for Consequential Actions</title>
-<meta name="author" content="Northwind Cipher">
-<meta name="description" content="CooL whitepaper, covering the published specification cool-nwc 4.0.0">
+<title>CooL Whitepaper</title>
 <style>
   @page { size: Letter; margin: 0.95in 1.05in 0.9in 1.05in; }
   html { font-family: "Times New Roman", Times, serif; font-size: 11pt; color: #000; background: #fff; }
-  body { margin: 0; line-height: 1.24; }
+  body { margin: 0 auto; max-width: 6.4in; line-height: 1.24; background: #fff; color: #000; }
   p { margin: 0 0 0.62em 0; text-align: justify; hyphens: auto; }
   h1 { font-size: 15pt; text-align: center; margin: 0 0 0.9em 0; font-weight: bold; }
   .author { text-align: center; margin: 0 0 0.15em 0; }
@@ -20,13 +18,15 @@
   .eq { text-align: center; margin: 0.45em 0 0.75em 0; font-style: italic; }
   .eq code { font-style: normal; }
   code, pre { font-family: "Courier New", Courier, monospace; font-size: 9.2pt; }
-  pre { margin: 0.4em 0 0.8em 0.35in; line-height: 1.15; break-inside: avoid; }
+  pre { margin: 0.4em 0 0.8em 0.35in; line-height: 1.15; break-inside: avoid; white-space: pre-wrap; }
   figure { margin: 0.7em 0 0.9em 0; text-align: center; break-inside: avoid; }
-  figure svg { display: block; margin: 0 auto; }
+  figure svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
   figcaption { font-size: 10pt; margin-top: 0.25em; }
   svg text { font-family: "Times New Roman", Times, serif; }
   svg .mono { font-family: "Courier New", monospace; }
   table { border-collapse: collapse; margin: 0.4em auto 0.9em auto; font-size: 10pt; break-inside: avoid; }
+  table.wide { width: 100%; break-inside: auto; }
+  tr { break-inside: avoid; }
   th, td { padding: 0.12em 0.55em; text-align: left; vertical-align: top; }
   thead th { border-top: 1px solid #000; border-bottom: 1px solid #000; }
   tbody tr:last-child td { border-bottom: 1px solid #000; }
@@ -36,31 +36,60 @@
   .refs { font-size: 10pt; }
   .refs li { margin-bottom: 0.3em; text-align: left; }
   .nb { white-space: nowrap; }
-  .lbl { font-variant: small-caps; }
+  .note { font-size: 10pt; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 0.35em 0; margin: 0.6em 0 0.9em 0; text-align: justify; }
+  @media screen and (max-width: 640px) { body { padding: 0 16px; } .abstract { margin: 0 0 1.2em 0; } table { display: block; overflow-x: auto; } }
 </style>
 </head>
 <body>
 
-<h1>CooL: A Verifiable Evidence System for Consequential Actions</h1>
+<h1>CooL: A Verifiable Evidence System for Software and AI Agents</h1>
 <p class="author">Northwind Cipher</p>
 <p class="author"><a href="https://github.com/Northwind-Cipher/cool-sdk">github.com/Northwind-Cipher/cool-sdk</a></p>
-<p class="meta">November 2026 &middot; describes the published specification <code>cool-nwc</code> 4.0.0</p>
+<p class="meta">November 2026 &middot; describes <code>cool-nwc</code> 4.1.0 and <code>@northwindcipher/mcp-server-cool</code> 0.1.0</p>
 
-<p class="abstract"><b>Abstract.</b> When software acts on someone's behalf (an AI agent issuing a refund, a pipeline deploying a release, a service granting access), the record of what happened is usually kept by the same party whose conduct is in question. Logs can be edited, omitted or rewritten, and an auditor who wants certainty must trust the operator. We propose a system in which every consequential action leaves evidence that anyone can verify offline, without an account and without trusting the operator. Events are encoded canonically, committed by domain-separated hashes and signed with a hybrid post-quantum signature. They are appended to a Merkle transparency log whose tree heads are co-signed by independent witnesses and anchored to external time sources. Before an action runs, an authorization protocol binds who requested it, under whose delegated authority, with which parameters and under which policy version. The policy decision can be re-executed by any verifier. An enforcement gateway that owns the tool refuses anything it cannot verify, and signs what actually happened. Where execution happens inside a trusted execution environment, the signing key is bound to hardware attestation. Verification never reports a gap as success: every result is one of <i>verified</i>, <i>invalid</i>, <i>unsupported</i>, <i>stale</i>, <i>incomplete</i> or <i>indeterminate</i>.</p>
+<p class="abstract"><b>Abstract.</b> When software acts on someone's behalf, the record of what happened is usually kept by the same party whose conduct is in question. Examples include an AI agent editing code, a pipeline deploying a release, and a service issuing a refund. Logs can be edited, truncated or rewritten, and anyone who needs certainty must trust the operator. We propose a system in which each consequential action leaves a receipt that anyone can verify offline, without an account and without trusting the operator. Receipts are encoded canonically, signed with a hybrid post-quantum signature and numbered without gaps. They are then sealed into a Merkle transparency log whose signed tree heads can be co-signed by independent witnesses and anchored to external time. Inputs and outputs are never stored, only keyed digests of them. An authorization protocol can bind each action to the authority under which it was requested, and an enforcement gateway that owns the tool refuses what it cannot verify. Agents reach the system through the Model Context Protocol, so any MCP-capable AI tool can produce receipts. Verification never reports a gap as success. It answers <i>valid</i>, <i>invalid</i> or <i>indeterminate</i>, gives a reason for every check, and states in every result what the evidence does not cover.</p>
 
 <h2>1. Introduction</h2>
-<p>Organisations increasingly delegate consequential decisions to software. An agent that reads a support ticket and issues a refund, a build system that ships a binary to production, an access broker that grants a credential: each is an action with financial, legal or safety consequences. When something goes wrong, the questions are always the same. Who did this? Were they allowed to? Under which rules? What exactly happened? Is the record complete?</p>
-<p>Today those questions are answered from logs, and logs have a structural weakness: they are written, stored and served by the operator. A log can show an auditor one history and an investigator another. It can drop the one entry that matters, or be edited after the fact. Even an honest operator cannot prove a negative, namely that nothing was removed. Signing log lines helps only a little, because the operator holds the keys. Timestamps help only a little, because the operator sets the clock. As a result, every assurance about software behaviour reduces to trust in an institution, and that trust is hardest to extend exactly when it is most needed: after an incident, in a dispute, or to a regulator.</p>
-<p>What is needed is an evidence system based on verification rather than trust. It should let any party check a record independently, offline, against keys they choose to trust. It must make omission and equivocation detectable, bind an action to the authority under which it was taken, and report uncertainty honestly instead of collapsing it into success. In this paper we describe such a system. It does not prove that software made a good decision; nothing can. It proves who decided, under what authority and policy, what was actually executed, and that the record has not been altered, forked or quietly truncated.</p>
+<p>Organisations increasingly let software take consequential actions. An agent rewrites the instructions that steer another agent, opens a pull request, deploys a service or refunds a customer. When something goes wrong, the questions are always the same. Who did this? Were they allowed to? Under which rules? What exactly happened? Is the record complete?</p>
+<p>Today those questions are answered from logs, and logs have a structural weakness: they are written, stored and served by the operator. A log can show an auditor one history and an investigator another. It can lose the one entry that matters, or be edited after the fact. Even an honest operator cannot prove that nothing was removed. Signing log lines helps only a little, because the operator holds the keys. Timestamps help only a little, because the operator sets the clock. Every assurance about software behaviour therefore reduces to trust in an institution. That trust is hardest to extend exactly when it is most needed: after an incident, in a dispute, or towards a regulator.</p>
+<p>What is needed is an evidence system based on verification rather than trust. It must let any party check a record independently and offline, against keys they choose to trust. It must make alteration, omission and reordering detectable, bind an action to the authority under which it was taken, and report uncertainty honestly instead of collapsing it into success. This paper describes such a system. It does not prove that software made a good decision; nothing can. It proves what was recorded, by whom, under what declared authority, and that the record has not been changed, reordered, replayed or pruned from the middle since.</p>
 
-<h2>2. Evidence Envelopes</h2>
-<p>We define a unit of evidence as an <i>envelope</i>. Its core is a typed record: an identifier, an event type and payload schema, the time the event occurred and the time it was observed, the source system, the actor, the action, the resource, references to earlier evidence, and an optional sequence number and attestation reference. Payloads are typed. Fifty event families are defined, including authorization requests and decisions, tool invocations, external confirmations, deployments, credential use and AI inference. Validation is strict, and fields that look like secrets are rejected unless they carry a digest. Parameters are carried as commitments, never in plaintext (Section 10).</p>
-<p>The core is serialized with the core deterministic encoding of CBOR [3], so that one record has exactly one byte representation. The envelope digest is a SHA-256 hash over a domain label and those bytes, and the signature covers a second, distinct label and the digest:</p>
-<p class="eq">d = SHA-256(<code>"cool.envelope.v1\0"</code> &#8214; CBOR<sub>CDE</sub>(core)) &nbsp;&nbsp;&nbsp; m = <code>"cool.envelope.sig.v1\0"</code> &#8214; d</p>
-<p class="eq">&sigma; = ( ML-DSA-65.Sign(sk<sub>1</sub>, m), Ed25519.Sign(sk<sub>2</sub>, m) )</p>
-<p>The signature is hybrid. It contains an ML-DSA-65 signature [4] and an Ed25519 signature [5] over the same message, and a verifier accepts it only if both verify. Forging an envelope therefore requires breaking both schemes. The classical scheme protects against an undiscovered flaw in the new lattice scheme, and the lattice scheme protects against a future quantum adversary. The domain labels ensure that a signature over one kind of object can never be replayed as a signature over another. Every signed object in the system has its own label: decisions, delegations, confirmations, principal records and tree heads.</p>
-<p>Envelopes refer to each other by digest. A decision references the request it answers, and a confirmation references the decision it executed. Causality is therefore established by hashes rather than by timestamps, which any party could set.</p>
+<h2>2. Overview</h2>
+<p>The life of a receipt has five steps (Figure 1). The first four happen where the work happens. The fifth happens wherever the reader is: an auditor, a customer, a regulator or a court.</p>
+<figure>
+<svg width="580" height="128" viewBox="0 0 580 128" xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="n1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
+  <g fill="none" stroke="#000" stroke-width="1">
+    <rect x="4" y="14" width="100" height="62"/><rect x="122" y="14" width="100" height="62"/><rect x="240" y="14" width="100" height="62"/><rect x="358" y="14" width="100" height="62"/><rect x="476" y="14" width="100" height="62" stroke-width="2"/>
+    <path d="M104,45 L122,45" marker-end="url(#n1)"/><path d="M222,45 L240,45" marker-end="url(#n1)"/><path d="M340,45 L358,45" marker-end="url(#n1)"/><path d="M458,45 L476,45" marker-end="url(#n1)"/>
+    <path d="M4,96 L458,96" stroke-dasharray="3,2"/><path d="M476,96 L576,96" stroke-dasharray="3,2"/>
+  </g>
+  <g font-size="11" text-anchor="middle">
+    <text x="54" y="34" font-weight="bold">1. Record</text><text x="54" y="51">what, to what,</text><text x="54" y="64">who, outcome</text>
+    <text x="172" y="34" font-weight="bold">2. Sign</text><text x="172" y="51">ML-DSA-65</text><text x="172" y="64">and Ed25519</text>
+    <text x="290" y="34" font-weight="bold">3. Number</text><text x="290" y="51">0, 1, 2, …</text><text x="290" y="64">a gap shows</text>
+    <text x="408" y="34" font-weight="bold">4. Seal</text><text x="408" y="51">Merkle tree,</text><text x="408" y="64">signed head</text>
+    <text x="526" y="34" font-weight="bold">5. Verify</text><text x="526" y="51">anyone,</text><text x="526" y="64">offline</text>
+    <text x="231" y="114" font-size="10">where the work happens (producer)</text><text x="526" y="114" font-size="10">wherever the reader is</text>
+  </g>
+</svg>
+<figcaption>Figure 1. The life of a receipt.</figcaption>
+</figure>
+<p>A useful picture is a numbered receipt book whose pages are bound together and signed. Nothing prevents someone from tearing out a page or writing over one. What the system guarantees is that a reader will see that it happened. The rest of this paper explains how each step achieves that, and where its guarantee ends.</p>
 
+<h2>3. Evidence Envelopes</h2>
+<p>We define a unit of evidence as an <i>envelope</i>. Its core is a typed record containing:</p>
+<ul>
+  <li>an identifier, an event type and a payload schema;</li>
+  <li>the time the event occurred and the time it was observed;</li>
+  <li>the source system, the actor, the action and the resource;</li>
+  <li>references to earlier evidence;</li>
+  <li>an optional sequence number and attestation reference.</li>
+</ul>
+<p>Payloads are typed and strictly validated. Fifty-one event families are defined, among them authorization requests and decisions, tool invocations, deployments, model inference and, new in this version, the agent execution receipt (Section 9).</p>
+<p>The core is serialised with the deterministic encoding of CBOR [3], so a record has exactly one byte representation. The envelope digest is a SHA-256 hash over a domain label and those bytes. The signature covers a second, distinct label and the digest:</p>
+<p class="eq">d = SHA-256(<code>"cool.envelope.v1\0"</code> ‖ CBOR<sub>CDE</sub>(core)) &nbsp;&nbsp;&nbsp; m = <code>"cool.envelope.sig.v1\0"</code> ‖ d</p>
+<p>Envelopes refer to each other by digest. A decision references the request it answers, and a confirmation references the decision it executed (Figure 2). Order between them is therefore established by hashes, which nobody can backdate, rather than by timestamps, which anyone can set.</p>
 <figure>
 <svg width="560" height="150" viewBox="0 0 560 150" xmlns="http://www.w3.org/2000/svg">
   <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
@@ -82,18 +111,86 @@
   </g>
   <text x="280" y="146" font-size="10" text-anchor="middle">each signer is a different party; each envelope commits to the one before it</text>
 </svg>
-<figcaption>Figure 1. Envelopes linked by digest.</figcaption>
+<figcaption>Figure 2. Envelopes linked by digest.</figcaption>
+</figure>
+<p>Figure 3 shows how one action becomes one envelope. Descriptive fields are carried as they are. Inputs and outputs pass through a keyed hash first and are never carried themselves (Section 15). The result is encoded, hashed and signed.</p>
+<figure>
+<svg width="560" height="170" viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="n3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
+  <g fill="none" stroke="#000" stroke-width="1">
+    <rect x="4" y="6" width="150" height="104"/>
+    <rect x="4" y="122" width="150" height="40"/>
+    <rect x="186" y="122" width="76" height="40"/>
+    <rect x="296" y="30" width="110" height="118"/>
+    <rect x="440" y="30" width="116" height="34"/><rect x="440" y="76" width="116" height="34"/><rect x="440" y="122" width="116" height="34" stroke-width="2"/>
+    <path d="M154,58 L296,58" marker-end="url(#n3)"/>
+    <path d="M154,142 L186,142" marker-end="url(#n3)"/><path d="M262,142 L296,132" marker-end="url(#n3)"/>
+    <path d="M406,47 L440,47" marker-end="url(#n3)"/><path d="M498,64 L498,76" marker-end="url(#n3)"/><path d="M498,110 L498,122" marker-end="url(#n3)"/>
+  </g>
+  <g font-size="10.5" text-anchor="middle">
+    <text x="79" y="22" font-weight="bold">The action</text>
+    <text x="79" y="38">tool · target · outcome</text><text x="79" y="52">agent (declared)</text><text x="79" y="66">initiator (declared)</text><text x="79" y="80">authority, policy (declared)</text><text x="79" y="94">time · sequence number</text>
+    <text x="79" y="138" font-weight="bold">Input, output</text><text x="79" y="152">prompts, files, data</text>
+    <text x="224" y="138">HMAC</text><text x="224" y="152" font-size="9">keyed digest</text>
+    <text x="351" y="48" font-weight="bold">Core</text><text x="351" y="66">typed fields</text><text x="351" y="80">+ digests only</text><text x="351" y="100">canonical</text><text x="351" y="114">CBOR bytes</text><text x="351" y="138" font-size="9">no raw payload</text>
+    <text x="498" y="51">digest d</text><text x="498" y="97">message m</text><text x="498" y="143" font-weight="bold">signature σ</text>
+  </g>
+</svg>
+<figcaption>Figure 3. Anatomy of one receipt: what is carried, what is only digested, what is signed.</figcaption>
 </figure>
 
-<h2>3. Trust Snapshots</h2>
-<p>A valid signature says only that some key signed some bytes. Whether that key should be believed is a separate question, and we keep the two apart. A verifier supplies a <i>trust snapshot</i>: a dated list of keys, each with an owner, the purposes it is accepted for (<code>evidence</code>, <code>log</code>, <code>witness</code>, <code>evaluator</code>, <code>enforcement</code>, <code>identity_issuer</code> and others), a validity window and a status. A key trusted only to sign tree heads cannot sign a decision. Nothing is fetched at verification time: the snapshot is an explicit input, so two verifiers with the same evidence and the same snapshot always reach the same result.</p>
-<p>Keys change over time. A <i>rotated</i> key is refused for signatures dated after its successor took over. A <i>revoked</i> or <i>compromised</i> key raises a subtler problem. Its holder can produce a signature with any claimed date, so a claimed date proves nothing. We accept such a signature only with <i>independent</i> proof that it existed before the revocation: inclusion in a log checkpoint, or an external time anchor (Section 5). A snapshot may declare a maximum age. When it is older than that, revocations since then are unknown, and the result is <i>stale</i> rather than <i>verified</i>.</p>
+<h2>4. Hybrid Signatures</h2>
+<p>The signature is a pair. It holds an ML-DSA-65 signature [4] and an Ed25519 signature [5] over the same message, and a verifier accepts it only if both verify (Figure 4):</p>
+<p class="eq">σ = ( ML-DSA-65.Sign(sk<sub>1</sub>, m), Ed25519.Sign(sk<sub>2</sub>, m) ) &nbsp;&nbsp;&nbsp; accept ⇔ Verify<sub>1</sub> ∧ Verify<sub>2</sub></p>
+<p>Forging an envelope therefore requires breaking both schemes. The classical scheme protects against an undiscovered flaw in the newer lattice scheme. The lattice scheme, standardised by NIST in 2024, protects against a future quantum computer, which would break Ed25519. Records that may be needed in evidence a decade from now should be signed against both threats today.</p>
+<figure>
+<svg width="520" height="120" viewBox="0 0 520 120" xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="n4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
+  <g fill="none" stroke="#000" stroke-width="1">
+    <rect x="4" y="42" width="86" height="34"/>
+    <rect x="130" y="8" width="130" height="34"/><rect x="130" y="76" width="130" height="34"/>
+    <rect x="300" y="8" width="100" height="34"/><rect x="300" y="76" width="100" height="34"/>
+    <path d="M432,30 L452,30 A28,28 0 0 1 452,88 L432,88 Z"/>
+    <rect x="490" y="44" width="26" height="30" stroke-width="2"/>
+    <path d="M90,52 L130,28" marker-end="url(#n4)"/><path d="M90,66 L130,90" marker-end="url(#n4)"/>
+    <path d="M260,25 L300,25" marker-end="url(#n4)"/><path d="M260,93 L300,93" marker-end="url(#n4)"/>
+    <path d="M400,25 L432,40" marker-end="url(#n4)"/><path d="M400,93 L432,78" marker-end="url(#n4)"/>
+    <path d="M480,59 L490,59" marker-end="url(#n4)"/>
+  </g>
+  <g font-size="11" text-anchor="middle">
+    <text x="47" y="63">message m</text>
+    <text x="195" y="29">ML-DSA-65 (FIPS 204)</text><text x="195" y="97">Ed25519 (RFC 8032)</text>
+    <text x="350" y="22">σ₁ verifies?</text><text x="350" y="36" font-size="9">post-quantum</text>
+    <text x="350" y="90">σ₂ verifies?</text><text x="350" y="104" font-size="9">classical</text>
+    <text x="452" y="63" font-weight="bold">AND</text><text x="503" y="63" font-weight="bold">✓</text>
+  </g>
+</svg>
+<figcaption>Figure 4. A hybrid signature is accepted only when both halves verify.</figcaption>
+</figure>
+<p>Every signed object in the system carries its own domain label: envelopes, decisions, delegations, confirmations, principal records and tree heads. A signature made for one kind of object can therefore never be replayed as a signature on another.</p>
 
-<h2>4. Transparency Log</h2>
-<p>Signatures prevent alteration, but not omission or equivocation. An operator could sign two different histories and show each to a different party, or simply never show an inconvenient record. To make history append-only and globally consistent, every envelope digest is appended as a leaf of a Merkle tree, following Certificate Transparency [6]:</p>
-<p class="eq">leaf = SHA-256(<code>0x00</code> &#8214; d) &nbsp;&nbsp;&nbsp; node = SHA-256(<code>0x01</code> &#8214; left &#8214; right)</p>
-<p>The log periodically signs a <i>tree head</i>: its identifier, the tree size, the root hash and a timestamp. With the tree head comes an <i>inclusion proof</i> for each envelope, which is the logarithmic-size path of sibling hashes from the leaf to the root. Given two tree heads, a <i>consistency proof</i> shows that the larger tree extends the smaller one without changing any earlier leaf. A log that rewrites history, or forks it, therefore produces two tree heads that cannot be proven consistent, and anyone holding both has cryptographic proof of misbehaviour.</p>
+<h2>5. Sequence Numbers</h2>
+<p>A signature shows that a record was not altered. It cannot show that a record is missing. For that, each producer numbers its receipts within an <i>epoch</i>: <span class="nb">e.0, e.1, e.2, …</span>, with no gaps. A verifier that sees <span class="nb">e.0, e.1</span> and <span class="nb">e.3</span> reports that <span class="nb">e.2</span> is missing, rather than presenting the history as clean (Figure 5). The numbering is inside the signed core, so it cannot be renumbered to close the gap without breaking every later signature.</p>
+<figure>
+<svg width="520" height="92" viewBox="0 0 520 92" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none" stroke="#000" stroke-width="1">
+    <rect x="10" y="10" width="80" height="34"/><rect x="110" y="10" width="80" height="34"/><rect x="210" y="10" width="80" height="34" stroke-dasharray="4,3"/><rect x="310" y="10" width="80" height="34"/><rect x="410" y="10" width="100" height="34" stroke-dasharray="1,3"/>
+    <line x1="90" y1="27" x2="110" y2="27"/><line x1="190" y1="27" x2="210" y2="27" stroke-dasharray="4,3"/><line x1="290" y1="27" x2="310" y2="27" stroke-dasharray="4,3"/><line x1="390" y1="27" x2="410" y2="27" stroke-dasharray="1,3"/>
+    <path d="M250,48 L250,62"/>
+  </g>
+  <g font-size="11" text-anchor="middle">
+    <text x="50" y="31">receipt 7.0</text><text x="150" y="31">receipt 7.1</text><text x="250" y="31">7.2 ?</text><text x="350" y="31">receipt 7.3</text><text x="460" y="31">7.4 not yet seen</text>
+    <text x="250" y="76">gap: reported as <tspan font-style="italic">incomplete</tspan>, naming 7.2</text>
+  </g>
+</svg>
+<figcaption>Figure 5. Numbering makes a removed receipt visible once a later one exists.</figcaption>
+</figure>
+<p>One case remains: removing the <i>last</i> receipts leaves no gap. Section 7 and Section 17 explain how an outside copy of the tree size closes that window.</p>
 
+<h2>6. Transparency Log</h2>
+<p>Signatures prevent alteration and numbers reveal gaps, but neither stops a producer from keeping two consistent histories and showing each to a different party. To make history append-only and globally consistent, every envelope digest becomes a leaf of a Merkle tree, following Certificate Transparency [6]:</p>
+<p class="eq">leaf = SHA-256(0x00 ‖ d) &nbsp;&nbsp;&nbsp; node = SHA-256(0x01 ‖ left ‖ right)</p>
+<p>The log signs a <i>tree head</i>: its identifier, the tree size, the root hash and a timestamp (Figure 6). Sealing a batch requires one tree-head signature, not one per receipt.</p>
 <figure>
 <svg width="520" height="210" viewBox="0 0 520 210" xmlns="http://www.w3.org/2000/svg">
   <g fill="none" stroke="#000" stroke-width="1">
@@ -119,24 +216,129 @@
   </g>
   <text x="260" y="206" font-size="10" text-anchor="middle">inclusion of d₂ is proven by the path (leaf(d₃), Hash01)</text>
 </svg>
-<figcaption>Figure 2. Envelope digests as leaves of a Merkle tree; the signed tree head is co-signed by witnesses.</figcaption>
+<figcaption>Figure 6. Envelope digests as leaves of a Merkle tree; the signed tree head may be co-signed by witnesses.</figcaption>
+</figure>
+<p>With the tree head comes an <i>inclusion proof</i> for each envelope. This is the short path of sibling hashes from its leaf to the root (Figure 7). For a tree of <i>n</i> receipts the path has ⌈log<sub>2</sub> <i>n</i>⌉ hashes: ten for a thousand receipts, twenty for a million. Changing any receipt changes its leaf, every hash above it and the root, and the signed tree head no longer matches. Given two tree heads, a <i>consistency proof</i> shows that the larger tree extends the smaller without changing any earlier leaf. A log that rewrites or forks its history therefore produces two heads that cannot be proven consistent, and anyone holding both has proof of misbehaviour.</p>
+<figure>
+<svg width="520" height="160" viewBox="0 0 520 160" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none" stroke="#000" stroke-width="1">
+    <rect x="215" y="8" width="90" height="26" stroke-width="2"/>
+    <rect x="95" y="62" width="90" height="26" stroke-width="2.4"/><rect x="335" y="62" width="90" height="26" stroke-width="1"/>
+    <rect x="40" y="118" width="80" height="26"/><rect x="155" y="118" width="80" height="26"/><rect x="285" y="118" width="80" height="26" stroke-width="2"/><rect x="400" y="118" width="80" height="26" stroke-width="2.4"/>
+    <line x1="240" y1="34" x2="140" y2="62"/><line x1="280" y1="34" x2="380" y2="62" stroke-width="2"/>
+    <line x1="125" y1="88" x2="80" y2="118"/><line x1="155" y1="88" x2="195" y2="118"/>
+    <line x1="365" y1="88" x2="325" y2="118" stroke-width="2"/><line x1="395" y1="88" x2="440" y2="118"/>
+  </g>
+  <g font-size="11" text-anchor="middle">
+    <text x="260" y="25">Root (signed)</text>
+    <text x="140" y="79" font-weight="bold">Hash01</text><text x="380" y="79">Hash23</text>
+    <text x="80" y="135">leaf(d₀)</text><text x="195" y="135">leaf(d₁)</text><text x="325" y="135" font-weight="bold">leaf(d₂)</text><text x="440" y="135" font-weight="bold">leaf(d₃)</text>
+    <text x="260" y="157" font-size="10">proof that d₂ is included: { leaf(d₃), Hash01 }; the verifier recomputes Hash23, then the root</text>
+  </g>
+</svg>
+<figcaption>Figure 7. An inclusion proof. Heavy boxes are the proof; heavy lines are what the verifier recomputes.</figcaption>
 </figure>
 
-<h2>5. Witnesses and Time</h2>
-<p>A consistency proof convicts a forking log only if someone compares the tree heads. <i>Witnesses</i> do that comparing. A witness is an independent party that receives each new tree head, checks that it is consistent with the last head it accepted, and only then adds its own co-signature. A witness refuses to co-sign a head that does not extend its history. A verifier can demand co-signatures from a threshold of witnesses it trusts. To show different histories to different parties, a log must then corrupt that many witnesses or partition them permanently. The guarantee depends on witnesses actually being operated by different organisations. That is an operational property the cryptography cannot supply, and we state it as such.</p>
-<p>Timestamps inside an envelope are assertions made by its source. Where trusted time matters, for revocation (Section 3) or for disputes, a tree head or an envelope digest is anchored externally. Two independent mechanisms are supported. The first is an RFC 3161 time-stamp token [7]: a certificate authority dedicated to time signs that a digest existed at a given instant, and the token is verified offline against a pinned root. The second is an OpenTimestamps proof [8], which commits the digest into a Bitcoin block [1]. Either one turns "the operator says this existed then" into "a third party proves this existed by then". Neither says anything about content, which is the job of the signature.</p>
+<h2>7. Witnesses and Time</h2>
+<p>A consistency proof convicts a forking log only if someone compares the tree heads. <i>Witnesses</i> do that comparing. A witness is an independent party that receives each new tree head, checks that it extends the last head it accepted, and only then adds its own co-signature. A verifier can demand co-signatures from a threshold of witnesses it trusts. To show different histories to different parties, a log must then corrupt that many witnesses or partition them permanently. The guarantee depends on the witnesses being operated by different organisations. That is an operational property that cryptography cannot supply, and we state it as such.</p>
+<p>Timestamps inside an envelope are assertions by its source. Where trusted time matters, a tree head or digest is anchored externally. An RFC 3161 time-stamp token [7] is verified offline against a pinned authority. Alternatively, an OpenTimestamps proof [8] commits the digest into a Bitcoin block [1]. Either turns "the operator says this existed then" into "a third party proves this existed by then". The same mechanism closes the window on removed final receipts. Once a tree size has been witnessed or anchored, a later bundle that is smaller, or inconsistent with it, is caught.</p>
 
-<h2>6. Authorization</h2>
-<p>Evidence of an action is most useful when it also shows the authority behind it. We define five signed protocol objects. Each is domain-separated and verified against a purpose in the trust snapshot.</p>
-<ol>
-<li><b>Principal.</b> An identity issuer asserts that a principal exists, a human, workload or agent, and which keys it holds. Status changes and key rotations are signed events, so a verifier can reconstruct the principal's state <i>at the time of the action</i>, not merely today.</li>
-<li><b>Delegation.</b> A principal grants another a scope: actions, resource prefixes and an amount ceiling, for an audience and a validity window. Delegations chain. A verifier checks that each link's scope is a subset of its parent's, so privilege can never be amplified. It also checks the chain depth, cycles, revocation and that the chain ends at a root the verifier accepts.</li>
-<li><b>Request.</b> The agent states precisely what it wants to do: action, resource, audience, policy selector, a fresh nonce and an expiry. Its parameters are committed rather than disclosed (Section 10).</li>
-<li><b>Decision.</b> An evaluator applies a policy and signs the result, which is <i>permit</i>, <i>deny</i>, <i>indeterminate</i> or <i>error</i>. The decision is bound to the digest of the request, the digest of the exact policy version and a digest of the facts it used.</li>
-<li><b>Confirmation.</b> The system that owns the action signs what it did: completed, rejected or failed, with a digest of the response (Section 7).</li>
-</ol>
-<p>A decision can be believed in two ways. A <i>trusted</i> decision asks the verifier to trust the evaluator's key. A <i>reproducible</i> decision asks for no trust at all. The policy language is deterministic and its evaluator is public, so a verifier given the policy and the facts re-executes the evaluation and checks that it reaches the same result, under the same policy digest. A missing fact is treated as unknown, never as false. When the policy changes later, the old decision still verifies against the version it actually used. Presenting the new version as the old decision's policy fails on the policy digest.</p>
+<h2>8. Trust and the Fingerprint</h2>
+<p>A valid signature says only that some key signed some bytes. Whether that key should be believed is a separate question, and we keep the two apart. A verifier supplies a <i>trust snapshot</i>: a dated list of keys, each with an owner, the purposes it is accepted for, a validity window and a status. A key trusted only to sign tree heads cannot sign a decision. Nothing is fetched at verification time. Two verifiers with the same evidence and the same snapshot always reach the same result.</p>
+<p>A bundle cannot vouch for its own keys. A forger can produce a perfectly consistent bundle signed with keys of their own. The producer therefore publishes a short <i>fingerprint</i>, a SHA-256 hash over its public receipt and log keys, through a channel separate from the bundle (Figure 8). The verifier recomputes the fingerprint from the keys in the bundle and compares. Without a fingerprint or a trust snapshot from an independent source, the honest result is <i>indeterminate</i>, never <i>valid</i>.</p>
+<p class="eq">fp = SHA-256(<code>"cool.mcp.fingerprint.v1"</code> ‖ pk<sub>ML-DSA</sub> ‖ pk<sub>Ed25519</sub> ‖ pk<sup>log</sup><sub>ML-DSA</sub> ‖ pk<sup>log</sup><sub>Ed25519</sub>)</p>
+<figure>
+<svg width="520" height="132" viewBox="0 0 520 132" xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="n8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
+  <g fill="none" stroke="#000" stroke-width="1">
+    <rect x="4" y="40" width="110" height="50"/><rect x="406" y="40" width="110" height="50" stroke-width="2"/>
+    <path d="M114,52 C200,10 320,10 406,52" marker-end="url(#n8)"/>
+    <path d="M114,78 C200,120 320,120 406,78" stroke-dasharray="4,3" marker-end="url(#n8)"/>
+  </g>
+  <g font-size="11" text-anchor="middle">
+    <text x="59" y="62" font-weight="bold">Producer</text><text x="59" y="77" font-size="10">holds the keys</text>
+    <text x="461" y="62" font-weight="bold">Verifier</text><text x="461" y="77" font-size="10">fp(keys in bundle) = fp ?</text>
+    <text x="260" y="20">bundle: by any channel (email, ticket, storage)</text>
+    <text x="260" y="128">fingerprint: by a different channel (call, signed letter, web page)</text>
+  </g>
+</svg>
+<figcaption>Figure 8. Evidence and the key that vouches for it travel separately.</figcaption>
+</figure>
+<p>Keys change over time. A rotated key is refused for signatures dated after its successor took over. A revoked or compromised key raises a subtler problem: its holder can claim any date, so a claimed date proves nothing. Such a signature is accepted only with independent proof that it existed before the revocation, such as inclusion in a checkpoint or an external time anchor. A snapshot may declare a maximum age. When it is older than that, the result is <i>stale</i> rather than <i>verified</i>.</p>
 
+<h2>9. Agent Execution Receipts</h2>
+<p>AI agents need one receipt with a stable meaning, whichever tool they use. The <i>Agent Execution Receipt</i>, <code>cool.agent-receipt.v1</code>, is the readable view of one signed <code>agent.execution</code> envelope. It is published as a JSON Schema with an example and a sealed test bundle that every future version must keep verifying.</p>
+<table class="wide">
+<thead><tr><th>Field</th><th>Meaning</th><th>Standing</th></tr></thead>
+<tbody>
+<tr><td><code>event_id</code>, <code>timestamp</code></td><td>unique identifier; time recorded</td><td>recorder's clock</td></tr>
+<tr><td><code>agent_id</code></td><td>which agent acted</td><td>declared</td></tr>
+<tr><td><code>initiator_id</code></td><td>who asked, or the literal <code>unknown</code></td><td>declared</td></tr>
+<tr><td><code>authority_ref</code>, <code>policy_version</code></td><td>approval relied on; policy said to apply</td><td>declared</td></tr>
+<tr><td><code>tool_name</code>, <code>target_resource</code>, <code>outcome</code></td><td>what was done, to what, with what result</td><td>recorded</td></tr>
+<tr><td><code>sequence_number</code></td><td>position in the epoch, without gaps</td><td>signed</td></tr>
+<tr><td><code>capture</code></td><td>tool, proxy, hook, SDK or command line</td><td>recorded</td></tr>
+<tr><td><code>payload</code></td><td>keyed digests of input and output; raw payload never stored</td><td>computed</td></tr>
+<tr><td><code>signer</code>, <code>evidence</code></td><td>key, algorithm, fingerprint; digest of the signed envelope</td><td>cryptographic</td></tr>
+</tbody></table>
+<p><i>Declared</i> has a precise meaning. If the agent says it acted for Alice, the receipt proves the agent <i>said</i> so at the time, and that nobody has changed it since. It does not prove that Alice asked. Stronger identity comes from the authorization protocol (Section 11), in which an identity issuer signs who a principal is and every delegation is signed by the delegator.</p>
+<p>The versioning rule is strict. Version 1 is frozen. Adding a field creates version 2, which a version-1 verifier reports as <i>unsupported</i> and never as <i>verified</i>. Verifiers keep accepting every version they have ever accepted, so old receipts stay verifiable indefinitely.</p>
+
+<h2>10. Capture</h2>
+<p>A receipt can only be as complete as the path that produced it. Agents reach the system through the Model Context Protocol (MCP) [9], an open protocol by which AI tools connect to external tools. Tested clients include Claude Code; Claude Desktop, Cursor, Windsurf, VS Code, Codex CLI and Gemini CLI use the same standard configuration. There are three ways to capture (Figure 9).</p>
+<figure>
+<svg width="560" height="186" viewBox="0 0 560 186" xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="n9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
+  <g fill="none" stroke="#000" stroke-width="1">
+    <rect x="70" y="8" width="80" height="30"/><rect x="250" y="8" width="110" height="30"/><rect x="430" y="8" width="110" height="30" stroke-dasharray="4,3"/>
+    <path d="M150,23 L250,23" marker-end="url(#n9)"/><path d="M110,38 C110,56 485,56 485,40" stroke-dasharray="4,3" marker-end="url(#n9)"/>
+    <rect x="70" y="76" width="80" height="30"/><rect x="250" y="76" width="110" height="30" stroke-width="2"/><rect x="430" y="76" width="110" height="30"/>
+    <path d="M150,91 L250,91" marker-end="url(#n9)"/><path d="M360,91 L430,91" marker-end="url(#n9)"/>
+    <rect x="70" y="140" width="80" height="30"/><rect x="250" y="140" width="110" height="30"/><rect x="430" y="140" width="110" height="30"/>
+    <path d="M150,155 L250,155" marker-end="url(#n9)"/><path d="M360,155 L430,155" marker-end="url(#n9)"/>
+  </g>
+  <g font-size="11" text-anchor="middle">
+    <text x="30" y="27" font-weight="bold">Tool</text><text x="110" y="27">agent</text><text x="305" y="27">CooL server</text><text x="485" y="27">other tool</text>
+    <text x="200" y="18" font-size="9">record_change</text><text x="300" y="66" font-size="9">a direct call is recorded only if the agent chooses to</text>
+    <text x="30" y="95" font-weight="bold">Proxy</text><text x="110" y="95">agent</text><text x="305" y="95" font-weight="bold">CooL proxy</text><text x="485" y="95">MCP server</text>
+    <text x="300" y="124" font-size="9">every call passes through and is recorded</text>
+    <text x="30" y="159" font-weight="bold">Hook</text><text x="110" y="159">editor</text><text x="305" y="159">PostToolUse hook</text><text x="485" y="159">CooL receipt</text>
+    <text x="300" y="182" font-size="9">edits to prompt, agent and policy files are recorded automatically</text>
+  </g>
+</svg>
+<figcaption>Figure 9. Three capture modes. The proxy does not depend on the agent choosing to record.</figcaption>
+</figure>
+<p>In <i>tool</i> mode the agent calls <code>cool_record_change</code> after a meaningful action. In <i>proxy</i> mode, CooL sits between the agent and another MCP server and records every call that passes through, with its outcome, duration and digests of arguments and result. In <i>hook</i> mode, the editor reports file edits, and edits to prompt, agent, policy and model-configuration files become receipts. The components are arranged as in Figure 10. Everything except the reader runs on the producer's own infrastructure, and nothing is sent to any vendor.</p>
+<figure>
+<svg width="560" height="210" viewBox="0 0 560 210" xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="n10" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
+  <g fill="none" stroke="#000" stroke-width="1">
+    <rect x="4" y="6" width="140" height="196"/>
+    <rect x="16" y="104" width="116" height="38"/><rect x="16" y="154" width="116" height="38"/>
+    <rect x="176" y="6" width="180" height="196"/>
+    <rect x="188" y="30" width="156" height="30"/><rect x="188" y="68" width="156" height="30"/><rect x="188" y="106" width="156" height="30"/><rect x="188" y="144" width="156" height="30" stroke-width="2"/>
+    <rect x="390" y="6" width="166" height="92"/><rect x="390" y="112" width="166" height="90" stroke-width="2"/>
+    <path d="M144,55 L188,45" marker-end="url(#n10)"/><path d="M132,120 L188,85" marker-end="url(#n10)"/><path d="M132,173 L188,159" marker-end="url(#n10)"/>
+    <path d="M356,70 L390,55" marker-end="url(#n10)"/><path d="M473,98 L473,112" marker-end="url(#n10)"/>
+  </g>
+  <g font-size="10.5" text-anchor="middle">
+    <text x="74" y="24" font-weight="bold">AI tools (MCP clients)</text><text x="74" y="42">Claude Code, Claude Desktop</text><text x="74" y="56">Cursor, Windsurf, VS Code</text><text x="74" y="70">Codex CLI, Gemini CLI, …</text>
+    <text x="74" y="120">other MCP servers</text><text x="74" y="134" font-size="9">GitHub, tickets, databases</text>
+    <text x="74" y="170">your services (SDK)</text><text x="74" y="184" font-size="9">payments, deploys, models</text>
+    <text x="266" y="22" font-weight="bold">CooL capture</text>
+    <text x="266" y="49">MCP server: 4 tools</text><text x="266" y="87">proxy</text><text x="266" y="125">hook</text><text x="266" y="163">open core library</text>
+    <text x="266" y="194" font-size="9">keys stay in project/.cool/</text>
+    <text x="473" y="24" font-weight="bold">Sealed bundle</text><text x="473" y="42">receipts + proofs</text><text x="473" y="56">public keys only</text><text x="473" y="70">manifest of file hashes</text><text x="473" y="84">instructions</text>
+    <text x="473" y="132" font-weight="bold">Offline verifier</text><text x="473" y="150">+ fingerprint, separately</text><text x="473" y="170">valid · invalid · indeterminate</text><text x="473" y="188">a reason for every check</text>
+  </g>
+</svg>
+<figcaption>Figure 10. Components. Only the bundle and the fingerprint leave the producer.</figcaption>
+</figure>
+<p>Two engineering properties matter for evidence. First, the recorder never fails silently. A receipt that cannot be written is reported to the agent and the user, and the proxy appends the failure to the tool result rather than dropping it. Second, the log survives crashes. Receipts are appended with <code>fsync</code> under a cross-process lock. A line torn by a crash is set aside and reported, and numbering continues from the last complete receipt.</p>
+
+<h2>11. Authorization</h2>
+<p>Evidence of an action is most useful when it also shows the authority behind it. Five signed protocol objects provide this. Each has its own domain label and is verified against a purpose in the trust snapshot.</p>
+<p><i>Principal.</i> An identity issuer asserts that a principal exists (a human, workload or agent) and which keys it holds. Status changes are signed events, so a verifier can reconstruct the principal's state at the time of the action, not merely today. <i>Delegation.</i> A principal grants another a scope (actions, resource prefixes and an amount ceiling) for an audience and a validity window. Each link must be a subset of its parent, so privilege can never be amplified. <i>Request.</i> The agent states precisely what it wants to do, with a fresh nonce and an expiry. Its parameters are committed rather than disclosed. <i>Decision.</i> An evaluator applies a policy and signs <i>permit</i>, <i>deny</i>, <i>indeterminate</i> or <i>error</i>, bound to the request, the exact policy version and the facts used. <i>Confirmation.</i> The system that owns the action signs what it did.</p>
 <figure>
 <svg width="560" height="118" viewBox="0 0 560 118" xmlns="http://www.w3.org/2000/svg">
   <defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
@@ -160,26 +362,31 @@
   </g>
   <text x="280" y="110" font-size="10" text-anchor="middle">every object is signed by a different party and recorded as an envelope in the log</text>
 </svg>
-<figcaption>Figure 3. From identity and delegated authority to a confirmed action.</figcaption>
+<figcaption>Figure 11. From identity and delegated authority to a confirmed action.</figcaption>
 </figure>
+<p>A decision can be believed in two ways. A <i>trusted</i> decision asks the verifier to trust the evaluator's key. A <i>reproducible</i> decision asks for no trust at all. The policy language is deterministic and its evaluator public, so a verifier given the policy and the facts re-executes the evaluation and checks that it reaches the same result. When the policy changes later, the old decision still verifies against the version it actually used.</p>
 
-<h2>7. Enforcement</h2>
-<p>Evidence that an action was not permitted is of little comfort if the action happened anyway. The decisive control is therefore placed in an <i>enforcement gateway</i> that sits with the tool, in front of the system that owns the action, rather than in the agent. Before executing, the gateway checks:</p>
+<h2>12. Enforcement</h2>
+<p>Evidence that an action was not permitted is of little comfort if it happened anyway. The decisive control is therefore placed in an enforcement gateway that sits with the tool, rather than in the agent. Before executing, the gateway checks:</p>
 <ul>
-<li>that the requested action and resource match the tool, the audience is its own, and the presented parameters open the request's commitment;</li>
-<li>the decision's signature and the evaluator's trust, the binding to this request, the policy (by replaying it when the policy and facts are supplied), the decision's freshness, and the requester's state at event time;</li>
-<li>that the delegation chain authorises this principal for this action, resource and amount;</li>
-<li>that the workload now executing is the one the request was authorised for (the artifact and configuration digests);</li>
-<li>and finally that the request's nonce is unused, consuming it atomically.</li>
+  <li>that the action and resource match the tool, and the parameters open the request's commitment;</li>
+  <li>the decision, its signer and its binding to this request and policy;</li>
+  <li>the delegation chain;</li>
+  <li>that the workload now executing is the one that was authorised;</li>
+  <li>that the request's nonce is unused, consuming it atomically.</li>
 </ul>
-<p>Any failure, and any check whose answer is unknown, produces a refusal. A replay store that cannot answer is treated as a refusal, never a permission. On a single host the nonce is consumed with an exclusive file create. Across machines it is consumed with an atomic conditional write in a shared store. Whatever the outcome, the gateway signs a <i>confirmation</i> that references the request and decision and states whether the action completed, was rejected (with the reason) or failed. The tool's owner, not the agent, attests to what happened. Because the policy check is repeated at the boundary, a misconfigured evaluator that permits too much is still stopped by the delegation ceiling.</p>
+<p>Any failure, and any check whose answer is unknown, produces a refusal. Whatever the outcome, the gateway signs a confirmation of what happened. The MCP integration of Section 10 records but does not block; deployments that need blocking route the consequential tools through the gateway.</p>
 
-<h2>8. Hardware Attestation</h2>
-<p>Where evidence is produced inside a trusted execution environment, the sealing key can be bound to the hardware's statement about what code is running. The sealer generates a fresh hybrid key inside the enclave and asks the platform to attest to it. On AWS Nitro Enclaves the attestation's <code>user_data</code> carries</p>
-<p class="eq">u = SHA-256(<code>"cool.nitro.key-binding.v1\0"</code> &#8214; CBOR(id, pk<sub>ML-DSA</sub>, pk<sub>Ed25519</sub>))</p>
-<p>and on Intel TDX and AMD SEV-SNP the equivalent field is <code>report_data</code>. A verifier checks three things. The attestation chains to the vendor root, which is pinned in code and re-checked when the module loads. The measurements match a pinned policy, and debug mode is refused. The bound key is exactly the key that signed the evidence. A valid result supports one claim: <i>code with these measurements held this key</i>. It does not show that the code is free of defects, and it does not stop the host from denying service.</p>
-<p>Each platform is supported through an adapter with one contract. Every adapter returns the platform's own claims unaltered, with an honest outcome. For SEV-SNP the verifier checks the chain from VCEK or VLEK to the pinned AMD root, then checks that the certificate's TCB equals the reported TCB and that its hardware identifier equals the chip identifier. That way a certificate for one chip or firmware level cannot vouch for another. For GPUs, the NVIDIA attestation service's signed appraisal is verified offline and can be bound to a CPU report through a shared nonce.</p>
-
+<h2>13. Hardware Attestation</h2>
+<p>Where evidence is produced inside a trusted execution environment, the sealing key can be bound to the hardware's statement about what code is running (Figure 12). The sealer generates a fresh key inside the enclave and asks the platform to attest to it. On AWS Nitro Enclaves the attestation's <code>user_data</code> carries</p>
+<p class="eq">u = SHA-256(<code>"cool.nitro.key-binding.v1\0"</code> ‖ CBOR(id, pk<sub>ML-DSA</sub>, pk<sub>Ed25519</sub>))</p>
+<p>On Intel TDX and AMD SEV-SNP the equivalent field is <code>report_data</code>. The verifier checks three things:</p>
+<ul>
+  <li>the attestation chains to the vendor root, which is pinned in code;</li>
+  <li>the measurements match a pinned policy;</li>
+  <li>the bound key is exactly the key that signed the evidence.</li>
+</ul>
+<p>A valid result supports one claim: code with these measurements held this key. It does not show that the code is free of defects.</p>
 <figure>
 <svg width="520" height="100" viewBox="0 0 520 100" xmlns="http://www.w3.org/2000/svg">
   <defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
@@ -198,34 +405,55 @@
   </g>
   <text x="360" y="98" font-size="9" text-anchor="middle">verifier: the key that signed the evidence is the key the hardware attested</text>
 </svg>
-<figcaption>Figure 4. Binding the evidence key to hardware attestation.</figcaption>
+<figcaption>Figure 12. Binding the evidence key to hardware attestation.</figcaption>
 </figure>
 
-<h2>9. Verification and Honest Outcomes</h2>
-<p>Verification of an envelope is a set of separate checks, each reporting <i>pass</i>, <i>fail</i>, <i>unknown</i>, <i>not applicable</i> or <i>not checked</i>, with a reason. The eleven envelope checks are: schema, canonical encoding, digest, signature, signer trusted, signer authorised, timestamp, inclusion proof, checkpoint trusted, attestation and evidence completeness. A bundle adds the manifest, the exporter's signature, attachment binding and sequence completeness. Decisions, attestations and time-stamp tokens have checks of their own.</p>
-<p>Collapsing these into a single bit would destroy information. A missing witness is not a forgery, and an unknown platform is not a valid one. We therefore summarise every report with one of six outcomes, chosen by a fixed precedence:</p>
-<p class="eq"><i>invalid</i> &nbsp;&gt;&nbsp; <i>unsupported</i> &nbsp;&gt;&nbsp; <i>stale</i> &nbsp;&gt;&nbsp; <i>incomplete</i> &nbsp;&gt;&nbsp; <i>indeterminate</i> &nbsp;&gt;&nbsp; <i>verified</i></p>
+<h2>14. Verification and Honest Outcomes</h2>
+<p>Verification recomputes everything from the bytes, offline. A sealed bundle passes through the checks in Figure 13, and each check reports pass, fail or unknown, with a reason.</p>
+<figure>
+<svg width="560" height="176" viewBox="0 0 560 176" xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="n13" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
+  <g fill="none" stroke="#000" stroke-width="1">
+    <rect x="4" y="10" width="78" height="48"/><rect x="96" y="10" width="78" height="48"/><rect x="188" y="10" width="78" height="48"/><rect x="280" y="10" width="78" height="48"/><rect x="372" y="10" width="78" height="48"/><rect x="464" y="10" width="92" height="48"/>
+    <path d="M82,34 L96,34" marker-end="url(#n13)"/><path d="M174,34 L188,34" marker-end="url(#n13)"/><path d="M266,34 L280,34" marker-end="url(#n13)"/><path d="M358,34 L372,34" marker-end="url(#n13)"/><path d="M450,34 L464,34" marker-end="url(#n13)"/>
+    <rect x="30" y="118" width="150" height="40"/><rect x="205" y="118" width="150" height="40"/><rect x="380" y="118" width="150" height="40" stroke-width="2"/>
+    <path d="M280,58 L105,118" marker-end="url(#n13)"/><path d="M280,58 L280,118" marker-end="url(#n13)"/><path d="M510,58 L455,118" marker-end="url(#n13)"/>
+  </g>
+  <g font-size="10.5" text-anchor="middle">
+    <text x="43" y="30">files present,</text><text x="43" y="44">hashes match</text>
+    <text x="135" y="30">trust source</text><text x="135" y="44">(fingerprint)</text>
+    <text x="227" y="30">manifest and</text><text x="227" y="44">exporter</text>
+    <text x="319" y="30">signatures,</text><text x="319" y="44">inclusion</text>
+    <text x="411" y="30">sequence, dup-</text><text x="411" y="44">licates, order</text>
+    <text x="510" y="30">tree head</text><text x="510" y="44">matches</text>
+    <text x="105" y="136" font-weight="bold">INVALID</text><text x="105" y="150" font-size="9">any check failed: says which</text>
+    <text x="280" y="136" font-weight="bold">INDETERMINATE</text><text x="280" y="150" font-size="9">none failed, one undecided</text>
+    <text x="455" y="136" font-weight="bold">VALID</text><text x="455" y="150" font-size="9">every check passed, keys pinned</text>
+    <text x="168" y="92" font-size="9">any fail</text><text x="318" y="92" font-size="9">any unknown</text><text x="505" y="90" font-size="9">all pass</text>
+  </g>
+</svg>
+<figcaption>Figure 13. The verification pipeline and its three verdicts.</figcaption>
+</figure>
+<p>Tampering is caught where the arithmetic fails. If one byte of a receipt is changed, its recomputed digest <span class="nb">d′ ≠ d</span>, so the signature over <span class="nb">d</span> no longer verifies. This holds even when the attacker also updates the file's checksum in the manifest. If a receipt is removed, the signed manifest no longer matches. If proofs are swapped to reorder history, the inclusion proofs fail. If a receipt is duplicated, the duplicate check fails. Every result also carries, in words, what the evidence covers and what it cannot show (Section 16), so the limits travel with the verdict.</p>
+<p>Collapsing all of this into one bit would destroy information. A missing witness is not a forgery, and an unknown platform is not a valid one. The core library therefore summarises each report with one of six outcomes, chosen by a fixed precedence:</p>
+<p class="eq">invalid &nbsp;&gt;&nbsp; unsupported &nbsp;&gt;&nbsp; stale &nbsp;&gt;&nbsp; incomplete &nbsp;&gt;&nbsp; indeterminate &nbsp;&gt;&nbsp; verified</p>
 <table>
 <thead><tr><th>Outcome</th><th>Meaning</th><th>Typical cause</th></tr></thead>
 <tbody>
-<tr><td><i>invalid</i></td><td>a check failed</td><td>altered bytes, untrusted signer, wrong policy digest</td></tr>
+<tr><td><i>invalid</i></td><td>a check failed</td><td>altered bytes, untrusted signer, duplicate, reorder</td></tr>
 <tr><td><i>unsupported</i></td><td>the verifier cannot judge this</td><td>unknown algorithm, schema or platform</td></tr>
-<tr><td><i>stale</i></td><td>true once, not shown to be true now</td><td>expired certificate or attestation, old trust snapshot</td></tr>
-<tr><td><i>incomplete</i></td><td>evidence is missing</td><td>a gap in sequence numbers, a missing confirmation</td></tr>
-<tr><td><i>indeterminate</i></td><td>a required input was not supplied</td><td>no measurement policy, no nonce, no trust anchor</td></tr>
-<tr><td><i>verified</i></td><td>every applicable check passed</td><td>&mdash;</td></tr>
-</tbody>
-</table>
-<p>Completeness deserves a word. Evidence from one source can carry an epoch and a sequence number. A verifier that sees sequence numbers 7.0, 7.1 and 7.3 reports <i>incomplete</i>, naming 7.2, rather than presenting the history as clean. The last event of a sequence can only be shown missing once a later one arrives. A source that emits sequenced heartbeats bounds that window (Section 11).</p>
-<p>Evidence travels in <i>bundles</i>: envelopes, inclusion proofs, trust snapshots and the signed protocol objects they reference, under an exporter's signature. A bundle verifies with the public verifier, offline, by a party with no account and no network access. This also means a customer who stops using any service keeps evidence that remains verifiable indefinitely.</p>
+<tr><td><i>stale</i></td><td>true once, not shown true now</td><td>expired attestation, old trust snapshot</td></tr>
+<tr><td><i>incomplete</i></td><td>evidence is missing</td><td>a sequence gap, a missing confirmation</td></tr>
+<tr><td><i>indeterminate</i></td><td>a required input was not supplied</td><td>no fingerprint, no policy, no nonce</td></tr>
+<tr><td><i>verified</i></td><td>every applicable check passed</td><td>—</td></tr>
+</tbody></table>
+<p>The command-line verifier for agent receipts reports these as three verdicts with exit codes: <b>VALID</b> (0) for <i>verified</i>, <b>INVALID</b> (1) for <i>invalid</i> or <i>incomplete</i>, and <b>INDETERMINATE</b> (2) otherwise.</p>
 
-<h2>10. Privacy</h2>
-<p>Evidence must be shareable with auditors without disclosing the data it describes. Request parameters and context are therefore represented only by commitments:</p>
-<p class="eq">c = SHA-256(<code>"cool.authz.params.v1\0"</code> &#8214; salt &#8214; CBOR(NFC(params)))</p>
-<p class="eq">or, keyed: &nbsp; c = HMAC-SHA-256<sub>k</sub>(<code>"cool.authz.params.v1\0"</code> &#8214; salt &#8214; CBOR(NFC(params)))</p>
-<p>The salt is 128 random bits, held by the requester. Values are normalised (Unicode NFC, safe integers only, no floating point), so that equal values always commit equally. The holder can later reveal the salt and value, and anyone can check them against the commitment. For low-entropy values such as amounts or account numbers, a keyed commitment under a tenant key resists guessing even if a salt leaks. Selective disclosure follows the same pattern for individual envelope fields.</p>
-<p>The log never needs the content. It stores digests. Envelope bodies can therefore be deleted under a retention policy while the leaf stays in the tree, and history remains provable. Each deletion is itself a signed envelope naming the digest and the policy, and a later export reports the deleted body as missing, so a verifier sees <i>incomplete</i> rather than a clean history. Destroying a commitment's salt makes it impossible ever to open, while the evidence stays structurally valid. A legal hold suspends deletion for a time range.</p>
-
+<h2>15. Privacy</h2>
+<p>Evidence must be shareable without disclosing the data it describes. Agent inputs and outputs are reduced to keyed digests under a random key that never leaves the producer:</p>
+<p class="eq">input_digest = HMAC-SHA-256<sub>k</sub>(<code>"cool.mcp.input.v1\0"</code> ‖ canonical_json(input))</p>
+<p>Because the hash is keyed, a holder of the bundle cannot test a guess ("was the input X?") by hashing it. The producer can later prove a match by disclosing the input and the key to the person who needs to see them. Authorization parameters use salted or keyed commitments over normalised values, which can be opened selectively in the same way.</p>
+<p>The log never needs the content; it stores digests. Envelope bodies can therefore be deleted under a retention policy while their leaves stay in the tree, and the history remains provable (Figure 14). Each deletion is itself a signed envelope, and a later export reports the deleted body as missing, so a verifier sees <i>incomplete</i> rather than a clean history.</p>
 <figure>
 <svg width="540" height="126" viewBox="0 0 540 126" xmlns="http://www.w3.org/2000/svg">
   <g fill="none" stroke="#000" stroke-width="1">
@@ -245,15 +473,56 @@
   </g>
   <text x="270" y="123" font-size="10" text-anchor="middle">the receipt (leaf 3) is a signed envelope naming the deleted body's digest and the retention policy</text>
 </svg>
-<figcaption>Figure 5. Retention deletes bodies, never leaves: the tree still proves the history, and a signed receipt records the deletion.</figcaption>
+<figcaption>Figure 14. Retention deletes bodies, never leaves: the tree still proves the history, and a signed receipt records the deletion.</figcaption>
 </figure>
 
-<h2>11. Calculations</h2>
+<h2>16. Threat Model and the Capture Boundary</h2>
+<p>Against a sealed bundle, the following are detected. Each case is an automated test that runs on every change: a changed receipt (even with its file checksum updated), a receipt removed from the middle, reordered proofs, a duplicated or replayed receipt, a corrupted signature, a removed inclusion proof, a missing or corrupt file, and a bundle signed by a different producer. A bundle presented without an independently obtained key is <i>indeterminate</i>.</p>
+<p>What a recorder that runs beside a system cannot see is equally important. We call this the <i>capture boundary</i> (Figure 15).</p>
+<figure>
+<svg width="520" height="150" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none" stroke="#000" stroke-width="1">
+    <rect x="4" y="6" width="512" height="138" stroke-dasharray="4,3"/>
+    <rect x="20" y="30" width="250" height="100" stroke-width="2"/>
+  </g>
+  <g font-size="11">
+    <text x="260" y="22" text-anchor="middle">everything the agent does</text>
+    <text x="145" y="50" text-anchor="middle" font-weight="bold">recorded through CooL</text>
+    <text x="34" y="72">· calls through the CooL proxy</text>
+    <text x="34" y="90">· explicit record_change calls</text>
+    <text x="34" y="108">· hooked file edits</text>
+    <text x="290" y="56">outside the boundary:</text>
+    <text x="290" y="76">· shell commands</text>
+    <text x="290" y="94">· direct API or tool calls not proxied</text>
+    <text x="290" y="112">· anything while CooL was stopped</text>
+    <text x="290" y="130">· the truth of declared fields</text>
+  </g>
+</svg>
+<figcaption>Figure 15. The capture boundary. CooL proves the inner box was not altered; it says nothing about the outer one.</figcaption>
+</figure>
+<p>Inside the boundary, three limits remain, and each has a mitigation:</p>
+<ul>
+  <li><b>Removed final receipts.</b> Removing the final receipts before sealing leaves no gap. A witnessed or anchored tree size closes this.</li>
+  <li><b>A rewritten history.</b> A producer with full control of its machine can construct a new, internally consistent history. Witnesses that hold earlier tree heads detect this, as do recipients who keep earlier bundles.</li>
+  <li><b>The recorder's clock.</b> Timestamps come from the recorder unless externally anchored.</li>
+</ul>
+<p>Assurance rises in steps:</p>
+<ol>
+  <li>Route consequential tools through the proxy.</li>
+  <li>Publish fingerprints and tree sizes outside the organisation.</li>
+  <li>Add trusted timestamps.</li>
+  <li>Hold keys in a KMS or HSM.</li>
+  <li>Run the recorder in an attested enclave.</li>
+  <li>Place the gateway in front of the tool, so that what bypasses approval cannot execute.</li>
+</ol>
+<p class="note">CooL is <i>tamper-evident</i>, not tamper-proof. It covers actions recorded through it, not every action. It is evidence for controls, not a compliance certificate.</p>
+
+<h2>17. Calculations</h2>
 <h3>Forgery.</h3>
-<p>To forge an envelope, an adversary must produce both a valid ML-DSA-65 signature and a valid Ed25519 signature on a message of its choosing, under keys a verifier trusts. Against a classical adversary the work is at least that of breaking Ed25519, about 2<sup>128</sup> operations. Against an adversary with a large quantum computer, Ed25519 falls, but ML-DSA-65 (NIST security category 3) still stands. The hybrid is never weaker than its stronger component.</p>
+<p>To forge a receipt, an adversary must produce a valid ML-DSA-65 signature and a valid Ed25519 signature under keys the verifier trusts. Against a classical adversary the work is at least that of breaking Ed25519, about 2<sup>128</sup> operations. Against an adversary with a large quantum computer, Ed25519 falls but ML-DSA-65 (NIST security category 3) still stands. The hybrid is never weaker than its stronger component. Substituting keys does not help either. Matching a published 256-bit fingerprint with different keys is a second-preimage attack on SHA-256, with work about 2<sup>256</sup>.</p>
 <h3>Equivocation.</h3>
-<p>Suppose a log shows a victim a forked history. The fork is discovered if any party compares the victim's tree head with the head the rest of the world sees. If each of <i>z</i> independent relying parties performs that comparison against an honest witness with probability <i>q</i>, the probability that the fork survives all of them is</p>
-<p class="eq">P = (1 &minus; q)<sup>z</sup></p>
+<p>Suppose a log shows a victim a forked history. The fork is discovered if any party compares the victim's tree head with the head the rest of the world sees. If each of <i>z</i> independent relying parties makes that comparison against an honest witness with probability <i>q</i>, the fork survives all of them with probability</p>
+<p class="eq">P = (1 − q)<sup>z</sup></p>
 <pre>double ForkSurvives(double q, int z)
 {
     double p = 1.0;
@@ -261,72 +530,129 @@
         p *= (1.0 - q);
     return p;
 }</pre>
-<p>A verifier that demands co-signatures from <i>t</i> witnesses forces <i>q</i> = 1 for itself, unless the adversary also controls those <i>t</i> witnesses. Even occasional comparisons by others drive the survival probability down exponentially:</p>
 <table>
 <thead><tr><th class="r">z</th><th class="r">q = 0.05</th><th class="r">q = 0.10</th><th class="r">q = 0.25</th><th class="r">q = 0.50</th></tr></thead>
 <tbody>
 <tr><td class="r">10</td><td class="r">0.5987</td><td class="r">0.3487</td><td class="r">0.0563</td><td class="r">0.0009766</td></tr>
-<tr><td class="r">50</td><td class="r">0.0769</td><td class="r">0.0052</td><td class="r">5.7 &times; 10<sup>&minus;7</sup></td><td class="r">8.9 &times; 10<sup>&minus;16</sup></td></tr>
-<tr><td class="r">100</td><td class="r">0.0059</td><td class="r">2.7 &times; 10<sup>&minus;5</sup></td><td class="r">3.2 &times; 10<sup>&minus;13</sup></td><td class="r">7.9 &times; 10<sup>&minus;31</sup></td></tr>
-<tr><td class="r">500</td><td class="r">7.3 &times; 10<sup>&minus;12</sup></td><td class="r">1.3 &times; 10<sup>&minus;23</sup></td><td class="r">3.4 &times; 10<sup>&minus;63</sup></td><td class="r">3.1 &times; 10<sup>&minus;151</sup></td></tr>
-</tbody>
-</table>
-<h3>Guessing committed parameters.</h3>
-<p>A salted commitment hides its value with 128 bits of salt, so an adversary who does not hold the salt must search 2<sup>128</sup> possibilities, whatever the value. If the salt is disclosed, for example to an auditor, a value drawn from a small space can be enumerated: a refund amount of up to 10<sup>6</sup> cents falls in a million guesses. The keyed form prevents this. Without the tenant key, no guess can be tested at all, whatever the size of the space.</p>
+<tr><td class="r">50</td><td class="r">0.0769</td><td class="r">0.0052</td><td class="r">5.7 × 10<sup>−7</sup></td><td class="r">8.9 × 10<sup>−16</sup></td></tr>
+<tr><td class="r">100</td><td class="r">0.0059</td><td class="r">2.7 × 10<sup>−5</sup></td><td class="r">3.2 × 10<sup>−13</sup></td><td class="r">7.9 × 10<sup>−31</sup></td></tr>
+<tr><td class="r">500</td><td class="r">7.3 × 10<sup>−12</sup></td><td class="r">1.3 × 10<sup>−23</sup></td><td class="r">3.4 × 10<sup>−63</sup></td><td class="r">3.1 × 10<sup>−151</sup></td></tr>
+</tbody></table>
+<p>A verifier that demands co-signatures from <i>t</i> witnesses forces <i>q</i> = 1 for itself, unless the adversary also controls those <i>t</i> witnesses.</p>
+<h3>Guessing payloads.</h3>
+<p>A keyed digest cannot be tested without the key. With the key withheld, no guess can be checked at all, whatever the size of the space. With an unkeyed hash, a refund amount of up to 10<sup>6</sup> cents would fall to a million guesses; this is why the keyed form is the default.</p>
 <h3>Undetected omission.</h3>
-<p>Dropping a sequenced event that is followed by another is detected with certainty by any verifier that sees the later event. Only the last event before an observation can disappear unnoticed. If a source emits a sequenced heartbeat every <i>h</i> seconds, an omission can stay hidden for at most <i>h</i> seconds plus the delivery delay. After that, the gap appears in every bundle that contains the following heartbeat.</p>
+<p>Dropping a numbered receipt that is followed by another is detected with certainty by any verifier that sees the later one. Only receipts after the last one observed by an outside party can vanish unnoticed. If a producer seals and anchors every <i>h</i> seconds, an omission can stay hidden for at most <i>h</i> seconds plus the delivery delay.</p>
+<h3>Proof and bundle size.</h3>
+<p>An inclusion proof for <i>n</i> receipts has ⌈log<sub>2</sub> <i>n</i>⌉ hashes of 32 bytes: 320 bytes for a thousand receipts. A sealed receipt carries its own ML-DSA-65 signature (3,309 bytes) and the tree head's (another 3,309 bytes) as base64 text. Measured bundles are about 20 KB per receipt (Section 18), which a verifier can check in milliseconds per receipt.</p>
 <h3>Replay.</h3>
-<p>Each request carries a fresh nonce and an expiry, and the gateway consumes the nonce atomically before executing. Of any number of concurrent submissions of one authorization, at most one executes. This is tested with 25 parallel submissions on one host, and with competing clients against a shared store. The nonce need only be remembered until the request expires, after which the expiry refuses it on its own.</p>
+<p>Each authorization request carries a fresh nonce and an expiry, and the gateway consumes the nonce atomically before executing. Of any number of concurrent submissions of one authorization, at most one executes. This is tested with 25 parallel submissions on one host, and with competing clients against a shared Redis store. Within an agent receipt log, numbers are assigned under a cross-process lock. Three concurrent recorders writing 75 receipts produce no repeated or skipped number.</p>
 
-<h2>12. Status and Limitations</h2>
-<p>A system that asks to be trusted for honesty about evidence must be honest about itself. Every capability of the reference implementation carries exactly one label, defined in code and enforced by its test suite. <span class="lbl">Implemented</span> means validated against genuine evidence or a real service. <span class="lbl">Experimental</span> means built and tested, but not yet validated on the real hardware or cloud service. As of this specification:</p>
+<h2>18. Performance</h2>
+<p>All figures are measured, not estimated. They were taken on 18 November 2026 with Node.js 24.18 on an Intel Core i7-14650HX under Windows 11, using the project's own benchmark scripts. Each receipt carried a 500-byte input, and every bundle verified as valid.</p>
 <table>
+<thead><tr><th>Operation</th><th class="r">Median</th><th class="r">95th pct.</th></tr></thead>
+<tbody>
+<tr><td>create and hybrid-sign an envelope</td><td class="r">6.1 ms</td><td class="r">20.4 ms</td></tr>
+<tr><td>verify an envelope, all checks</td><td class="r">4.3 ms</td><td class="r">5.1 ms</td></tr>
+<tr><td>record an agent receipt (sign + <code>fsync</code>)</td><td class="r">11.6 ms</td><td class="r">22.7 ms</td></tr>
+<tr><td>gateway, end to end (decide, verify, nonce, execute, confirm)</td><td class="r">26.2 ms</td><td class="r">40.4 ms</td></tr>
+</tbody></table>
+<figure>
+<svg width="540" height="196" viewBox="0 0 540 196" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none" stroke="#000" stroke-width="1">
+    <line x1="50" y1="20" x2="50" y2="150"/><line x1="50" y1="150" x2="250" y2="150"/>
+    <line x1="46" y1="20" x2="50" y2="20"/><line x1="46" y1="85" x2="50" y2="85"/>
+    <line x1="320" y1="20" x2="320" y2="150"/><line x1="320" y1="150" x2="530" y2="150"/>
+    <line x1="316" y1="150" x2="320" y2="150"/><line x1="316" y1="106.7" x2="320" y2="106.7"/><line x1="316" y1="63.3" x2="320" y2="63.3"/><line x1="316" y1="20" x2="320" y2="20"/>
+  </g>
+  <g fill="#000">
+    <rect x="70" y="74.4" width="34" height="75.6"/><rect x="132" y="75.0" width="34" height="75.0"/><rect x="194" y="70.0" width="34" height="80.0"/>
+  </g>
+  <g stroke="#000" stroke-width="1">
+    <rect x="336" y="120.1" width="22" height="29.9" fill="#fff"/>
+    <rect x="360" y="112.1" width="22" height="37.9" fill="#000"/>
+    <rect x="402" y="115.4" width="22" height="34.6" fill="#fff"/>
+    <rect x="426" y="78.0" width="22" height="72.0" fill="#000"/>
+    <rect x="468" y="46.1" width="22" height="103.9" fill="#fff"/>
+    <rect x="492" y="34.8" width="22" height="115.2" fill="#000"/>
+  </g>
+  <g font-size="10" text-anchor="middle">
+    <text x="150" y="12" font-weight="bold">record time per receipt (ms)</text>
+    <text x="40" y="24" text-anchor="end">20</text><text x="40" y="89" text-anchor="end">10</text><text x="40" y="154" text-anchor="end">0</text>
+    <text x="87" y="68">11.6</text><text x="149" y="69">11.5</text><text x="211" y="64">12.3</text>
+    <text x="87" y="166">10</text><text x="149" y="166">100</text><text x="211" y="166">1,000</text>
+    <text x="150" y="180">receipts already in the log</text>
+    <text x="425" y="12" font-weight="bold">seal (white) and verify (black), ms, log scale</text>
+    <text x="312" y="154" text-anchor="end">10</text><text x="312" y="110" text-anchor="end">10²</text><text x="312" y="67" text-anchor="end">10³</text><text x="312" y="24" text-anchor="end">10⁴</text>
+    <text x="347" y="117">49</text><text x="371" y="109">75</text><text x="413" y="112">63</text><text x="437" y="75">459</text><text x="479" y="43">2.5k</text><text x="503" y="32">4.6k</text>
+    <text x="359" y="166">10</text><text x="425" y="166">100</text><text x="491" y="166">1,000</text>
+    <text x="425" y="180">receipts in the bundle</text>
+  </g>
+</svg>
+<figcaption>Figure 16. Recording cost does not grow with the log; verification grows linearly at about 4.6 ms per receipt.</figcaption>
+</figure>
+<p>Recording costs about a hundredth of a second, including the post-quantum signature and a durable write, and stays flat as the log grows. A bundle of a thousand receipts seals in 2.5 seconds and verifies in 4.6 seconds on a laptop. Readers should run the benchmarks on their own hardware before relying on these figures.</p>
+
+<h2>19. Regulatory Context</h2>
+<p>Rules in many jurisdictions now ask organisations to keep records of how automated and AI systems behave, to protect personal data while doing so, and to show that those records are reliable when asked. The table summarises the principal instruments as understood on 18 November 2026.</p>
+<p class="note"><b>Not legal advice.</b> Several timetables changed during 2025 and 2026. Confirm the current text with qualified counsel. Using CooL does not by itself make any organisation compliant with any law or standard.</p>
+<table class="wide">
+<thead><tr><th>Jurisdiction</th><th>Instruments asking for records or accountability</th></tr></thead>
+<tbody>
+<tr><td>European Union, incl. Denmark</td><td>AI Act (Reg. 2024/1689): automatic event logging for high-risk systems (Art. 12) and log retention, generally at least six months (Arts. 19, 26). The 2026 Digital Omnibus moved the high-risk dates to 2 Dec 2027 (Annex III) and 2 Aug 2028 (Annex I). Also the GDPR; NIS2 (in Danish law); and DORA for financial entities since 17 Jan 2025.</td></tr>
+<tr><td>United Kingdom</td><td>UK GDPR and DPA 2018 accountability (Art. 5(2)); Data (Use and Access) Act 2025; AI overseen by sector regulators (ICO, FCA, CMA, Ofcom); FCA record-keeping and operational resilience.</td></tr>
+<tr><td>Switzerland</td><td>Revised FADP (since 1 Sep 2023); sector-specific approach decided Feb 2025 and the Council of Europe AI Convention signed 27 Mar 2025, with implementing consultation expected 2026–27; FINMA Guidance 08/2024 on AI governance.</td></tr>
+<tr><td>India</td><td>DPDP Act 2023 with DPDP Rules (Nov 2025), main obligations from about May 2027; CERT-In Directions (28 Apr 2022): ICT logs kept 180 days in India, incidents reported within 6 hours; MeitY AI Governance Guidelines (2025).</td></tr>
+<tr><td>United States</td><td>NIST AI RMF 1.0 and AI 600-1; SEC Rule 17a-4 (audit-trail alternative since 2022); HIPAA audit controls (45 CFR 164.312(b)); Sarbanes-Oxley; state laws such as Colorado SB 24-205 (check current status).</td></tr>
+<tr><td>International</td><td>ISO/IEC 42001:2023; ISO/IEC 27001:2022 control 8.15 (Logging); SOC 2.</td></tr>
+</tbody></table>
+<p>CooL contributes records whose integrity a third party can check, held wherever the producer chooses to run it and containing digests rather than personal data. Risk classification, lawful basis, retention periods and human oversight remain the organisation's responsibility.</p>
+
+<h2>20. Status and Limitations</h2>
+<p>A system that asks to be trusted for honesty about evidence must be honest about itself. Every capability carries exactly one label, defined in code and enforced by the test suite. <i>Implemented</i> means validated against genuine evidence or a real service. <i>Experimental</i> means built and tested, but not yet validated against the real thing.</p>
+<table class="wide">
 <thead><tr><th>Capability</th><th>Label</th><th>Basis</th></tr></thead>
 <tbody>
 <tr><td>Envelopes, bundles, outcomes, transparency log, witnesses</td><td>implemented</td><td>adversarial and fuzz tests</td></tr>
-<tr><td>Authorization protocol, reproducible decisions, gateway</td><td>implemented</td><td>adversarial and race tests; scenario demo</td></tr>
-<tr><td>Replay protection, one host and Redis across machines</td><td>implemented</td><td>race tests; continuous test against a real Redis server</td></tr>
-<tr><td>RFC 3161 and OpenTimestamps anchoring</td><td>implemented</td><td>a genuine DigiCert token, exhaustively bit-flipped</td></tr>
-<tr><td>AWS Nitro attestation verification</td><td>implemented</td><td>a genuine AWS attestation document</td></tr>
-<tr><td>AMD SEV-SNP attestation verification</td><td>implemented</td><td>a genuine Milan report; AMD roots pinned</td></tr>
-<tr><td>Intel TDX via Phala dstack</td><td>implemented</td><td>recorded hardware validation</td></tr>
-<tr><td>Sealer running in a Nitro Enclave on AWS hardware</td><td>experimental</td><td>deployment kit built; not yet run on AWS</td></tr>
-<tr><td>NVIDIA confidential-computing results</td><td>experimental</td><td>real service keys; no real GPU result yet</td></tr>
-<tr><td>AWS KMS, Google Cloud KMS, PKCS#11 signers</td><td>experimental</td><td>provider emulators; not yet run live</td></tr>
-<tr><td>Independent third-party security review</td><td>planned</td><td>internal review done; review package prepared</td></tr>
-</tbody>
-</table>
+<tr><td>Agent Execution Receipt; MCP server, proxy; offline verifier</td><td>implemented</td><td>real MCP SDK client over stdio; Claude Code connected; tamper fixtures</td></tr>
+<tr><td>Authorization protocol, reproducible decisions, gateway</td><td>implemented</td><td>adversarial and race tests</td></tr>
+<tr><td>Replay protection, one host and Redis across machines</td><td>implemented</td><td>tests against a real Redis server</td></tr>
+<tr><td>RFC 3161 and OpenTimestamps anchoring</td><td>implemented</td><td>a genuine DigiCert token</td></tr>
+<tr><td>AWS Nitro, AMD SEV-SNP, Intel TDX (Phala dstack) verification</td><td>implemented</td><td>genuine attestation evidence</td></tr>
+<tr><td>Claude Code plugin; Claude Desktop extension; other MCP clients</td><td>experimental</td><td>validated packages; not yet run in every client</td></tr>
+<tr><td>Sealer in a Nitro Enclave; NVIDIA CC; cloud KMS and HSM signers</td><td>experimental</td><td>kits and emulators; not yet run on real services</td></tr>
+<tr><td>OpenTelemetry export; independent witness service</td><td>planned</td><td>—</td></tr>
+<tr><td>Independent third-party security review</td><td>planned</td><td>review package prepared; no audit is claimed</td></tr>
+</tbody></table>
 <p>Some limits are inherent to the approach and will not change:</p>
 <ul>
-<li>CooL proves that a record is authentic, consistent and complete within its sequence. It does not prove that the recorded statement is true, or that a decision was wise.</li>
-<li>Actions that bypass the gateway are not covered.</li>
-<li>An identity issuer or evaluator that the verifier trusts can lie within its authority. A reproducible decision removes the evaluator from that list, but the facts it consumed are only as good as their source.</li>
-<li>Attestation shows a measured launch state, not correct behaviour.</li>
-<li>Witness independence is operational.</li>
-<li>Revocation status is only as current as the trust snapshot.</li>
+  <li>CooL proves that a record is authentic, consistent and complete within its sequence. It does not prove that the recorded statement is true, or that a decision was wise.</li>
+  <li>Actions outside the capture boundary, or that bypass the gateway, are not covered.</li>
+  <li>An issuer or evaluator that the verifier trusts can lie within its authority.</li>
+  <li>Attestation shows a measured launch state, not correct behaviour.</li>
+  <li>Witness independence is operational.</li>
 </ul>
 <p>Each of these limits is reported explicitly in the verification output.</p>
 
-<h2>13. Conclusion</h2>
-<p>We have proposed an evidence system for consequential actions that does not rely on trust in the operator. We started from envelopes: canonical records committed by domain-separated hashes and hybrid signatures. Signatures alone cannot reveal omission or equivocation, so we appended every digest to a Merkle log whose tree heads are co-signed by witnesses and anchored in external time. To connect evidence to authority, we added a protocol in which identity, delegated scope, a committed request and a policy decision are each signed by the party responsible. The decision can be reproduced by anyone holding the policy and facts. Enforcement is placed at the boundary that owns the action, which refuses whatever it cannot verify, consumes each authorization once, and signs what it actually did. Where hardware allows, the evidence key is bound to an attestation of the running code. Throughout, verification refuses to round uncertainty up: a missing record is <i>incomplete</i>, an old certificate is <i>stale</i>, an unknown platform is <i>unsupported</i>, and only a fully checked record is <i>verified</i>. The format, the verifiers and the authorization protocol are open, so that anyone can check the evidence without asking permission.</p>
+<h2>21. Conclusion</h2>
+<p>We have proposed an evidence system for consequential actions that does not rely on trust in the operator. We started from receipts: canonical records committed by domain-separated hashes and hybrid post-quantum signatures, numbered without gaps. Signatures and numbers alone cannot reveal equivocation, so every receipt becomes a leaf of a Merkle log whose tree heads can be witnessed and anchored in external time. A bundle cannot vouch for its own keys, so the key fingerprint travels by a separate channel. To connect evidence to authority, we added a protocol in which identity, delegation, request and decision are each signed by the party responsible, and enforcement sits with the tool. To make this available where software now acts most, AI agents produce receipts through the Model Context Protocol, by explicit call, through a recording proxy, or through editor hooks. Verification runs offline, gives a reason for every check and never reports a gap as success. The result does not make software trustworthy. It makes its record checkable, by anyone, without asking permission.</p>
 
 <h2>References</h2>
 <ol class="refs">
-<li>S. Nakamoto, "Bitcoin: A Peer-to-Peer Electronic Cash System," 2008.</li>
-<li>S. Haber, W. S. Stornetta, "How to time-stamp a digital document," <i>Journal of Cryptology</i>, vol. 3, no. 2, pp. 99&ndash;111, 1991.</li>
-<li>C. Bormann, P. Hoffman, "Concise Binary Object Representation (CBOR)," RFC 8949, &sect;4.2 Core Deterministic Encoding, 2020.</li>
-<li>NIST, "Module-Lattice-Based Digital Signature Standard," FIPS 204, 2024.</li>
-<li>S. Josefsson, I. Liusvaara, "Edwards-Curve Digital Signature Algorithm (EdDSA)," RFC 8032, 2017.</li>
-<li>B. Laurie, A. Langley, E. Kasper, "Certificate Transparency," RFC 6962, 2013.</li>
-<li>C. Adams, P. Cain, D. Pinkas, R. Zuccherato, "Internet X.509 Public Key Infrastructure Time-Stamp Protocol (TSP)," RFC 3161, 2001.</li>
-<li>P. Todd, "OpenTimestamps: scalable, trust-minimized, distributed timestamping with Bitcoin," 2016.</li>
-<li>S. A. Crosby, D. S. Wallach, "Efficient data structures for tamper-evident logging," <i>USENIX Security Symposium</i>, 2009.</li>
-<li>R. Merkle, "Protocols for public key cryptosystems," <i>IEEE Symposium on Security and Privacy</i>, 1980.</li>
-<li>Amazon Web Services, "AWS Nitro Enclaves User Guide: Verifying the root of trust," 2026.</li>
-<li>AMD, "SEV Secure Nested Paging Firmware ABI Specification," 2025.</li>
-<li>Intel, "Intel Trust Domain Extensions (TDX) Module Architecture Specification," 2025.</li>
-<li>Northwind Cipher, "cool-nwc 4.0.0: specification, schemas and test vectors," github.com/Northwind-Cipher/cool-sdk, 2026.</li>
+  <li>S. Nakamoto, "Bitcoin: A Peer-to-Peer Electronic Cash System," 2008.</li>
+  <li>R. C. Merkle, "Protocols for Public Key Cryptosystems," IEEE Symposium on Security and Privacy, 1980.</li>
+  <li>C. Bormann, P. Hoffman, "Concise Binary Object Representation (CBOR)," RFC 8949, 2020.</li>
+  <li>NIST, "Module-Lattice-Based Digital Signature Standard," FIPS 204, 2024.</li>
+  <li>S. Josefsson, I. Liusvaara, "Edwards-Curve Digital Signature Algorithm (EdDSA)," RFC 8032, 2017.</li>
+  <li>B. Laurie, A. Langley, E. Kasper, "Certificate Transparency," RFC 6962, 2013.</li>
+  <li>C. Adams et al., "Internet X.509 PKI Time-Stamp Protocol (TSP)," RFC 3161, 2001.</li>
+  <li>P. Todd, "OpenTimestamps: Scalable, Trust-Minimized, Distributed Timestamping with Bitcoin," 2016.</li>
+  <li>"Model Context Protocol Specification," modelcontextprotocol.io.</li>
+  <li>H. Krawczyk, M. Bellare, R. Canetti, "HMAC: Keyed-Hashing for Message Authentication," RFC 2104, 1997.</li>
+  <li>Regulation (EU) 2024/1689 (Artificial Intelligence Act), and its 2026 amendment by the Digital Omnibus on AI.</li>
+  <li>NIST, "Artificial Intelligence Risk Management Framework (AI RMF 1.0)," 2023; "Generative AI Profile," NIST AI 600-1, 2024.</li>
+  <li>Northwind Cipher, CooL source code, schemas, test vectors and capability registry, github.com/Northwind-Cipher/cool-sdk, 2026.</li>
 </ol>
-
 </body>
 </html>
