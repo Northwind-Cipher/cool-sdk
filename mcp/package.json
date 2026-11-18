@@ -1,0 +1,73 @@
+{
+  "name": "@northwindcipher/mcp-server-cool",
+  "version": "0.1.0",
+  "description": "CooL MCP server: signed, tamper-evident, offline-verifiable receipts for what AI agents do. Works with Claude Code, Claude Desktop, Cursor, Windsurf, VS Code, Codex CLI, Gemini CLI and any MCP client.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "mcp-server-cool": "dist/cli.js"
+  },
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    },
+    "./receipts": {
+      "types": "./dist/receipts.d.ts",
+      "default": "./dist/receipts.js"
+    },
+    "./verify": {
+      "types": "./dist/verify.d.ts",
+      "default": "./dist/verify.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "MVP_SCOPE.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Northwind-Cipher/cool-sdk.git",
+    "directory": "mcp"
+  },
+  "homepage": "https://github.com/Northwind-Cipher/cool-sdk/blob/main/docs/mcp.md",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-agents",
+    "audit",
+    "evidence",
+    "receipts",
+    "claude",
+    "cursor",
+    "post-quantum"
+  ],
+  "mcpName": "io.github.northwind-cipher/cool",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "prepack": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "demo": "node --import tsx scripts/demo.ts",
+    "build:mcpb": "node scripts/build-mcpb.mjs",
+    "bench": "node --import tsx scripts/bench.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "cool-nwc": "^4.1.0",
+    "zod": "^3.25.0 || ^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "ajv": "^8.17.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

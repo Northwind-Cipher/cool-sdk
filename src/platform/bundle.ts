@@ -126,6 +126,8 @@ export interface BundleReport {
     readonly decisions_bound: Check;
     readonly attachments_bound: Check;
     readonly sequence_complete: Check;
+    readonly duplicates_absent: Check;
+    readonly order_consistent: Check;
   };
   readonly envelopes: ReadonlyArray<{ readonly event_id: string; readonly event_type: string; readonly overall_status: OverallStatus; readonly reasons: readonly string[] }>;
   /** Envelopes ordered by occurred_at. Cross-system correlation is a commercial feature. */
@@ -196,7 +198,27 @@ export function verifyBundle(
     : gaps.length ? check("fail", "sequence_gap", `missing ${gaps.join(", ")} — the history for those intervals is incomplete`, { limitation: "a dropped final receipt is only detectable once a later one arrives" })
       : check("pass", "sequences_contiguous", `${[...byEpoch.values()].reduce((n, v) => n + v.length, 0)} sequenced receipt(s), no gaps`, { limitation: "a dropped final receipt is only detectable once a later one arrives" });
 
-  const checks = { manifest_valid: manifest, exporter_signature_valid: exporter, trust_source: trustSource, envelopes_valid: envelopes, evidence_complete: complete, decisions_bound: decisions, attachments_bound: attachments, sequence_complete: sequence };
+  // Replay inside a bundle: the same envelope, event id or sequence number twice.
+  const seen = { digest: new Set<string>(), event: new Set<string>(), seq: new Set<string>() };
+  const dups: string[] = [];
+  for (const e of bundle.envelopes) {
+    const s = e.core.sequence ? `${e.core.sequence.epoch}.${e.core.sequence.number}` : undefined;
+    if (seen.digest.has(e.digest)) dups.push(`envelope ${e.digest}`);
+    else if (seen.event.has(e.core.event_id)) dups.push(`event_id ${e.core.event_id}`);
+    else if (s && seen.seq.has(s)) dups.push(`sequence ${s}`);
+    seen.digest.add(e.digest); seen.event.add(e.core.event_id); if (s) seen.seq.add(s);
+  }
+  const duplicates = dups.length ? check("fail", "duplicate_evidence", `appears more than once: ${dups.slice(0, 5).join(", ")}`) : check("pass", "no_duplicates", `${bundle.envelopes.length} distinct envelope(s)`);
+
+  // Reordering: within one log and one epoch, a higher sequence number must sit at a higher leaf index.
+  const placed = bundle.envelopes.filter((e) => e.core.sequence && e.checkpoint).map((e) => ({ log: e.checkpoint!.sth.log_id, epoch: e.core.sequence!.epoch, n: e.core.sequence!.number, leaf: e.checkpoint!.leaf_index }));
+  const inversions: string[] = [];
+  for (const a of placed) for (const b of placed) if (a.log === b.log && a.epoch === b.epoch && a.n < b.n && a.leaf > b.leaf) inversions.push(`${a.epoch}.${a.n}↔${b.epoch}.${b.n}`);
+  const order = !placed.length ? check("not_applicable", "no_ordered_evidence", "no sequenced, logged evidence to compare")
+    : inversions.length ? check("fail", "order_mismatch", `sequence order disagrees with log order: ${inversions.slice(0, 5).join(", ")}`)
+      : check("pass", "order_consistent", `${placed.length} sequenced record(s) in log order`);
+
+  const checks = { manifest_valid: manifest, exporter_signature_valid: exporter, trust_source: trustSource, envelopes_valid: envelopes, evidence_complete: complete, decisions_bound: decisions, attachments_bound: attachments, sequence_complete: sequence, duplicates_absent: duplicates, order_consistent: order };
   const { overall, reasons } = overallOf(checks, Object.keys(checks));
   return {
     schema: "cool.bundle-report.v1",

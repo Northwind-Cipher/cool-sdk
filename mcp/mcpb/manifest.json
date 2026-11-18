@@ -1,0 +1,38 @@
+{
+  "manifest_version": "0.3",
+  "name": "cool",
+  "display_name": "CooL: verifiable agent receipts",
+  "version": "0.1.0",
+  "description": "Record what AI agents do as signed, tamper-evident receipts and verify them offline.",
+  "long_description": "CooL records agent actions as signed receipts inside a project folder you choose (in .cool/ there). Each receipt carries ML-DSA-65 + Ed25519 signatures and a sequence number, so gaps show. Inputs and outputs are kept only as keyed digests. CooL seals the receipts into a Merkle-tree bundle that anyone can verify offline with one command. It proves the record was not altered. It does not prove that every action was recorded, and agent identities are declared, not authenticated. Experimental.",
+  "author": { "name": "Northwind Cipher", "url": "https://github.com/Northwind-Cipher" },
+  "repository": { "type": "git", "url": "https://github.com/Northwind-Cipher/cool-sdk" },
+  "homepage": "https://github.com/Northwind-Cipher/cool-sdk/blob/main/docs/mcp.md",
+  "documentation": "https://github.com/Northwind-Cipher/cool-sdk/blob/main/docs/mcp.md",
+  "support": "https://github.com/Northwind-Cipher/cool-sdk/issues",
+  "license": "Apache-2.0",
+  "keywords": ["audit", "evidence", "receipts", "compliance", "post-quantum"],
+  "server": {
+    "type": "node",
+    "entry_point": "server/cli.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/cli.js", "--workspace", "${user_config.workspace}"]
+    }
+  },
+  "user_config": {
+    "workspace": {
+      "type": "directory",
+      "title": "Project folder",
+      "description": "The one folder CooL may write receipts into. It creates .cool/ there. Do not choose your home folder or a drive root.",
+      "required": true
+    }
+  },
+  "tools": [
+    { "name": "cool_record_change", "description": "Record one agent action as a signed receipt" },
+    { "name": "cool_seal_log", "description": "Seal all receipts into a portable bundle" },
+    { "name": "cool_verify_receipt", "description": "Verify a bundle offline: VALID, INVALID or INDETERMINATE" },
+    { "name": "cool_status", "description": "Receipts, problems and the key fingerprint" }
+  ],
+  "compatibility": { "platforms": ["darwin", "win32", "linux"], "runtimes": { "node": ">=20.0.0" } }
+}

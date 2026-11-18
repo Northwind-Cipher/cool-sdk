@@ -1,6 +1,6 @@
 {
   "name": "cool-nwc",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "CooL open evidence core: tamper-evident, offline-verifiable evidence for AI and software. Hybrid post-quantum signatures (ML-DSA-65 + Ed25519), an RFC 6962 transparency log, Intel TDX (Phala dstack) and AWS Nitro attestation verification, and verifiers that trust nothing but the bytes.",
   "license": "Apache-2.0",
   "type": "module",

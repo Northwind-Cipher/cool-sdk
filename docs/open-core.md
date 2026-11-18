@@ -8,7 +8,7 @@ The open core is licensed under **Apache-2.0** and lives in this repository. The
 
 | Area | What is included |
 |---|---|
-| **Evidence format** | `cool.receipt.v2`, `cool.evidence.v1`, `cool.change.v2`, `cool.envelope.v1`, `cool.bundle.v1`, `cool.trust-snapshot.v1`, `cool.verification-report.v1`; the authorization objects (`cool.principal.v1`, `cool.delegation.v1`, `cool.authz-request.v1`, `cool.authz-decision.v1`, `cool.external-confirmation.v1`); JSON Schemas in `spec/schemas/`; 50 typed event payloads; test vectors |
+| **Evidence format** | `cool.receipt.v2`, `cool.evidence.v1`, `cool.change.v2`, `cool.envelope.v1`, `cool.bundle.v1`, `cool.trust-snapshot.v1`, `cool.verification-report.v1`; the authorization objects (`cool.principal.v1`, `cool.delegation.v1`, `cool.authz-request.v1`, `cool.authz-decision.v1`, `cool.external-confirmation.v1`); JSON Schemas in `spec/schemas/`; 51 typed event payloads; test vectors |
 | **Specifications and security docs** | evidence format, verification, trust models (Phala/TDX and AWS Nitro), threat model, security model |
 | **Cryptographic core** | canonical CBOR, SHA-256 commitments, ML-DSA-65 + Ed25519 hybrid signatures, RFC 6962 Merkle proofs, the algorithm registry |
 | **SDKs and capture** | `CooL`, `CoolTee` (with the attestation simulator and dstack client), `CoolClient`, reference connectors (local git, config files), the in-enclave Nitro receipt sealer, enclave↔host framing |

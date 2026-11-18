@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" font-family="'Segoe UI', -apple-system, Helvetica, Arial, sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">CooL architecture</title>
+  <desc id="d">Actions from AI agents, applications and the CLI are committed, wrapped in a canonical envelope, hybrid-signed and appended to a transparency log, backed by key custody, hardware attestation, witnesses and time anchors, then exported as a portable bundle that anyone verifies offline.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#7ee2a8"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#79c0ff"/></marker>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0e141b"/><stop offset="1" stop-color="#0a0e13"/></linearGradient>
+  </defs>
+  <style>
+    .h{fill:#e6edf3;font-size:15px;font-weight:700}
+    .s{fill:#9aa7b4;font-size:11.5px}
+    .k{fill:#7ee2a8;font-size:11.5px;font-weight:700;letter-spacing:1.6px}
+    .kb{fill:#79c0ff;font-size:11.5px;font-weight:700;letter-spacing:1.6px}
+    .l{fill:#79c0ff;font-size:11px;font-style:italic}
+    .card{fill:#121a23;stroke:#2a3644;stroke-width:1}
+    .core{fill:#0f1d18;stroke:#7ee2a8;stroke-width:1.4}
+    .anc{fill:#0f1824;stroke:#79c0ff;stroke-width:1.2;stroke-dasharray:5 4}
+    .chip{font-size:11px;font-weight:700;letter-spacing:.6px}
+  </style>
+
+  <rect width="1200" height="600" rx="18" fill="url(#g)"/>
+  <rect x=".5" y=".5" width="1199" height="599" rx="18" fill="none" stroke="#1f2a36"/>
+
+  <!-- header -->
+  <text x="32" y="50" fill="#e6edf3" font-size="24" font-weight="800">CooL architecture</text>
+  <text x="32" y="76" class="s" font-size="14">From an action to evidence that anyone can verify offline, with no account and no trust in the operator.</text>
+
+  <!-- column labels -->
+  <text x="32" y="134" class="k">① CAPTURE</text>
+  <text x="272" y="134" class="k">② EVIDENCE CORE</text>
+  <text x="978" y="134" class="k">④ VERIFY ANYWHERE</text>
+
+  <!-- ① capture -->
+  <rect x="32" y="148" width="200" height="330" rx="12" fill="#0d131a" stroke="#2a3644"/>
+  <rect x="44" y="160" width="176" height="110" rx="9" class="card"/>
+  <text x="56" y="184" class="h">AI agents · MCP</text>
+  <text x="56" y="204" class="s">Claude Code · Desktop</text>
+  <text x="56" y="220" class="s">Codex · Cursor · Gemini CLI</text>
+  <text x="56" y="236" class="s">VS Code · Windsurf · Zed</text>
+  <text x="56" y="256" fill="#7ee2a8" font-size="11.5">tool · proxy · hook</text>
+
+  <rect x="44" y="280" width="176" height="88" rx="9" class="card"/>
+  <text x="56" y="304" class="h">Applications · SDK</text>
+  <text x="56" y="324" class="s">cool-nwc · CoolTee · Client</text>
+  <text x="56" y="340" class="s">model calls · deploys · refunds</text>
+  <text x="56" y="356" class="s">any consequential action</text>
+
+  <rect x="44" y="378" width="176" height="88" rx="9" class="card"/>
+  <text x="56" y="402" class="h">CLI · git · CI</text>
+  <text x="56" y="422" class="s">cool seal prompt | model</text>
+  <text x="56" y="438" class="s">git capture connector</text>
+  <text x="56" y="454" class="s">pipelines and scripts</text>
+
+  <!-- capture → core -->
+  <path d="M232 225H266" stroke="#7ee2a8" stroke-width="1.8" fill="none" marker-end="url(#a)"/>
+
+  <!-- ② core pipeline -->
+  <rect x="272" y="160" width="150" height="130" rx="10" class="core"/>
+  <text x="286" y="186" class="h">Commit</text>
+  <text x="286" y="210" class="s">inputs &amp; outputs</text>
+  <text x="286" y="226" class="s">become salted or</text>
+  <text x="286" y="242" class="s">HMAC digests;</text>
+  <text x="286" y="258" class="s">raw data discarded</text>
+
+  <path d="M422 225H438" stroke="#7ee2a8" stroke-width="1.8" fill="none" marker-end="url(#a)"/>
+  <rect x="444" y="160" width="150" height="130" rx="10" class="core"/>
+  <text x="458" y="186" class="h">Envelope</text>
+  <text x="458" y="210" class="s">canonical CBOR</text>
+  <text x="458" y="226" class="s">numbered sequence</text>
+  <text x="458" y="242" class="s">linked to the last</text>
+  <text x="458" y="258" class="s">one by digest</text>
+
+  <path d="M594 225H610" stroke="#7ee2a8" stroke-width="1.8" fill="none" marker-end="url(#a)"/>
+  <rect x="616" y="160" width="150" height="130" rx="10" class="core"/>
+  <text x="630" y="186" class="h">Hybrid sign</text>
+  <text x="630" y="210" class="s">ML-DSA-65</text>
+  <text x="630" y="226" class="s">(post-quantum)</text>
+  <text x="630" y="242" class="s">+ Ed25519</text>
+  <text x="630" y="258" class="s">both must verify</text>
+
+  <path d="M766 225H782" stroke="#7ee2a8" stroke-width="1.8" fill="none" marker-end="url(#a)"/>
+  <rect x="788" y="160" width="150" height="130" rx="10" class="core"/>
+  <text x="802" y="186" class="h">Transparency log</text>
+  <text x="802" y="210" class="s">RFC 6962 Merkle</text>
+  <text x="802" y="226" class="s">tree · signed head</text>
+  <text x="802" y="242" class="s">inclusion and</text>
+  <text x="802" y="258" class="s">consistency proofs</text>
+
+  <!-- core → verify -->
+  <path d="M938 225H972" stroke="#7ee2a8" stroke-width="1.8" fill="none" marker-end="url(#a)"/>
+
+  <!-- ③ anchors -->
+  <text x="440" y="342" class="kb">③ ANCHORS &amp; CONTROLS</text>
+
+  <rect x="272" y="354" width="322" height="124" rx="10" class="anc"/>
+  <text x="286" y="380" class="h">Agent authorization <tspan class="s" font-weight="400">(optional)</tspan></text>
+  <text x="286" y="404" class="s">principal → delegation → signed policy decision</text>
+  <text x="286" y="420" class="s">→ gateway that owns the tool and fails closed</text>
+  <text x="286" y="436" class="s">nonces consumed once · replay refused</text>
+  <text x="286" y="456" class="s">every step becomes an envelope too</text>
+  <path d="M347 354V296" stroke="#79c0ff" stroke-width="1.6" fill="none" marker-end="url(#b)"/>
+  <text x="354" y="318" class="l">permit, then record</text>
+
+  <rect x="616" y="354" width="150" height="124" rx="10" class="anc"/>
+  <text x="630" y="380" class="h">Keys &amp; hardware</text>
+  <text x="630" y="404" class="s">local · KMS* · HSM*</text>
+  <text x="630" y="420" class="s">Intel TDX on Phala</text>
+  <text x="630" y="436" class="s">AMD SEV-SNP · Nitro</text>
+  <text x="630" y="452" class="s">NVIDIA CC*</text>
+  <path d="M691 354V296" stroke="#79c0ff" stroke-width="1.6" fill="none" marker-end="url(#b)"/>
+  <text x="698" y="318" class="l">binds the key</text>
+
+  <rect x="788" y="354" width="150" height="124" rx="10" class="anc"/>
+  <text x="802" y="380" class="h">Witnesses &amp; time</text>
+  <text x="802" y="404" class="s">witnesses check and</text>
+  <text x="802" y="420" class="s">co-sign tree heads</text>
+  <text x="802" y="436" class="s">Bitcoin timestamps</text>
+  <text x="802" y="452" class="s">RFC 3161 TSA</text>
+  <path d="M863 354V296" stroke="#79c0ff" stroke-width="1.6" fill="none" marker-end="url(#b)"/>
+  <text x="870" y="318" class="l">vouch for heads</text>
+
+  <!-- ④ verify -->
+  <rect x="978" y="148" width="190" height="330" rx="12" fill="#0d131a" stroke="#2a3644"/>
+  <rect x="990" y="160" width="166" height="76" rx="9" class="card"/>
+  <text x="1002" y="184" class="h">Portable bundle</text>
+  <text x="1002" y="204" class="s">receipts · proofs · manifest</text>
+  <text x="1002" y="220" class="s">one folder, no server</text>
+
+  <rect x="990" y="244" width="166" height="60" rx="9" class="card"/>
+  <text x="1002" y="268" class="h">+ fingerprint</text>
+  <text x="1002" y="288" class="s">sent separately, pins keys</text>
+
+  <rect x="990" y="312" width="166" height="98" rx="9" class="card"/>
+  <text x="1002" y="336" class="h">Offline verifier</text>
+  <rect x="1002" y="346" width="52" height="20" rx="10" fill="#12301f" stroke="#3fb950"/>
+  <text x="1028" y="360" class="chip" fill="#56d364" text-anchor="middle">VALID</text>
+  <rect x="1060" y="346" width="62" height="20" rx="10" fill="#3a1418" stroke="#f85149"/>
+  <text x="1091" y="360" class="chip" fill="#ff7b72" text-anchor="middle">INVALID</text>
+  <rect x="1002" y="372" width="120" height="20" rx="10" fill="#33270e" stroke="#d29922"/>
+  <text x="1062" y="386" class="chip" fill="#e3b341" text-anchor="middle">INDETERMINATE</text>
+  <text x="1002" y="404" fill="#9aa7b4" font-size="10.5">a reason for every check</text>
+
+  <rect x="990" y="418" width="166" height="50" rx="9" class="card"/>
+  <text x="1002" y="438" class="s">auditors · regulators</text>
+  <text x="1002" y="455" class="s">customers · courts · SIEM</text>
+
+  <!-- footer strip -->
+  <rect x="32" y="500" width="1136" height="70" rx="12" fill="#0d131a" stroke="#1f2a36"/>
+  <text x="56" y="530" fill="#e6edf3" font-size="13.5" font-weight="700">What leaves your system:</text>
+  <text x="226" y="530" fill="#9aa7b4" font-size="13.5">digests, signatures and proofs. Never the raw prompts, inputs or outputs.</text>
+  <text x="56" y="554" fill="#9aa7b4" font-size="12">A missing, altered, reordered or replayed record makes verification fail. A gap is never reported as success.</text>
+  <text x="1148" y="554" fill="#6e7b88" font-size="11.5" text-anchor="end">* experimental</text>
+</svg>

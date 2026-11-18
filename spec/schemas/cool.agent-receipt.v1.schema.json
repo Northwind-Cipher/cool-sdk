@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Northwind-Cipher/cool-sdk/spec/schemas/cool.agent-receipt.v1.schema.json",
+  "title": "cool.agent-receipt.v1",
+  "description": "The Agent Execution Receipt: the human-readable view of one signed agent.execution envelope (cool.envelope.v1). The envelope is the signed source of truth; this view is derived from it and carries the envelope digest so the two can be matched. Raw inputs and outputs are never included, only keyed digests. See docs/agent-receipt.md for field meanings and the versioning rule.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "event_id", "timestamp", "time_source", "agent_id", "initiator_id",
+    "authority_ref", "policy_version", "tool_name", "target_resource", "correlation_id",
+    "sequence_number", "outcome", "capture", "payload", "signer", "evidence"
+  ],
+  "properties": {
+    "schema_version": { "const": "cool.agent-receipt.v1" },
+    "event_id": { "type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$", "description": "ULID, unique per receipt" },
+    "timestamp": { "type": "string", "format": "date-time", "description": "When the action was recorded (UTC, ISO 8601)" },
+    "time_source": { "type": "string", "description": "Where the timestamp came from and how far it can be trusted" },
+    "agent_id": { "type": "string", "minLength": 1, "description": "Declared identity of the agent. Not independently authenticated." },
+    "initiator_id": { "type": "string", "minLength": 1, "description": "Declared person or system that asked for the action, or the literal 'unknown'" },
+    "authority_ref": { "type": ["string", "null"], "description": "Reference to the approval, ticket or grant relied on (declared)" },
+    "policy_version": { "type": ["string", "null"], "description": "Policy in force (declared; CooL does not prove enforcement)" },
+    "tool_name": { "type": "string", "minLength": 1 },
+    "target_resource": { "type": ["string", "null"] },
+    "correlation_id": { "type": ["string", "null"] },
+    "sequence_number": { "type": "string", "pattern": "^([0-9]+\\.[0-9]+|unsequenced)$", "description": "<epoch>.<n>; contiguous per workspace epoch so a missing receipt shows as a gap" },
+    "outcome": { "enum": ["success", "failure", "denied", "error", "unknown"] },
+    "capture": { "enum": ["mcp_tool", "mcp_proxy", "hook", "sdk", "cli"], "description": "How the receipt was captured; mcp_proxy records every call that passes through, the others record what the agent or hook chose to record" },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_digest", "output_digest", "digest_scheme", "raw_payload_stored"],
+      "properties": {
+        "input_digest": { "type": ["string", "null"], "pattern": "^mh:sha256:[0-9a-f]{64}$" },
+        "output_digest": { "type": ["string", "null"], "pattern": "^mh:sha256:[0-9a-f]{64}$" },
+        "digest_scheme": { "const": "hmac-sha-256", "description": "HMAC-SHA-256 under the workspace's private commitment key over canonical JSON (sorted keys, no whitespace), domain-separated per field" },
+        "raw_payload_stored": { "const": false }
+      }
+    },
+    "signer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key_id", "algorithm", "fingerprint"],
+      "properties": {
+        "key_id": { "type": "string" },
+        "algorithm": { "const": "ml-dsa-65+ed25519", "description": "Hybrid: both signatures must verify" },
+        "fingerprint": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$", "description": "Workspace fingerprint over the receipt and log public keys; share it out of band to let others pin the keys" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["envelope_digest", "log"],
+      "properties": {
+        "envelope_digest": { "type": "string", "pattern": "^mh:sha256:[0-9a-f]{64}$" },
+        "log": { "type": "string", "description": "Workspace-relative path of the append-only receipt log" }
+      }
+    }
+  }
+}

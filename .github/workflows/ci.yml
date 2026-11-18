@@ -36,6 +36,45 @@ jobs:
         env:
           NO_COLOR: "1"
 
+  mcp:
+    name: MCP server (stdio, proxy, hook, tamper fixtures, tarball)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci && npm run build
+      # Until this cool-nwc version is on npm, the MCP package is tested against this commit's core.
+      - name: Install (core from this commit)
+        working-directory: mcp
+        run: npm pkg set dependencies.cool-nwc=file:.. && npm install --no-audit --no-fund
+      - name: Typecheck
+        working-directory: mcp
+        run: npm run typecheck
+      - name: Tests
+        working-directory: mcp
+        run: npm test
+      - name: Demo
+        working-directory: mcp
+        run: npm run demo
+        env:
+          NO_COLOR: "1"
+      - name: Tarball installs and runs (bin, record, seal, verify)
+        run: |
+          set -e
+          npm pack --pack-destination /tmp/pack
+          (cd mcp && npm pkg set dependencies.cool-nwc=^4.1.0 && npm run build && npm pack --pack-destination /tmp/pack)
+          mkdir -p /tmp/consumer/proj && cd /tmp/consumer && npm init -y >/dev/null
+          npm install --no-audit --no-fund /tmp/pack/cool-nwc-*.tgz /tmp/pack/northwindcipher-mcp-server-cool-*.tgz
+          npx --no-install mcp-server-cool record --workspace /tmp/consumer/proj --tool Edit --target README.md
+          npx --no-install mcp-server-cool seal --workspace /tmp/consumer/proj > seal.json
+          fp=$(node -p "require('./seal.json').fingerprint")
+          npx --no-install mcp-server-cool verify /tmp/consumer/proj/.cool/bundles/* --fingerprint "$fp"
+      - name: Plugin and marketplace JSON parse
+        run: for f in .claude-plugin/marketplace.json plugins/cool/.claude-plugin/plugin.json plugins/cool/.mcp.json plugins/cool/hooks/hooks.json mcp/mcpb/manifest.json; do node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))" && echo "ok $f"; done
+
   consumer:
     name: consumer install check
     runs-on: ubuntu-latest
