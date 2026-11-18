@@ -1,0 +1,20 @@
+{
+  "schema": "cool.mcp-bundle-manifest.v1",
+  "bundle_version": "cool.bundle.v1",
+  "receipt_schema": "cool.agent-receipt.v1 (agent.execution.v1 envelopes)",
+  "created_at": "2026-11-18T09:09:41.567Z",
+  "workspace": "ws_dda3cd2397ec265d",
+  "receipts": 2,
+  "tree": {
+    "log_id": "cool-mcp/ws_dda3cd2397ec265d",
+    "size": 2,
+    "root_hash": "mh:sha256:30c809955165850d1caf8a07b56902d1a3d1405ea4615a4126e4a8acd248763d"
+  },
+  "key_fingerprint": "sha256:c83ee3af5784ee03adfdf403b237e3f019906796bbc8e5f39767ad87ced10de5",
+  "files": {
+    "bundle.json": "sha256:07d1c1c870552f2c5094e76bdba5c0fc9657c8a549a980bda57a75c5974c23c3",
+    "trust.json": "sha256:562f8b99ce199608a5f6ffd513d71f676cec6596c8798b8130d7d85a2dbbacc0"
+  },
+  "coverage": "This bundle covers only actions recorded through CooL for workspace ws_dda3cd2397ec265d (receipts 1794992981.0–1794992981.1): MCP tool calls made through the CooL proxy, explicit cool_record_change calls, and configured hooks. Actions taken any other way (other tools, direct API calls, or while CooL was not running) are outside this boundary and cannot be shown to have happened or not. Timestamps come from the recording machine's clock.",
+  "contains_private_keys": false
+}

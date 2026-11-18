@@ -224,6 +224,26 @@ Verification gives one of six outcomes: **`verified`**, **`invalid`**, **`unsupp
 
 <br/>
 
+## 🔌 Use it from your AI tools (MCP)
+
+```bash
+claude mcp add cool -- npx -y @northwindcipher/mcp-server-cool --workspace "$PWD"
+```
+
+Claude Code, Claude Desktop, Cursor, Windsurf, VS Code, Codex CLI, Gemini CLI and any other MCP client can record what the agent does as **signed, numbered receipts**. Raw inputs and outputs are never stored, only keyed digests. CooL seals the receipts into a bundle that anyone can verify offline: **VALID**, **INVALID** or **INDETERMINATE**, with a reason for every check. The `proxy` mode records **every** call to another MCP server, without the agent having to ask.
+
+Claude Code plugin (the server, a hook for prompt, agent and policy edits, and `/cool-audit`):
+
+```
+/plugin install cool --marketplace Northwind-Cipher/cool-sdk
+```
+
+On older Claude Code: `/plugin marketplace add Northwind-Cipher/cool-sdk`, then `/plugin install cool@northwindcipher`.
+
+It proves the recorded history was not altered, pruned from the middle, reordered or replayed. It does not prove that every action went through CooL. See [docs/mcp.md](docs/mcp.md) (every client), [the receipt format](docs/agent-receipt.md) and [the scope and threat boundary](mcp/MVP_SCOPE.md). *Experimental, 0.1.0.*
+
+<br/>
+
 ## 🧰 What you get
 
 <table>
@@ -525,10 +545,11 @@ Built on a small set of well-known, dependency-light libraries: [`@noble/curves`
 |---|---|
 | 📄 [Whitepaper (PDF)](docs/whitepaper/cool-whitepaper.pdf) | CooL: A Verifiable Evidence System for Consequential Actions: the design in nine pages |
 | 🚦 [Showcase](docs/showcase.md) | Every capability in one self-checking run |
+| 🔌 [AI tools / MCP](docs/mcp.md) · [Agent Execution Receipt](docs/agent-receipt.md) · [MVP scope](mcp/MVP_SCOPE.md) · [Demo script](docs/demo-mcp.md) | Claude Code, Cursor, Codex, Gemini and more; the receipt format; what is and is not covered |
 | 🤖 [Authorization](docs/authorization.md) · [Demo scenarios A–H](docs/demo-scenarios.md) | Principals, delegation, decisions, the gateway |
 | 🎯 [Capabilities](docs/capabilities.md) · [Guarantees](docs/guarantees.md) · [Status by chapter](docs/milestones-status.md) | Every capability with one label and its evidence; each claim, its test and its limit |
 | 🔍 [Security review](docs/security-review/) | Internal review findings and fixes; the package for an independent review |
-| 🗂️ [Event taxonomy](docs/event-taxonomy.md) · [TEE support](docs/tee-support.md) · [Key management](docs/key-management.md) · [Nitro kit](examples/nitro-enclave/README.md) | 50 event families; Nitro / TDX / SNP / NVIDIA; KMS and HSM signers; running in a real enclave |
+| 🗂️ [Event taxonomy](docs/event-taxonomy.md) · [TEE support](docs/tee-support.md) · [Key management](docs/key-management.md) · [Nitro kit](examples/nitro-enclave/README.md) | 51 event families; Nitro / TDX / SNP / NVIDIA; KMS and HSM signers; running in a real enclave |
 | 🚢 [Deployment modes](docs/deployment-modes.md) · [Telemetry & egress](docs/telemetry-and-egress.md) · [Performance](docs/performance.md) | Where CooL runs; no phone-home; benchmarks |
 | 📋 [Compliance mapping](docs/compliance-mapping.md) · [Release criteria](docs/release-criteria.md) · [Governance](GOVERNANCE.md) | Sample control map; SBOM and provenance; the RFC process |
 | 🏁 [Getting started](docs/getting-started.md) | From install to first verified receipt |

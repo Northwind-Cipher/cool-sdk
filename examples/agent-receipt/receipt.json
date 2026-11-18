@@ -1,0 +1,31 @@
+{
+  "schema_version": "cool.agent-receipt.v1",
+  "event_id": "01M7PYPHGG8JEBCRP1TS6DNQYN",
+  "timestamp": "2026-11-18T09:09:41.512Z",
+  "time_source": "the recording machine's clock (not independently trusted)",
+  "agent_id": "agent:release-bot",
+  "initiator_id": "user:alice@example.com",
+  "authority_ref": "CHG-2026-0142",
+  "policy_version": "release-policy@7",
+  "tool_name": "github.create_pull_request",
+  "target_resource": "github.com/example-org/payments-api",
+  "correlation_id": "session-7f3a",
+  "sequence_number": "1794992981.0",
+  "outcome": "success",
+  "capture": "mcp_proxy",
+  "payload": {
+    "input_digest": "mh:sha256:428f2340337c4e0ae5010c3e58cff5d6dafbd0928236c1b440b83a442b57ee75",
+    "output_digest": "mh:sha256:953845c3f54045b79c2ea7f3e63802c028a41d8b1cecd8edb4d77289246056a5",
+    "digest_scheme": "hmac-sha-256",
+    "raw_payload_stored": false
+  },
+  "signer": {
+    "key_id": "cool-mcp-ws_dda3cd2397ec265d",
+    "algorithm": "ml-dsa-65+ed25519",
+    "fingerprint": "sha256:c83ee3af5784ee03adfdf403b237e3f019906796bbc8e5f39767ad87ced10de5"
+  },
+  "evidence": {
+    "envelope_digest": "mh:sha256:f784a22cfaf29a693ff7d2b7ec065843a534bd5a44cb90b2349e265268be6f45",
+    "log": ".cool/mcp/receipts.jsonl"
+  }
+}

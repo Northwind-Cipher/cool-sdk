@@ -82,6 +82,9 @@ const FAMILIES: Record<string, Record<string, FieldSpec>> = {
   "policy.updated": { policy_id: r("string"), version: r("string"), policy_digest: r("digest"), previous_digest: o("digest") },
   "execution.started": { workload_id: r("string"), artifact_digest: r("digest"), config_digest: r("digest"), platform: r("string") },
   "tool.invoked": { tool: r("string"), request_id: r("string"), decision_id: o("string") },
+  // The Agent Execution Receipt (MCP tool calls, hooks, SDK capture). Raw inputs and outputs are never
+  // carried: only keyed digests. `initiator` is required and is "unknown" when the caller did not supply one.
+  "agent.execution": { tool: r("string"), target: o("string"), outcome: r("enum:success|failure|denied|error|unknown"), capture: r("enum:mcp_tool|mcp_proxy|hook|sdk|cli"), initiator: r("string"), authority_ref: o("string"), policy_version: o("string"), correlation_id: o("string"), input_digest: o("digest"), output_digest: o("digest"), digest_scheme: o("enum:hmac-sha-256|sha-256"), change_kind: o("string"), server: o("string"), duration_ms: o("int") },
   "external.confirmed": { confirmation_id: r("string"), target: r("string"), request_id: r("string"), decision_id: o("string"), outcome: r("enum:completed|rejected|failed|unknown|timed_out"), reason: r("string"), response_digest: o("digest"), confirmation_digest: r("digest") },
   "attestation.recorded": { platform: r("enum:aws-nitro|intel-tdx|amd-sev-snp|nvidia-cc|phala-dstack"), document_digest: r("digest"), outcome: r("enum:verified|invalid|unsupported|stale|incomplete|indeterminate") },
   "receipt.published": { receipt_digest: r("digest"), log_id: r("string"), leaf_index: r("int") },

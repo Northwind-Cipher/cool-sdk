@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "cool": {
+      "command": "npx",
+      "args": ["-y", "@northwindcipher/mcp-server-cool@0.1"],
+      "env": { "COOL_WORKSPACE": "${CLAUDE_PROJECT_DIR}" }
+    }
+  }
+}

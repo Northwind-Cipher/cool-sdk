@@ -81,6 +81,38 @@ test("bundles: a sequence gap is incomplete; an altered attachment is invalid", 
   assert.equal(verifyBundle(withAtt, { registry, trust: trust() }).checks.attachments_bound.reason, "attachment_mismatch");
 });
 
+test("bundles: a replayed (duplicated) envelope and a reordered history are both invalid", async () => {
+  const { TransparencyLog } = await import("../src/platform/index");
+  const [a, b] = [0, 1].map((n) => signEnvelope(createEnvelope(commitInput({ event_id: `o${n}`, sequence: { epoch: 4, number: n } }), registry), KEYS.source)) as [ReturnType<typeof signEnvelope>, ReturnType<typeof signEnvelope>];
+  const dup = verifyBundle(JSON.parse(JSON.stringify(exportBundle({ title: "dup", envelopes: [a, b, a], trust: trust(), exporter: KEYS.exporter }))), { registry, trust: trust() });
+  assert.equal(dup.checks.duplicates_absent.reason, "duplicate_evidence");
+  assert.equal(dup.outcome, "invalid");
+
+  // Logged in the wrong order: sequence 1 sits at a lower leaf index than sequence 0.
+  const log = new TransparencyLog("order-test", KEYS.log);
+  const pb = log.publish(b);
+  const pa = log.publish(a);
+  const inOrder = [pa, pb].map((e) => ({ ...e, checkpoint: log.checkpoint(e.digest)! }));
+  const r = verifyBundle(JSON.parse(JSON.stringify(exportBundle({ title: "order", envelopes: inOrder, trust: trust(), exporter: KEYS.exporter }))), { registry, trust: trust() });
+  assert.equal(r.checks.order_consistent.reason, "order_mismatch");
+  assert.equal(r.outcome, "invalid");
+});
+
+test("transparency: checkpoints() proves many envelopes against one signed tree head", async () => {
+  const { TransparencyLog } = await import("../src/platform/index");
+  const envs = [0, 1, 2, 3, 4].map((n) => signEnvelope(createEnvelope(commitInput({ event_id: `c${n}`, sequence: { epoch: 5, number: n } }), registry), KEYS.source));
+  const log = new TransparencyLog("batch-test", KEYS.log);
+  assert.deepEqual(envs.map((e) => log.add(e)), [0, 1, 2, 3, 4]);
+  assert.equal(log.add(envs[0]!), 0, "add is idempotent by digest");
+  const cps = log.checkpoints(envs.map((e) => e.digest));
+  assert.equal(new Set(cps.map((c) => JSON.stringify(c.sth))).size, 1, "one tree head");
+  assert.deepEqual(cps.map((c) => c.leaf_index), [0, 1, 2, 3, 4]);
+  const sealed = envs.map((e, i) => ({ ...e, checkpoint: cps[i]! }));
+  const r = verifyBundle(JSON.parse(JSON.stringify(exportBundle({ title: "batch", envelopes: sealed, trust: trust(), exporter: KEYS.exporter }))), { registry, trust: trust(), requireCheckpoint: true });
+  assert.equal(r.outcome, "verified", r.reasons.join("; "));
+  assert.throws(() => log.checkpoints(["mh:sha256:" + "0".repeat(64)]), /not published/);
+});
+
 test("agent demo: scenarios A–H all hold, and the artifacts are written", async () => {
   const out = await runAgentDemo({ dir: join(mkdtempSync(join(tmpdir(), "cool-demo-test-")), "out"), quiet: true });
   assert.deepEqual(out.results.filter((r) => !r.ok).map((r) => `${r.scenario}: ${r.claim}`), []);

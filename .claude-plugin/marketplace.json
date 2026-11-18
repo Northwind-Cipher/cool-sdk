@@ -1,0 +1,16 @@
+{
+  "name": "northwindcipher",
+  "owner": { "name": "Northwind Cipher", "url": "https://github.com/Northwind-Cipher" },
+  "metadata": { "description": "Claude Code plugins from Northwind Cipher: CooL verifiable evidence for AI agents." },
+  "plugins": [
+    {
+      "name": "cool",
+      "source": "./plugins/cool",
+      "description": "Signed, tamper-evident, offline-verifiable receipts for what Claude Code does in your project. Experimental.",
+      "version": "0.1.0",
+      "license": "Apache-2.0",
+      "category": "security",
+      "keywords": ["audit", "evidence", "compliance"]
+    }
+  ]
+}

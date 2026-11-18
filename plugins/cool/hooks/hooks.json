@@ -1,0 +1,13 @@
+{
+  "description": "CooL: record a signed receipt when Claude edits a prompt, agent, policy or model-configuration file (CLAUDE.md, AGENTS.md, .cursorrules, prompts/, agents/, policies/, .mcp.json, *.rego, .env and similar). Other files are ignored. A failure to record is shown to you, never hidden.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "npx -y @northwindcipher/mcp-server-cool@0.1 hook", "timeout": 60 }
+        ]
+      }
+    ]
+  }
+}

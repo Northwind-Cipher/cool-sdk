@@ -1,0 +1,9 @@
+How to verify this CooL evidence bundle (works offline, no account needed):
+
+  npx -y @northwindcipher/mcp-server-cool verify . --fingerprint sha256:c83ee3af5784ee03adfdf403b237e3f019906796bbc8e5f39767ad87ced10de5
+
+Get the fingerprint from the person who recorded the evidence through a separate channel
+(a call, a signed email). Without it, the result is at best INDETERMINATE: the bundle's own
+key list proves nothing about who should be trusted.
+
+Coverage: This bundle covers only actions recorded through CooL for workspace ws_dda3cd2397ec265d (receipts 1794992981.0–1794992981.1): MCP tool calls made through the CooL proxy, explicit cool_record_change calls, and configured hooks. Actions taken any other way (other tools, direct API calls, or while CooL was not running) are outside this boundary and cannot be shown to have happened or not. Timestamps come from the recording machine's clock.

@@ -1,0 +1,10 @@
+{
+  "name": "cool",
+  "version": "0.1.0",
+  "description": "Signed, tamper-evident receipts for what Claude Code does in your project: records changes to prompt, agent and policy files automatically, and seals them into a bundle anyone can verify offline. Experimental.",
+  "author": { "name": "Northwind Cipher", "url": "https://github.com/Northwind-Cipher" },
+  "homepage": "https://github.com/Northwind-Cipher/cool-sdk/blob/main/docs/mcp.md",
+  "repository": "https://github.com/Northwind-Cipher/cool-sdk",
+  "license": "Apache-2.0",
+  "keywords": ["audit", "evidence", "receipts", "compliance", "mcp", "post-quantum"]
+}

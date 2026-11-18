@@ -1,6 +1,6 @@
 # Event taxonomy
 
-CooL has **50 typed, versioned event families** (`<event_type>.v1`, defined in `src/platform/payloads.ts`). Validation is strict: unknown fields, wrong types and missing required fields are rejected. Untyped JSON never becomes security-critical evidence.
+CooL has **51 typed, versioned event families** (`<event_type>.v1`, defined in `src/platform/payloads.ts`). Validation is strict: unknown fields, wrong types and missing required fields are rejected. Untyped JSON never becomes security-critical evidence.
 
 ## Five kinds of time
 
@@ -41,6 +41,7 @@ Every envelope separates five kinds of time:
 | `attestation.recorded` | platform, document_digest, outcome | evidence | P0 | — |
 | `receipt.published`, `checkpoint.signed`, `witness.signed` | digests, log id, tree size | evidence | P0 | — |
 | `incident.annotated` | incident_id, annotation_digest, analyst | evidence | P1 | **an annotation, never a verified fact** |
+| `agent.execution` | tool, outcome, capture, initiator (`unknown` when not supplied); optional target, authority_ref, policy_version, correlation_id, input/output digests | evidence; usually sequenced | P0: inputs and outputs only as keyed digests | the Agent Execution Receipt written by the MCP server, proxy, hooks and SDK |
 | `legacy.receipt` | legacy_schema, record_id, receipt_digest | evidence | P0 | wraps a `cool.receipt.v2` unchanged |
 
 The earlier families keep their definitions in the payload registry: supply chain, identity, change control, runtime, incidents and AI inference.

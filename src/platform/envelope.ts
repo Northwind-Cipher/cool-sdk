@@ -241,6 +241,21 @@ export async function signEnvelopeAsync(core: EnvelopeCore, keys: AsyncSigner | 
   } as SignedEnvelope);
 }
 
+/**
+ * Many envelopes in one bundle share a tree head; verifying its signature once per
+ * distinct (message, signature, key) is enough. A bounded memo of a pure function.
+ */
+const sthMemo = new Map<string, boolean>();
+function sthSignatureOk(message: Uint8Array, sig: Parameters<typeof hybridVerify>[1], key: Parameters<typeof hybridVerify>[2]): boolean {
+  const k = `${toBase64(message)}|${sig.key_id}|${sig.ml_dsa}|${sig.ed25519}|${key.ml_dsa_pub}|${key.ed25519_pub}`;
+  const hit = sthMemo.get(k);
+  if (hit !== undefined) return hit;
+  const ok = hybridVerify(message, sig, key).ok;
+  if (sthMemo.size >= 256) sthMemo.delete(sthMemo.keys().next().value!);
+  sthMemo.set(k, ok);
+  return ok;
+}
+
 /** Attach a transparency checkpoint (from a log the caller published to). */
 export function withCheckpoint(env: SignedEnvelope, checkpoint: Checkpoint): SignedEnvelope {
   return { ...env, checkpoint };
@@ -396,7 +411,7 @@ export function verifyEnvelope(env: SignedEnvelope, options: VerifyEnvelopeOptio
       : check("fail", "inclusion_invalid", "the audit path does not lead to the checkpoint root", { algorithm: "rfc6962-sha-256" });
 
     const logKey = options.trust.get(cp.sth.signature.key_id);
-    const sthOk = !!logKey && hybridVerify(sthSigningMessage(sthCore(cp.sth)), cp.sth.signature, logKey.entry).ok;
+    const sthOk = !!logKey && sthSignatureOk(sthSigningMessage(sthCore(cp.sth)), cp.sth.signature, logKey.entry);
     const logTrust = options.trust.evaluate({ keyId: cp.sth.signature.key_id, purpose: "log", now });
     const age = now - Date.parse(cp.sth.timestamp);
     const witnessKeys = cp.sth.witnesses.filter((w) => {

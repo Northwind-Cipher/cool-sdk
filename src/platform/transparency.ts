@@ -36,6 +36,16 @@ export class TransparencyLog {
     return this.#log.size;
   }
 
+  /** Append an envelope (idempotent by digest) without signing a tree head; returns its leaf index. Pair with checkpoints(). */
+  add(env: SignedEnvelope): number {
+    let index = this.#index.get(env.digest);
+    if (index === undefined) {
+      index = this.#log.append(envelopeLeaf(env)).leafIndex;
+      this.#index.set(env.digest, index);
+    }
+    return index;
+  }
+
   /** Append an envelope (idempotent by digest) and return it with a checkpoint. */
   publish(env: SignedEnvelope): SignedEnvelope {
     let index = this.#index.get(env.digest);
@@ -44,6 +54,20 @@ export class TransparencyLog {
       this.#index.set(env.digest, index);
     }
     return withCheckpoint(env, this.checkpoint(env.digest)!);
+  }
+
+  /**
+   * Checkpoints for many published digests against ONE signed tree head: one signature
+   * instead of one per digest. Throws if a digest was never published.
+   */
+  checkpoints(digests: readonly string[], witnesses: readonly KeyPair[] = []): Checkpoint[] {
+    let sth: STH = this.#log.buildSTH(this.#clock().toISOString());
+    for (const w of witnesses) sth = { ...sth, witnesses: [...sth.witnesses, cosign(sth, w).witness] };
+    return digests.map((d) => {
+      const index = this.#index.get(d);
+      if (index === undefined) throw new Error(`digest ${d} was not published to this log`);
+      return { sth, leaf_index: index, audit_path: this.#log.inclusionAuditPath(index) };
+    });
   }
 
   /** A fresh checkpoint for a published digest, at the current tree head. */

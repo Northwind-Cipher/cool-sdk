@@ -7,6 +7,28 @@ independently (`cool.evidence.v1`, `cool.receipt.v2`).
 
 ## [Unreleased]
 
+## [4.1.0] — 2026-11-18
+
+### Added
+- **The Agent Execution Receipt.** A new event family, `agent.execution` (51 families in total), and the readable view `cool.agent-receipt.v1`, with a JSON Schema (`spec/schemas/cool.agent-receipt.v1.schema.json`), an example and a golden bundle (`examples/agent-receipt/`), and a versioning rule (`docs/agent-receipt.md`). Inputs and outputs are carried only as keyed digests. `initiator` is required and is `unknown` when it was not supplied.
+- **Bundles detect replay and reordering.** These are new checks in `verifyBundle`:
+  - `duplicates_absent`: the same envelope, event id or sequence number twice gives `duplicate_evidence`.
+  - `order_consistent`: a sequence order that disagrees with the transparency-log order gives `order_mismatch`.
+
+  Both give `invalid`.
+- **`TransparencyLog.add()` and `TransparencyLog.checkpoints()`.** Append without signing, then prove many envelopes against one signed tree head. Sealing 1,000 receipts drops from about 27 s to about 2.5 s.
+- **Faster bundle verification.** A tree head shared by many envelopes has its signature verified once (a bounded memo of a pure function). Verification takes about 4.6 ms per receipt, down from about 9 ms.
+- **`@northwindcipher/mcp-server-cool` 0.1.0** (in `mcp/`, experimental): an MCP server for any MCP client.
+  - **Tools:** `cool_record_change`, `cool_seal_log`, `cool_verify_receipt` and `cool_status`.
+  - **Capture modes:** a proxy that records every call to a wrapped MCP server, and a Claude Code PostToolUse hook.
+  - **Workspace:** explicit and validated. It never falls back silently to the current directory.
+  - **Crash handling:** torn writes are recovered visibly.
+  - **Offline verifier:** VALID / INVALID / INDETERMINATE.
+  - **Export:** JSONL for SIEMs.
+  - **Packaging:** a Claude Code plugin with a marketplace (`plugins/cool`, `.claude-plugin/marketplace.json`) and a `.mcpb` manifest for Claude Desktop.
+  - **Docs:** `docs/mcp.md` covers Claude Code, Claude Desktop, Cursor, Windsurf, VS Code, Codex CLI and Gemini CLI. The scope and threat boundary is in `mcp/MVP_SCOPE.md`.
+- Capability registry: `agent-receipt`, `mcp-server`, `mcp-proxy`, `offline-verifier` and `siem-jsonl` are **implemented**. `claude-plugin`, `mcpb` and `other-mcp-clients` are **experimental**. `otel-export` and `witness-service` are **planned**.
+
 ## [4.0.0] — 2026-11-01
 
 **CooL's open core, under Apache-2.0.** This package now contains everything needed to adopt CooL and to verify its evidence independently. The operational, enterprise layer moves to the separately licensed commercial CooL platform. See `docs/open-core.md`.
